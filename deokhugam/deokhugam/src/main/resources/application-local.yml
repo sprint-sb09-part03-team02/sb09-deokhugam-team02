@@ -1,0 +1,37 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/deokhugam
+    username: YOUR_DB_USERNAME
+    password: YOUR_DB_PASSWORD
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+cloud:
+  aws:
+    s3:
+      bucket: YOUR_BUCKET_NAME
+    region:
+      static: ap-northeast-2
+    credentials:
+      access-key: YOUR_ACCESS_KEY
+      secret-key: YOUR_SECRET_KEY
+
+naver:
+  api:
+    client-id: YOUR_NAVER_CLIENT_ID
+    client-secret: YOUR_NAVER_CLIENT_SECRET
+
+ocr:
+  api:
+    key: YOUR_OCR_API_KEY
+
+jwt:
+  secret: YOUR_JWT_SECRET_KEY
+  expiration: 86400000  # 24시간
