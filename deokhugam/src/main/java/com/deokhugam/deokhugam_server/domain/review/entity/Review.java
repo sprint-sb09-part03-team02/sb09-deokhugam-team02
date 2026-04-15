@@ -10,20 +10,20 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED) // 1. 무분별한 객체 생성을 막습니다 (C++의 protected 생성자)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
     name = "review",
     uniqueConstraints = {
         @UniqueConstraint(
             name = "uk_book_user",
-            columnNames = {"book_id", "user_id"} // 2. 도서별 1인 1리뷰 제약 조건
+            columnNames = {"book_id", "user_id"}
         )
     }
 )
 public class Review extends BaseEntity {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.UUID) // 3. 명세서에 따른 UUID 자동 생성
+  @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
   @Column(name = "book_id", nullable = false)
