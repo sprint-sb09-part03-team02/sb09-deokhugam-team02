@@ -16,6 +16,20 @@ application.properties
 application-*.properties
 application.yml
 application-dev.yml
+application-local.yml
+
+### Logs ###
+*.log
+logs/
+nohup.out
+
+### Temp & Backup ###
+*.tmp
+*.orig
+*.bak
+
+### Docker local override ###
+docker-compose.override.yml
 
 ### STS ###
 .apt_generated
