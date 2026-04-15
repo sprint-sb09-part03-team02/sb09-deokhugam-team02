@@ -35,6 +35,7 @@ public class UserServiceImpl implements UserService{
     }
     String encodedPassword = passwordEncoder.encode(request.password());
     User user = User.builder()
+        .id(UUID.randomUUID())
         .email(request.email())
         .nickname(request.nickname())
         .password(encodedPassword)
