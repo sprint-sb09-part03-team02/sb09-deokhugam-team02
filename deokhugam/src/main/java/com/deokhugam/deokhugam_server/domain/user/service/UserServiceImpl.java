@@ -1,5 +1,7 @@
 package com.deokhugam.deokhugam_server.domain.user.service;
 
+import static com.deokhugam.deokhugam_server.global.exception.ErrorCode.*;
+
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserLoginRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserRegisterRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserUpdateRequest;
@@ -8,6 +10,7 @@ import com.deokhugam.deokhugam_server.domain.user.dto.response.UserDto;
 import com.deokhugam.deokhugam_server.domain.user.entity.User;
 import com.deokhugam.deokhugam_server.domain.user.mapper.UserMapper;
 import com.deokhugam.deokhugam_server.domain.user.repository.UserRepository;
+import com.deokhugam.deokhugam_server.global.exception.DeokhugamException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -28,10 +31,10 @@ public class UserServiceImpl implements UserService{
   @Transactional
   public UserDto register(UserRegisterRequest request) {
     if(userRepository.existsByEmail(request.email())) {
-      throw new RuntimeException("이미 존재하는 이메일 입니다.");
+      throw new DeokhugamException(DUPLICATE_EMAIL);
     }
     if(userRepository.existsByNickname(request.nickname())) {
-      throw new RuntimeException("이미 존재하는 닉네임 입니다.");
+      throw new DeokhugamException(DUPLICATE_NICKNAME);
     }
     String encodedPassword = passwordEncoder.encode(request.password());
     User user = User.builder()
@@ -49,14 +52,14 @@ public class UserServiceImpl implements UserService{
     return userRepository.findByEmail(request.email())
         .filter(u -> passwordEncoder.matches(request.password(), u.getPassword()))
         .map(userMapper::toDto)
-        .orElseThrow(() -> new RuntimeException("로그인 정보가 일치하지 않습니다."));
+        .orElseThrow(() -> new DeokhugamException(LOGIN_FAILED));
   }
 
   @Override
   public UserDto find(UUID userId) {
     return userRepository.findById(userId)
         .map(userMapper::toDto)
-        .orElseThrow(() -> new RuntimeException("일치하는 사용자 정보가 없습니다."));
+        .orElseThrow(() -> new DeokhugamException(USER_NOT_FOUND));
   }
 
   @Override
@@ -75,10 +78,10 @@ public class UserServiceImpl implements UserService{
   @Transactional
   public void update(UUID userId, UserUpdateRequest request) {
     User user = userRepository.findById(userId).orElseThrow(() ->
-        new RuntimeException("존재하지 않는 사용자 입니다."));
+        new DeokhugamException(USER_NOT_FOUND));
     if (!user.getNickname().equals(request.nickname())) {
       if (userRepository.existsByNickname(request.nickname())) {
-        throw new RuntimeException("이미 존재하는 닉네임 입니다.");
+        throw new DeokhugamException(DUPLICATE_NICKNAME);
       }
       user.updateNickname(request.nickname());
     }
@@ -88,7 +91,7 @@ public class UserServiceImpl implements UserService{
   @Transactional
   public void deleteSoft(UUID userId) {
     User user = userRepository.findById(userId)
-        .orElseThrow(() -> new RuntimeException("존재하지 않는 사용자 입니다."));
+        .orElseThrow(() -> new DeokhugamException(USER_NOT_FOUND));
     user.delete();
 
   }
@@ -96,7 +99,7 @@ public class UserServiceImpl implements UserService{
   @Override
   public void deleteHard(UUID userId) {
     userRepository.findById(userId)
-        .orElseThrow(() -> new RuntimeException("존재하지 않는 사용자 입니다."));
+        .orElseThrow(() -> new DeokhugamException(USER_NOT_FOUND));
     userRepository.deleteById(userId);
   }
 
