@@ -1,5 +1,8 @@
 package com.deokhugam.deokhugam_server.domain.user.repository;
 
-public class UserRepository {
+import com.deokhugam.deokhugam_server.domain.user.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface UserRepository extends JpaRepository<User, Long> {
 
 }

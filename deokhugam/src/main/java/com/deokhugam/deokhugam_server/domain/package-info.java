@@ -1,1 +1,0 @@
-package com.deokhugam.deokhugam_server.domain;
