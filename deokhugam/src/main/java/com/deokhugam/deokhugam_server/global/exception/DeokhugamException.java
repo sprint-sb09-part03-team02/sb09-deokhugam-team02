@@ -1,8 +1,13 @@
 package com.deokhugam.deokhugam_server.global.exception;
 
-public class DeokhugamException extends RuntimeException {
+import lombok.Getter;
 
-  public DeokhugamException(String message) {
-    super(message);
+@Getter
+public class DeokhugamException extends RuntimeException {
+  private final ErrorCode errorCode;
+
+  public DeokhugamException(ErrorCode errorCode) {
+    super(errorCode.getMessage());
+    this.errorCode = errorCode;
   }
 }
