@@ -22,7 +22,7 @@ public class UserHardDeleteBatch {
     List<User> targets = userRepository.findAllByIsDeletedTrueAndDeletedAtBefore(threshold);
 
     if (!targets.isEmpty()) {
-      userRepository.deleteAll(targets);
+      userRepository.deleteAllInBatch(targets);
     }
   }
 
