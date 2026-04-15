@@ -14,9 +14,8 @@ build/
 *.env.*
 application.properties
 application-*.properties
-application.yml
-application-dev.yml
 application-local.yml
+application-test.yml
 
 ### Logs ###
 *.log
