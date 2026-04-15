@@ -5,7 +5,6 @@ import com.deokhugam.deokhugam_server.domain.user.dto.request.UserRegisterReques
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserUpdateRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.response.Period;
 import com.deokhugam.deokhugam_server.domain.user.dto.response.UserDto;
-import com.deokhugam.deokhugam_server.domain.user.entity.User;
 import com.deokhugam.deokhugam_server.domain.user.service.UserService;
 import jakarta.validation.Valid;
 import java.util.List;
