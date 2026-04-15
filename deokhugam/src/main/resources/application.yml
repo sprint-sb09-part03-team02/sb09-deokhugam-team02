@@ -2,7 +2,7 @@ spring:
   application:
     name: deokhugam
   profiles:
-    active: local   # 기본값 로컬, ECS에서는 환경변수로 dev로 오버라이드
+    active: local   # 기본값 로컬, ECS는 환경변수 dev로 오버라이드
 
 logging:
   pattern:
