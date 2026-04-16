@@ -83,6 +83,11 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
+      - name: Task Definition ARN 치환
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          sed -i "s/\${AWS_ACCOUNT_ID}/$ACCOUNT_ID/g" task-definition.json
+
       - name: ECS Task Definition 업데이트
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1

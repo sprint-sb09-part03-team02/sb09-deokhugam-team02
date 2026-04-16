@@ -83,7 +83,7 @@ GitHub 저장소 → Settings → Secrets and variables → Actions 에서 등�
         "ecr:UploadLayerPart",
         "ecr:CompleteLayerUpload"
       ],
-      "Resource": "arn:aws:ecr:ap-northeast-2:297904677990:repository/deokhugam"
+      "Resource": "arn:aws:ecr:ap-northeast-2:{aws Id}:repository/deokhugam"
     },
     {
       "Sid": "ECSDeployRead",
@@ -107,7 +107,7 @@ GitHub 저장소 → Settings → Secrets and variables → Actions 에서 등�
       "Sid": "PassExecutionRole",
       "Effect": "Allow",
       "Action": "iam:PassRole",
-      "Resource": "arn:aws:iam::297904677990:role/ecsTaskExecutionRole"
+      "Resource": "arn:aws:iam::{aws Id}:role/ecsTaskExecutionRole"
     }
   ]
 }
@@ -130,7 +130,7 @@ GitHub 저장소 → Settings → Secrets and variables → Actions 에서 등�
       "Sid": "SecretsManagerRead",
       "Effect": "Allow",
       "Action": "secretsmanager:GetSecretValue",
-      "Resource": "arn:aws:secretsmanager:ap-northeast-2:297904677990:secret:deokhugam/prod*"
+      "Resource": "arn:aws:secretsmanager:ap-northeast-2:{aws Id}:secret:deokhugam/prod*"
     },
     {
       "Sid": "CloudWatchLogs",
@@ -140,7 +140,7 @@ GitHub 저장소 → Settings → Secrets and variables → Actions 에서 등�
         "logs:CreateLogStream",
         "logs:PutLogEvents"
       ],
-      "Resource": "arn:aws:logs:ap-northeast-2:297904677990:log-group:/ecs/deokhugam-task:*"
+      "Resource": "arn:aws:logs:ap-northeast-2:{aws Id}:log-group:/ecs/deokhugam-task:*"
     }
   ]
 }
