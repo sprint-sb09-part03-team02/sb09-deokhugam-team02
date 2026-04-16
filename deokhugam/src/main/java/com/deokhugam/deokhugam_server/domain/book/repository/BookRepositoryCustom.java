@@ -1,6 +1,7 @@
 package com.deokhugam.deokhugam_server.domain.book.repository;
 
 import com.deokhugam.deokhugam_server.domain.book.dto.request.BookSearchRequest;
+import com.deokhugam.deokhugam_server.domain.book.dto.response.BookRankQueryDto;
 import com.deokhugam.deokhugam_server.domain.book.entity.Book;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,4 +16,5 @@ public interface BookRepositoryCustom {
             LocalDateTime endDate,
             int limit
     );
+    List<BookRankQueryDto> findBookStatisticsForRanking(LocalDateTime startDate, LocalDateTime endDate);
 }
