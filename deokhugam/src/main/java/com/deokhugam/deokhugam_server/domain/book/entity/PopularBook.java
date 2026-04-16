@@ -1,4 +1,4 @@
-package com.deokhugam.deokhugam_server.domain.user.entity;
+package com.deokhugam.deokhugam_server.domain.book.entity;
 
 import com.deokhugam.deokhugam_server.domain.user.dto.response.Period;
 import com.deokhugam.deokhugam_server.global.entity.BaseEntity;
@@ -19,15 +19,15 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class PowerUser extends BaseEntity {
+public class PopularBook extends BaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "user_id")
-  private User user;
+  @JoinColumn(name = "book_id")
+  private Book book;
 
   @Enumerated(EnumType.STRING)
   private Period periodType;
