@@ -5,16 +5,17 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record PopularBookDto(
-        UUID id,
-        UUID bookId,
-        String title,
-        String author,
-        String thumbnailUrl,
-        Period period,
-        int rank,
-        double score,
-        int reviewCount,
-        double rating,
-        LocalDateTime createdAt
+    UUID id,
+    UUID bookId,
+    String title,
+    String author,
+    String thumbnailUrl,
+    Period period,
+    int rank,
+    double score,
+    int reviewCount,
+    double rating,
+    LocalDateTime createdAt
 ) {
+
 }

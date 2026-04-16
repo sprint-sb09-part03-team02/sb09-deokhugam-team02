@@ -11,7 +11,6 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Slice;
 
 @RequiredArgsConstructor
 public class BookRepositoryCustomImpl implements BookRepositoryCustom {
@@ -19,17 +18,13 @@ public class BookRepositoryCustomImpl implements BookRepositoryCustom {
   private final JPAQueryFactory queryFactory;
 
   @Override
-  public Slice<Book> searchBooks(BookSearchRequest request) {
+  public List<Book> searchBooks(BookSearchRequest request) {
     throw new UnsupportedOperationException("searchBooks는 아직 구현되지 않았습니다.");
   }
 
   @Override
-  public List<Book> findPopularBooks(
-          java.time.LocalDateTime startDate,
-          java.time.LocalDateTime endDate,
-          int limit
-  ) {
-    throw new UnsupportedOperationException("findPopularBooks는 아직 구현되지 않았습니다.");
+  public long countBooks(BookSearchRequest request) {
+    throw new UnsupportedOperationException("countBooks는 아직 구현되지 않았습니다.");
   }
 
   @Override
