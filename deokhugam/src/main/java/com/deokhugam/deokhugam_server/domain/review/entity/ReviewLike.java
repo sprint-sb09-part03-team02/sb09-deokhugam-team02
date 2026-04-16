@@ -1,5 +1,6 @@
 package com.deokhugam.deokhugam_server.domain.review.entity;
 
+import com.deokhugam.deokhugam_server.domain.user.entity.User;
 import com.deokhugam.deokhugam_server.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import java.util.UUID;
@@ -18,16 +19,18 @@ public class ReviewLike extends BaseEntity {
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
-  @Column(name = "review_id", nullable = false)
-  private UUID reviewId;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "review_id", nullable = false)
+  private Review review;
 
-  @Column(name = "user_id", nullable = false)
-  private UUID userId;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "user_id", nullable = false)
+  private User user;
 
   @Builder
-  public ReviewLike(UUID reviewId, UUID userId) {
-    this.reviewId = reviewId;
-    this.userId = userId;
+  public ReviewLike(Review review, User user) {
+    this.review = review;
+    this.user = user;
   }
 
   //중복방지

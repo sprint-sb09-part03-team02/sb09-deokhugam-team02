@@ -1,5 +1,7 @@
 package com.deokhugam.deokhugam_server.domain.review.entity;
 
+import com.deokhugam.deokhugam_server.domain.book.entity.Book;
+import com.deokhugam.deokhugam_server.domain.user.entity.User;
 import com.deokhugam.deokhugam_server.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import java.util.UUID;
@@ -26,11 +28,13 @@ public class Review extends BaseEntity {
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
-  @Column(name = "book_id", nullable = false)
-  private UUID bookId;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "book_id", nullable = false)
+  private Book book;
 
-  @Column(name = "user_id", nullable = false)
-  private UUID userId;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "user_id", nullable = false)
+  private User user;
 
   @Column(columnDefinition = "TEXT", nullable = false)
   private String content;
@@ -45,9 +49,9 @@ public class Review extends BaseEntity {
   private int commentCount = 0;
 
   @Builder
-  public Review(UUID bookId, UUID userId, String content, int rating) {
-    this.bookId = bookId;
-    this.userId = userId;
+  public Review(Book book, User user, String content, int rating) {
+    this.book = book;
+    this.user = user;
     this.content = content;
     this.rating = rating;
   }
