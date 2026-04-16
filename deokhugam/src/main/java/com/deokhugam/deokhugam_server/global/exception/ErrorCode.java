@@ -19,6 +19,7 @@ public enum ErrorCode {
    */
   LOGIN_FAILED(401, "U101", "로그인 실패 (이메일 또는 비밀번호 불일치)"),
   DUPLICATE_EMAIL(409, "U102", "이메일 중복"),
+  DUPLICATE_NICKNAME(409, "U102", "닉네임 중복"),
   USER_NOT_FOUND(404, "U103", "사용자 정보 없음"),
 
   /*

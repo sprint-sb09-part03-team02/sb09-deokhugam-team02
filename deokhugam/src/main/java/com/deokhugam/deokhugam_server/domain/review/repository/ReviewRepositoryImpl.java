@@ -1,13 +1,19 @@
 package com.deokhugam.deokhugam_server.domain.review.repository;
 
+import static com.deokhugam.deokhugam_server.domain.comment.entity.QComment.comment;
 import static com.deokhugam.deokhugam_server.domain.review.entity.QReview.review;
+import static com.deokhugam.deokhugam_server.domain.review.entity.QReviewLike.reviewLike;
 
 import com.deokhugam.deokhugam_server.domain.review.dto.request.ReviewSearchRequest;
+import com.deokhugam.deokhugam_server.domain.review.dto.response.ReviewRankQueryDto;
 import com.deokhugam.deokhugam_server.domain.review.entity.Review;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +39,23 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
                 )
                 .orderBy(getOrderSpecifier(request.getOrderBy(), request.getDirection()))
         .limit(pageSize + 1)
+        .fetch();
+  }
+
+  @Override
+  public List<ReviewRankQueryDto> findReviewStatistics(LocalDate start, LocalDate end) {
+
+    return queryFactory
+        .select(Projections.constructor(ReviewRankQueryDto.class,
+            review.id,
+            reviewLike.count(),
+            comment.count()
+        ))
+        .from(review)
+        .leftJoin(reviewLike).on(reviewLike.reviewId.eq(review.id))
+        .leftJoin(comment).on(comment.reviewId.eq(review.id))
+        .where(review.createdAt.between(start.atStartOfDay(), end.atTime(LocalTime.MAX)))
+        .groupBy(review.id)
         .fetch();
   }
 

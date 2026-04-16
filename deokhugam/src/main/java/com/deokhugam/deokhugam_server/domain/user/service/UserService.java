@@ -3,7 +3,7 @@ package com.deokhugam.deokhugam_server.domain.user.service;
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserLoginRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserRegisterRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserUpdateRequest;
-import com.deokhugam.deokhugam_server.domain.user.dto.response.Period;
+import com.deokhugam.deokhugam_server.global.type.Period;
 import com.deokhugam.deokhugam_server.domain.user.dto.response.UserDto;
 import java.util.List;
 import java.util.UUID;

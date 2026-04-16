@@ -1,5 +1,6 @@
 package com.deokhugam.deokhugam_server.domain.review.dto.response;
 
+import com.deokhugam.deokhugam_server.global.type.Period;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -13,8 +14,8 @@ public record PopularReviewDto(
     String userNickname,
     String reviewContent,
     double reviewRating,
-    String period,
-    LocalDateTime createdAt, // 명세서 요구사항에 따라 추가
+    Period period,
+    LocalDateTime createdAt,
     int rank,
     double score,
     long likeCount,
