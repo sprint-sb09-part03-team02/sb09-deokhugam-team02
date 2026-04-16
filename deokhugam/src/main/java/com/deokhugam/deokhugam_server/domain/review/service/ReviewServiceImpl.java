@@ -37,22 +37,23 @@ public class ReviewServiceImpl implements ReviewService {
   @Override
   @Transactional
   public ReviewDto createReview(ReviewCreateRequest request) {
-    // 1. 도서 및 사용자 존재 여부 확인
+    // 1. 도서 및 사용자 객체 직접 조회 (참조를 위해 필요)
     Book book = bookRepository.findById(request.bookId())
         .orElseThrow(() -> new DeokhugamException(ErrorCode.BOOK_NOT_FOUND));
     User user = userRepository.findById(request.userId())
         .orElseThrow(() -> new DeokhugamException(ErrorCode.USER_NOT_FOUND));
 
-    // 2. 도서 별 1개의 리뷰만 등록 가능 여부 체크
+    // 2. 1인 1리뷰 체크
     if (reviewRepository.existsByBookIdAndUserIdAndIsDeletedFalse(request.bookId(), request.userId())) {
-      throw new DeokhugamException(ErrorCode.ALREADY_REVIEWED); // ErrorCode 명칭 수정
+      throw new DeokhugamException(ErrorCode.ALREADY_REVIEWED);
     }
 
-    // 3. 리뷰 저장
-    Review review = reviewMapper.toEntity(request);
+    // 3. 리뷰 저장 (이제 매퍼에 book, user 객체를 직접 넘김)
+    Review review = reviewMapper.toEntity(request, book, user);
     Review savedReview = reviewRepository.save(review);
 
-    return reviewMapper.toDto(savedReview, book.getTitle(), book.getImageUrl(), user.getNickname(), false);
+    // 4. DTO 변환 (매퍼가 객체 내부를 타고 들어가므로 인자가 줄어듦!)
+    return reviewMapper.toDto(savedReview, false);
   }
 
   @Override
@@ -60,43 +61,28 @@ public class ReviewServiceImpl implements ReviewService {
     Review review = reviewRepository.findByIdAndIsDeletedFalse(reviewId)
         .orElseThrow(() -> new DeokhugamException(ErrorCode.REVIEW_NOT_FOUND));
 
-    Book book = bookRepository.findById(review.getBookId())
-        .orElseThrow(() -> new DeokhugamException(ErrorCode.BOOK_NOT_FOUND));
-    User user = userRepository.findById(review.getUserId())
-        .orElseThrow(() -> new DeokhugamException(ErrorCode.USER_NOT_FOUND));
-
-    // 요청자의 좋아요 여부 포함
+    // 좋아요 여부 확인
     boolean likedByMe = reviewLikeRepository.existsByReviewIdAndUserId(reviewId, requestUserId);
 
-    return reviewMapper.toDto(review, book.getTitle(), book.getImageUrl(), user.getNickname(), likedByMe);
+    // 매퍼가 review.getBook().getTitle() 등을 자동으로 호출함
+    return reviewMapper.toDto(review, likedByMe);
   }
 
   @Override
   public CursorPageResponse<ReviewDto> searchReviews(ReviewSearchRequest request) {
-    // QueryDSL을 통한 목록 조회
     List<Review> reviews = reviewRepository.searchReviews(request);
 
-    // 다음 페이지 존재 여부 확인 (limit+1 fetch 전략)
     boolean hasNext = reviews.size() > request.getLimit();
     if (hasNext) {
       reviews.remove(reviews.size() - 1);
     }
 
+    // [혁신!] 이제 루프 돌면서 레포지토리 다시 뒤질 필요 없음 (객체 안에 다 있으니까)
     List<ReviewDto> content = reviews.stream().map(review -> {
-      Book book = bookRepository.findById(review.getBookId()).orElse(null);
-      User user = userRepository.findById(review.getUserId()).orElse(null);
       boolean likedByMe = reviewLikeRepository.existsByReviewIdAndUserId(review.getId(), request.getRequestUserId());
-
-      return reviewMapper.toDto(
-          review,
-          book != null ? book.getTitle() : "알 수 없는 도서",
-          book != null ? book.getImageUrl() : null,
-          user != null ? user.getNickname() : "알 수 없는 사용자",
-          likedByMe
-      );
+      return reviewMapper.toDto(review, likedByMe);
     }).collect(Collectors.toList());
 
-    // 커서 및 보조 커서 설정
     String nextCursor = hasNext ? reviews.get(reviews.size() - 1).getId().toString() : null;
     java.time.LocalDateTime nextAfter = hasNext ? reviews.get(reviews.size() - 1).getCreatedAt() : null;
 
@@ -109,19 +95,15 @@ public class ReviewServiceImpl implements ReviewService {
     Review review = reviewRepository.findByIdAndIsDeletedFalse(reviewId)
         .orElseThrow(() -> new DeokhugamException(ErrorCode.REVIEW_NOT_FOUND));
 
-    // 본인이 작성한 리뷰만 수정 가능
-    if (!review.getUserId().equals(requestUserId)) {
+    // 본인 확인: review.getUser().getId()로 접근
+    if (!review.getUser().getId().equals(requestUserId)) {
       throw new DeokhugamException(ErrorCode.NOT_REVIEW_OWNER);
     }
 
     review.update(request.content(), request.rating());
 
-    // 수정 후 응답 데이터 구성
-    Book book = bookRepository.findById(review.getBookId()).orElse(null);
-    User user = userRepository.findById(review.getUserId()).orElse(null);
     boolean likedByMe = reviewLikeRepository.existsByReviewIdAndUserId(reviewId, requestUserId);
-
-    return reviewMapper.toDto(review, book.getTitle(), book.getImageUrl(), user.getNickname(), likedByMe);
+    return reviewMapper.toDto(review, likedByMe);
   }
 
   @Override
@@ -130,12 +112,11 @@ public class ReviewServiceImpl implements ReviewService {
     Review review = reviewRepository.findByIdAndIsDeletedFalse(reviewId)
         .orElseThrow(() -> new DeokhugamException(ErrorCode.REVIEW_NOT_FOUND));
 
-    // 본인이 작성한 리뷰만 삭제 가능
-    if (!review.getUserId().equals(requestUserId)) {
-      throw new DeokhugamException(ErrorCode.NOT_REVIEW_OWNER); // ErrorCode 명칭 수정
+    // 본인 확인: review.getUser().getId()로 접근
+    if (!review.getUser().getId().equals(requestUserId)) {
+      throw new DeokhugamException(ErrorCode.NOT_REVIEW_OWNER);
     }
 
-    // 논리 삭제 처리
     review.delete();
   }
 }

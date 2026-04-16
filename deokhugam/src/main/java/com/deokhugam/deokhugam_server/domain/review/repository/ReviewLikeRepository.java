@@ -7,6 +7,8 @@ import java.util.UUID;
 
 public interface ReviewLikeRepository extends JpaRepository<ReviewLike, UUID> {
 
+  // review.id와 user.id를 타고 들어가서 조회함
   Optional<ReviewLike> findByReviewIdAndUserId(UUID reviewId, UUID userId);
+
   boolean existsByReviewIdAndUserId(UUID reviewId, UUID userId);
 }
