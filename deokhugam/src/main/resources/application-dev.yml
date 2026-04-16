@@ -21,7 +21,7 @@ spring:
   security:
     user:
       name: admin
-      password: admin
+      password:  ${SPRING_SECURITY_USER_PASSWORD:admin}
 
 cloud:
   aws:
