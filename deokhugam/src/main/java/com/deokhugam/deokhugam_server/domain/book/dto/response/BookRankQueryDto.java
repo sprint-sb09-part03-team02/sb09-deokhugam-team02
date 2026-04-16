@@ -1,7 +1,9 @@
 package com.deokhugam.deokhugam_server.domain.book.dto.response;
 
+import java.util.UUID;
+
 public record BookRankQueryDto(
-    Long bookId,
+    UUID bookId,
     Long reviewCount,
     Double avgRating
 ) {

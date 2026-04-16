@@ -18,6 +18,4 @@ public interface BookRepository extends JpaRepository<Book, UUID>, BookRepositor
     boolean existsByIdAndIsDeletedFalse(UUID id);
 
     boolean existsByIsbnAndIsDeletedFalse(String isbn);
-
-    List<PopularBook> findAllByPeriodTypeAndCalculatedDate(Period type, LocalDate date);
 }

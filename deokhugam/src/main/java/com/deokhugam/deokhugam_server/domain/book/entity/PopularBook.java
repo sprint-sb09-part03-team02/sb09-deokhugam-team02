@@ -12,18 +12,23 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import java.time.LocalDate;
+import java.util.UUID;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PopularBook extends BaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  private UUID id;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "book_id")
@@ -37,4 +42,12 @@ public class PopularBook extends BaseEntity {
   private Integer rankOrder;
 
   private LocalDate calculatedDate;
+
+  private Long reviewCount;
+
+  private Double rating;
+
+  public void assignRankOrder(int rank) {
+    this.rankOrder = rank;
+  }
 }
