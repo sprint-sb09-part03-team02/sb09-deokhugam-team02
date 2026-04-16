@@ -8,5 +8,7 @@ import java.util.UUID;
 public interface ReviewRepository extends JpaRepository<Review, UUID>, ReviewRepositoryCustom {
 
   Optional<Review> findByIdAndIsDeletedFalse(UUID id);
+
+  // 1인 1리뷰 명세 준수: book.id와 user.id를 조회
   boolean existsByBookIdAndUserIdAndIsDeletedFalse(UUID bookId, UUID userId);
 }
