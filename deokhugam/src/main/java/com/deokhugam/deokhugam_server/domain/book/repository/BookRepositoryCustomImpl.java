@@ -33,7 +33,7 @@ public class BookRepositoryCustomImpl implements BookRepositoryCustom{
       LocalDate endDate) {
     return queryFactory
         .select(Projections.constructor(BookRankQueryDto.class,
-            review.bookId,
+            review.book.id,
             review.count(),
             review.rating.avg()
             ))
@@ -42,7 +42,7 @@ public class BookRepositoryCustomImpl implements BookRepositoryCustom{
             startDate.atStartOfDay(),
             endDate.atTime(LocalTime.MAX)
         ))
-        .groupBy(review.bookId)
+        .groupBy(review.book.id)
         .fetch();
   }
 }
