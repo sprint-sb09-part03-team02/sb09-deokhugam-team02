@@ -62,7 +62,6 @@ public class PopularBookService {
       case WEEKLY -> endDate.minusWeeks(1);
       case MONTHLY -> endDate.minusMonths(1);
       case ALL_TIME -> LocalDate.of(2000, 1, 1);
-      default -> throw new IllegalArgumentException("지원하지 않는 기간 타입입니다: " + type);
     };
   }
 }
