@@ -1,0 +1,87 @@
+{
+  "family": "deokhugam-task",
+  "executionRoleArn": "arn:aws:iam::297904677990:role/ecsTaskExecutionRole",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "cpu": "512",
+  "memory": "1024",
+  "runtimePlatform": {
+    "cpuArchitecture": "X86_64",
+    "operatingSystemFamily": "LINUX"
+  },
+  "containerDefinitions": [
+    {
+      "name": "deokhugam-server",
+      "image": "public.ecr.aws/nginx/nginx:latest",
+      "cpu": 0,
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "hostPort": 8080,
+          "protocol": "tcp",
+          "name": "deokhugam-server-8080-tcp",
+          "appProtocol": "http"
+        }
+      ],
+      "environment": [
+        {
+          "name": "DB_USERNAME",
+          "value": "deokhugam"
+        },
+        {
+          "name": "AWS_S3_BUCKET",
+          "value": "deokhugam-storage"
+        },
+        {
+          "name": "DB_URL",
+          "value": "deokhugam-db.cr0uug8my8f7.ap-northeast-2.rds.amazonaws.com"
+        },
+        {
+          "name": "SPRING_PROFILES_ACTIVE",
+          "value": "prod"
+        },
+        {
+          "name": "NAVER_CLIENT_ID",
+          "value": "e1uIDmHhEkMGuBrzSu2V"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "JWT_SECRET",
+          "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:297904677990:secret:deokhugam/prod:JWT_SECRET::"
+        },
+        {
+          "name": "DB_PASSWORD",
+          "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:297904677990:secret:deokhugam/prod:DB_PASSWORD::"
+        },
+        {
+          "name": "NAVER_CLIENT_SECRET",
+          "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:297904677990:secret:deokhugam/prod:NAVER_CLIENT_SECRET::"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/deokhugam-task",
+          "awslogs-create-group": "true",
+          "awslogs-region": "ap-northeast-2",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "curl -f http://localhost:8080/actuator/health || exit 1"
+        ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 60
+      }
+    }
+  ]
+}
+
