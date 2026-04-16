@@ -10,7 +10,7 @@ import org.mapstruct.Mapper;
 public interface UserMapper {
   UserDto toDto(User user);
 
-  public static PowerUserDto toPowerUserDto(PowerUser entity) {
+  static PowerUserDto toPowerUserDto(PowerUser entity) {
     User user = entity.getUser();
 
     return new PowerUserDto(

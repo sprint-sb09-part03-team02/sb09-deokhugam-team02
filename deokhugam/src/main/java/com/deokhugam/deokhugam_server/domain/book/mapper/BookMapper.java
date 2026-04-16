@@ -5,7 +5,6 @@ import com.deokhugam.deokhugam_server.domain.book.dto.response.PopularBookDto;
 import com.deokhugam.deokhugam_server.domain.book.entity.Book;
 import org.springframework.stereotype.Component;
 import com.deokhugam.deokhugam_server.domain.book.entity.PopularBook;
-import org.springframework.stereotype.Component;
 
 @Component
 public class BookMapper {
@@ -24,7 +23,6 @@ public class BookMapper {
                 book.getUpdatedAt()
         );
     }
-
 
   public static PopularBookDto toPopularDto(PopularBook entity) {
     return new PopularBookDto(
