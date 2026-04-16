@@ -32,6 +32,7 @@ public class PopularReviewService {
   private final PopularReviewRepository popularReviewRepository;
   private final BookRepository bookRepository;
   private final UserRepository userRepository;
+  private final ReviewMapper reviewMapper;
 
   @Transactional
   public void calculateAndSaveReviewRanks(Period periodType) {
@@ -69,7 +70,7 @@ public class PopularReviewService {
           User user = userRepository.findById(review.getUserId())
               .orElseThrow(() -> new DeokhugamException(USER_NOT_FOUND));
 
-          return ReviewMapper.toPopularDto(entity, book, user);
+          return reviewMapper.toPopularDto(entity, book, user);
         })
         .toList();
   }

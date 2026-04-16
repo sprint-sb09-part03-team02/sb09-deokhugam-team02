@@ -21,4 +21,7 @@ public interface PopularReviewRepository extends JpaRepository<PopularReview, UU
       @Param("period") Period period,
       @Param("date") LocalDate date
   );
+
+  List<PopularReview> findAllByPeriodTypeAndCalculatedDate(Period periodType, LocalDate calculatedDate);
+
 }
