@@ -40,10 +40,10 @@ public class Book extends BaseEntity {
     @Column(name = "description", columnDefinition = "text")
     private String description;
 
-    @Column(name = "thumbnail_url", length = 500)
+    @Column(name = "image_url", length = 500)
     private String thumbnailUrl;
 
-    @Column(name = "published_date")
+    @Column(name = "published_at")
     private LocalDate publishedDate;
 
     public Book(
@@ -75,23 +75,18 @@ public class Book extends BaseEntity {
         if (title != null) {
             this.title = title;
         }
-
         if (author != null) {
             this.author = author;
         }
-
         if (publisher != null) {
             this.publisher = publisher;
         }
-
         if (description != null) {
             this.description = description;
         }
-
         if (thumbnailUrl != null) {
             this.thumbnailUrl = thumbnailUrl;
         }
-
         if (publishedDate != null) {
             this.publishedDate = publishedDate;
         }
