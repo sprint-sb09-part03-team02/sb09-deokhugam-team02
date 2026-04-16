@@ -7,6 +7,8 @@ import com.deokhugam.deokhugam_server.domain.book.entity.Book;
 import com.deokhugam.deokhugam_server.domain.review.dto.response.PopularReviewDto;
 import com.deokhugam.deokhugam_server.domain.review.entity.PopularReview;
 import com.deokhugam.deokhugam_server.domain.review.entity.Review;
+import com.deokhugam.deokhugam_server.domain.user.dto.response.PowerUserDto;
+import com.deokhugam.deokhugam_server.domain.user.entity.PowerUser;
 import com.deokhugam.deokhugam_server.domain.user.entity.User;
 import org.springframework.stereotype.Component;
 
