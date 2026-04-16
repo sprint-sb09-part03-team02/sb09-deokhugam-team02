@@ -27,11 +27,27 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom {
             eqReviewId(request.getReviewId()),
             eqUserId(request.getUserId()),
             ltCursorAfter(request.getAfter(), request.getCursor()),
-            comment.isDeleted.isFalse()
+            comment.isDeleted.isFalse() // 목록 조회 시 삭제된 데이터 제외
         )
-        .orderBy(getOrderSpecifier(request.getOrderBy(), request.getDirection()))
+        // 명세서 기반 정렬 조건 적용
+        .orderBy(
+            getOrderSpecifier(request.getDirection()),
+            comment.id.desc() // 동시간대 데이터 정렬을 위한 ID 보조 정렬
+        )
         .limit(pageSize + 1)
         .fetch();
+  }
+
+  @Override
+  public long countComments(UUID reviewId) {
+    return queryFactory
+        .select(comment.count())
+        .from(comment)
+        .where(
+            eqReviewId(reviewId),
+            comment.isDeleted.isFalse() // 일반 카운트 시 삭제 데이터 제외
+        )
+        .fetchOne();
   }
 
   private BooleanExpression eqReviewId(UUID reviewId) {
@@ -42,16 +58,16 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom {
     return userId != null ? comment.userId.eq(userId) : null;
   }
 
+  // 복합 커서 페이지네이션 로직 (createdAt + ID)
   private BooleanExpression ltCursorAfter(LocalDateTime after, String cursor) {
-    if (after == null) return null;
+    if (after == null || cursor == null) return null;
 
     return comment.createdAt.lt(after)
         .or(comment.createdAt.eq(after)
             .and(comment.id.lt(UUID.fromString(cursor))));
   }
 
-  private OrderSpecifier<?> getOrderSpecifier(String orderBy, String direction) {
-    boolean isAsc = "ASC".equalsIgnoreCase(direction);
-    return isAsc ? comment.createdAt.asc() : comment.createdAt.desc();
+  private OrderSpecifier<LocalDateTime> getOrderSpecifier(String direction) {
+    return "ASC".equalsIgnoreCase(direction) ? comment.createdAt.asc() : comment.createdAt.desc();
   }
 }
