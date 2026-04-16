@@ -46,6 +46,12 @@ public class PopularBookService {
     for (int i = 0; i < rankings.size(); i++) {
       rankings.get(i).assignRankOrder(i + 1);
     }
+
+    List<PopularBook> existingRankings =
+        popularBookRepository.findAllByPeriodTypeAndCalculatedDate(periodType, endDate);
+    if (!existingRankings.isEmpty()) {
+      popularBookRepository.deleteAll(existingRankings);
+    }
     popularBookRepository.saveAll(rankings);
   }
 
