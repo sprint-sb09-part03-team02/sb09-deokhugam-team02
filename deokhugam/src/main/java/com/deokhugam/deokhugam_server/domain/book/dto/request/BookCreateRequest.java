@@ -25,6 +25,6 @@ public record BookCreateRequest(
         String description,
 
         @NotNull(message = "출간일은 필수입니다.")
-        LocalDate publishedAt
+        LocalDate publishedDate
 ) {
 }

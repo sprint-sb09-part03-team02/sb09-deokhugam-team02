@@ -34,11 +34,11 @@ public class BookServiceImpl implements BookService {
                 normalizeText(request.publisher()),
                 normalizeText(request.description()),
                 null,
-                request.publishedAt()
+                request.publishedDate()
         );
 
         Book savedBook = bookRepository.save(book);
-        return bookMapper.toDto(savedBook);
+        return toBookDto(savedBook);
     }
 
     @Override
@@ -46,7 +46,7 @@ public class BookServiceImpl implements BookService {
         Book book = bookRepository.findByIdAndIsDeletedFalse(bookId)
                 .orElseThrow(() -> new DeokhugamException(ErrorCode.BOOK_NOT_FOUND));
 
-        return bookMapper.toDto(book);
+        return toBookDto(book);
     }
 
     @Override
@@ -61,10 +61,10 @@ public class BookServiceImpl implements BookService {
                 normalizeText(request.publisher()),
                 normalizeText(request.description()),
                 null,
-                request.publishedAt()
+                request.publishedDate()
         );
 
-        return bookMapper.toDto(book);
+        return toBookDto(book);
     }
 
     @Override
@@ -83,6 +83,10 @@ public class BookServiceImpl implements BookService {
                 .orElseThrow(() -> new DeokhugamException(ErrorCode.BOOK_NOT_FOUND));
 
         bookRepository.delete(book);
+    }
+
+    private BookDto toBookDto(Book book) {
+        return bookMapper.toDto(book, 0, 0.0);
     }
 
     private void validateDuplicateIsbn(String isbn) {

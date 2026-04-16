@@ -18,7 +18,7 @@ public record BookSearchRequest(
 
     public BookSearchRequest {
         if (orderBy == null || orderBy.isBlank()) {
-            orderBy = "createdAt";
+            orderBy = "title";
         }
 
         if (direction == null || direction.isBlank()) {

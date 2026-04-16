@@ -40,11 +40,11 @@ public class Book extends BaseEntity {
     @Column(name = "description", columnDefinition = "text")
     private String description;
 
-    @Column(name = "image_url", length = 500)
-    private String imageUrl;
+    @Column(name = "thumbnail_url", length = 500)
+    private String thumbnailUrl;
 
-    @Column(name = "published_at")
-    private LocalDate publishedAt;
+    @Column(name = "published_date")
+    private LocalDate publishedDate;
 
     public Book(
             String title,
@@ -52,16 +52,16 @@ public class Book extends BaseEntity {
             String isbn,
             String publisher,
             String description,
-            String imageUrl,
-            LocalDate publishedAt
+            String thumbnailUrl,
+            LocalDate publishedDate
     ) {
         this.title = title;
         this.author = author;
         this.isbn = isbn;
         this.publisher = publisher;
         this.description = description;
-        this.imageUrl = imageUrl;
-        this.publishedAt = publishedAt;
+        this.thumbnailUrl = thumbnailUrl;
+        this.publishedDate = publishedDate;
     }
 
     public void update(
@@ -69,8 +69,8 @@ public class Book extends BaseEntity {
             String author,
             String publisher,
             String description,
-            String imageUrl,
-            LocalDate publishedAt
+            String thumbnailUrl,
+            LocalDate publishedDate
     ) {
         if (title != null) {
             this.title = title;
@@ -88,12 +88,12 @@ public class Book extends BaseEntity {
             this.description = description;
         }
 
-        if (imageUrl != null) {
-            this.imageUrl = imageUrl;
+        if (thumbnailUrl != null) {
+            this.thumbnailUrl = thumbnailUrl;
         }
 
-        if (publishedAt != null) {
-            this.publishedAt = publishedAt;
+        if (publishedDate != null) {
+            this.publishedDate = publishedDate;
         }
     }
 }
