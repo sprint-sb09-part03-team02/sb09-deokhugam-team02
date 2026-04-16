@@ -128,4 +128,20 @@ public class CommentServiceImpl implements CommentService {
     return userRepository.findById(userId)
         .orElseThrow(() -> new DeokhugamException(ErrorCode.USER_NOT_FOUND));
   }
+
+  @Override
+  @Transactional
+  public void permanentDeleteComment(UUID commentId, UUID requestUserId) {
+    // 1. 댓글 존재 여부 확인
+    Comment comment = commentRepository.findById(commentId)
+        .orElseThrow(() -> new DeokhugamException(ErrorCode.COMMENT_NOT_FOUND));
+
+    // 2. 본인 확인 (권한 체크)
+    if (!comment.getUserId().equals(requestUserId)) {
+      throw new DeokhugamException(ErrorCode.NOT_COMMENT_OWNER);
+    }
+
+    // 3. 물리 삭제 실행 (DB에서 완전히 지우기)
+    commentRepository.delete(comment);
+  }
 }
