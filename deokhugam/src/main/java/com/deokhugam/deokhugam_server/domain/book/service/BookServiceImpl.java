@@ -4,7 +4,6 @@ import com.deokhugam.deokhugam_server.domain.book.dto.request.BookCreateRequest;
 import com.deokhugam.deokhugam_server.domain.book.dto.request.BookUpdateRequest;
 import com.deokhugam.deokhugam_server.domain.book.dto.response.BookDto;
 import com.deokhugam.deokhugam_server.domain.book.entity.Book;
-import com.deokhugam.deokhugam_server.domain.book.mapper.BookMapper;
 import com.deokhugam.deokhugam_server.domain.book.repository.BookRepository;
 import com.deokhugam.deokhugam_server.global.exception.DeokhugamException;
 import com.deokhugam.deokhugam_server.global.exception.ErrorCode;
@@ -19,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class BookServiceImpl implements BookService {
 
     private final BookRepository bookRepository;
-    private final BookMapper bookMapper;
 
     @Override
     @Transactional
@@ -38,7 +36,7 @@ public class BookServiceImpl implements BookService {
         );
 
         Book savedBook = bookRepository.save(book);
-        return bookMapper.toDto(savedBook);
+        return toDto(savedBook);
     }
 
     @Override
@@ -46,7 +44,7 @@ public class BookServiceImpl implements BookService {
         Book book = bookRepository.findByIdAndIsDeletedFalse(bookId)
                 .orElseThrow(() -> new DeokhugamException(ErrorCode.BOOK_NOT_FOUND));
 
-        return bookMapper.toDto(book);
+        return toDto(book);
     }
 
     @Override
@@ -64,7 +62,7 @@ public class BookServiceImpl implements BookService {
                 request.publishedAt()
         );
 
-        return bookMapper.toDto(book);
+        return toDto(book);
     }
 
     @Override
@@ -109,5 +107,20 @@ public class BookServiceImpl implements BookService {
         }
 
         return value.trim();
+    }
+
+    private BookDto toDto(Book book) {
+        return new BookDto(
+                book.getId(),
+                book.getTitle(),
+                book.getAuthor(),
+                book.getIsbn(),
+                book.getPublisher(),
+                book.getDescription(),
+                book.getImageUrl(),
+                book.getPublishedAt(),
+                book.getCreatedAt(),
+                book.getUpdatedAt()
+        );
     }
 }
