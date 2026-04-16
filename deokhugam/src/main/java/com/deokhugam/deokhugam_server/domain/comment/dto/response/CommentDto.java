@@ -9,6 +9,7 @@ public record CommentDto(
     UUID id,
     UUID reviewId,
     UUID userId,
+    String userNickname,
     String content,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
