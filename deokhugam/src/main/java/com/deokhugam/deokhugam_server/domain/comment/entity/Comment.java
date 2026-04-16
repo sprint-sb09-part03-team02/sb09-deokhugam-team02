@@ -9,14 +9,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.util.UUID;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder; // @SuperBuilder 임포트
 
 @Entity
 @Table(name = "comments")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@SuperBuilder
 public class Comment extends BaseEntity {
 
   @Id
@@ -35,18 +36,11 @@ public class Comment extends BaseEntity {
   @Column(nullable = false)
   private boolean isDeleted = false;
 
-  @Builder
-  public Comment(UUID reviewId, UUID userId, String content) {
-    this.reviewId = reviewId;
-    this.userId = userId;
-    this.content = content;
-  }
-
   public void updateContent(String content) {
     this.content = content;
   }
 
-  public void delete() {
+  public void delete() { // 논리 삭제 원칙 준수
     this.isDeleted = true;
   }
 }
