@@ -5,7 +5,7 @@ import static com.deokhugam.deokhugam_server.global.exception.ErrorCode.*;
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserLoginRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserRegisterRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserUpdateRequest;
-import com.deokhugam.deokhugam_server.domain.user.dto.response.Period;
+import com.deokhugam.deokhugam_server.global.type.Period;
 import com.deokhugam.deokhugam_server.domain.user.dto.response.UserDto;
 import com.deokhugam.deokhugam_server.domain.user.entity.User;
 import com.deokhugam.deokhugam_server.domain.user.mapper.UserMapper;

@@ -1,6 +1,6 @@
 package com.deokhugam.deokhugam_server.domain.user.entity;
 
-import com.deokhugam.deokhugam_server.domain.user.dto.response.Period;
+import com.deokhugam.deokhugam_server.global.type.Period;
 import com.deokhugam.deokhugam_server.global.entity.BaseEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

@@ -1,9 +1,6 @@
 package com.deokhugam.deokhugam_server.domain.book.repository;
 
-import static com.deokhugam.deokhugam_server.domain.book.entity.QBook.book;
-import static com.deokhugam.deokhugam_server.domain.comment.entity.QComment.comment;
 import static com.deokhugam.deokhugam_server.domain.review.entity.QReview.review;
-import static com.deokhugam.deokhugam_server.domain.review.entity.QReviewLike.reviewLike;
 
 import com.deokhugam.deokhugam_server.domain.book.dto.request.BookSearchRequest;
 import com.deokhugam.deokhugam_server.domain.book.dto.response.BookRankQueryDto;

@@ -2,7 +2,7 @@ package com.deokhugam.deokhugam_server.domain.book.repository;
 
 import com.deokhugam.deokhugam_server.domain.book.entity.Book;
 import com.deokhugam.deokhugam_server.domain.book.entity.PopularBook;
-import com.deokhugam.deokhugam_server.domain.user.dto.response.Period;
+import com.deokhugam.deokhugam_server.global.type.Period;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
