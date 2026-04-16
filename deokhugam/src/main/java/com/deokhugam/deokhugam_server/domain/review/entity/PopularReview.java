@@ -30,7 +30,7 @@ public class PopularReview extends BaseEntity {
   private UUID id;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "review_id")
+  @JoinColumn(name = "review_id", nullable = false)
   private Review review;
 
   @Enumerated(EnumType.STRING)

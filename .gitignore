@@ -28,7 +28,10 @@ nohup.out
 *.bak
 
 ### Docker local override ###
-docker-compose.override.yml
+
+### ECS task definition (local/operational) ###
+# Keep tracked: task-definition.json (used by GitHub Actions CD)
+task-definition-register.json
 
 ### STS ###
 .apt_generated
