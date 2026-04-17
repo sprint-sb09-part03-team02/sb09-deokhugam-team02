@@ -1,8 +1,10 @@
 package com.deokhugam.deokhugam_server.domain.book.service;
 
 import com.deokhugam.deokhugam_server.domain.book.dto.request.BookCreateRequest;
+import com.deokhugam.deokhugam_server.domain.book.dto.request.BookSearchRequest;
 import com.deokhugam.deokhugam_server.domain.book.dto.request.BookUpdateRequest;
 import com.deokhugam.deokhugam_server.domain.book.dto.response.BookDto;
+import com.deokhugam.deokhugam_server.domain.book.dto.response.BookSearchQueryDto;
 import com.deokhugam.deokhugam_server.domain.book.dto.response.PopularBookDto;
 import com.deokhugam.deokhugam_server.domain.book.entity.Book;
 import com.deokhugam.deokhugam_server.domain.book.entity.PopularBook;
@@ -10,6 +12,7 @@ import com.deokhugam.deokhugam_server.domain.book.mapper.BookMapper;
 import com.deokhugam.deokhugam_server.domain.book.repository.BookRepository;
 import com.deokhugam.deokhugam_server.global.exception.DeokhugamException;
 import com.deokhugam.deokhugam_server.global.exception.ErrorCode;
+import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.type.Period;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,6 +21,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +33,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional
-    public BookDto createBook(BookCreateRequest request) {
+    public BookDto createBook(BookCreateRequest request, MultipartFile thumbnailImage) {
         String normalizedIsbn = normalizeIsbn(request.isbn());
         validateDuplicateIsbn(normalizedIsbn);
 
@@ -48,6 +52,39 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    public CursorPageResponse<BookDto> getBooks(BookSearchRequest request) {
+        List<BookSearchQueryDto> queryResults = bookRepository.searchBooks(request);
+        long totalElements = bookRepository.countBooks(request);
+
+        boolean hasNext = queryResults.size() > request.limit();
+        List<BookSearchQueryDto> currentPage = hasNext
+                ? queryResults.subList(0, request.limit())
+                : queryResults;
+
+        List<BookDto> content = currentPage.stream()
+                .map(bookMapper::toDto)
+                .toList();
+
+        String nextCursor = null;
+        LocalDateTime nextAfter = null;
+
+        if (hasNext && !currentPage.isEmpty()) {
+            BookSearchQueryDto lastItem = currentPage.get(currentPage.size() - 1);
+            nextCursor = extractNextCursor(lastItem, request.orderBy());
+            nextAfter = lastItem.createdAt();
+        }
+
+        return new CursorPageResponse<>(
+                content,
+                nextCursor,
+                nextAfter,
+                content.size(),
+                totalElements,
+                hasNext
+        );
+    }
+
+    @Override
     public BookDto getBook(UUID bookId) {
         Book book = bookRepository.findByIdAndIsDeletedFalse(bookId)
                 .orElseThrow(() -> new DeokhugamException(ErrorCode.BOOK_NOT_FOUND));
@@ -57,7 +94,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional
-    public BookDto updateBook(UUID bookId, BookUpdateRequest request) {
+    public BookDto updateBook(UUID bookId, BookUpdateRequest request, MultipartFile thumbnailImage) {
         Book book = bookRepository.findByIdAndIsDeletedFalse(bookId)
                 .orElseThrow(() -> new DeokhugamException(ErrorCode.BOOK_NOT_FOUND));
 
@@ -92,15 +129,25 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public List<PopularBookDto> searchPopularBooks(Period period, String direction, String cursor,
-        String after, int limit) {
+    public List<PopularBookDto> searchPopularBooks(
+            Period period,
+            String direction,
+            String cursor,
+            String after,
+            int limit
+    ) {
         LocalDateTime startTime = calculateStartTime(period);
         List<PopularBook> popularBooks = bookRepository.findPopularBooksWithPaging(
-            startTime, direction, cursor, after, limit
+                startTime,
+                direction,
+                cursor,
+                after,
+                limit
         );
+
         return popularBooks.stream()
-            .map(bookMapper::toPopularDto)
-            .collect(Collectors.toList());
+                .map(bookMapper::toPopularDto)
+                .collect(Collectors.toList());
     }
 
     private BookDto toBookDto(Book book) {
@@ -133,12 +180,22 @@ public class BookServiceImpl implements BookService {
         return value.trim();
     }
 
+    private String extractNextCursor(BookSearchQueryDto item, String orderBy) {
+        return switch (orderBy) {
+            case "publishedDate" -> item.publishedDate() == null ? "" : item.publishedDate().toString();
+            case "rating" -> String.valueOf(item.rating());
+            case "reviewCount" -> String.valueOf(item.reviewCount());
+            case "title" -> item.title();
+            default -> item.title();
+        };
+    }
+
     private LocalDateTime calculateStartTime(Period period) {
         return switch (period) {
             case DAILY -> LocalDateTime.now().minusDays(1);
             case WEEKLY -> LocalDateTime.now().minusWeeks(1);
             case MONTHLY -> LocalDateTime.now().minusMonths(1);
-            case ALL_TIME -> LocalDateTime.of(2020, 1, 1, 0, 0); // 아주 오래전 시간
+            case ALL_TIME -> LocalDateTime.of(2020, 1, 1, 0, 0);
         };
     }
 }
