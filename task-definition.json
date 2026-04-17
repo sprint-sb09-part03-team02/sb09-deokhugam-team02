@@ -1,6 +1,7 @@
 {
   "family": "deokhugam-task",
   "executionRoleArn": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/ecsTaskRole",
   "networkMode": "awsvpc",
   "requiresCompatibilities": [
     "FARGATE"
@@ -15,7 +16,6 @@
     {
       "name": "deokhugam-server",
       "image": "public.ecr.aws/nginx/nginx:latest",
-      "cpu": 0,
       "essential": true,
       "portMappings": [
         {
@@ -32,16 +32,20 @@
           "value": "deokhugam"
         },
         {
+          "name": "AWS_REGION",
+          "value": "ap-northeast-2"
+        },
+        {
           "name": "AWS_S3_BUCKET",
           "value": "deokhugam-storage"
         },
         {
           "name": "DB_URL",
-          "value": "deokhugam-db.cr0uug8my8f7.ap-northeast-2.rds.amazonaws.com"
+          "value": "jdbc:postgresql://deokhugam-db.cr0uug8my8f7.ap-northeast-2.rds.amazonaws.com:5432/deokhugam"
         },
         {
           "name": "SPRING_PROFILES_ACTIVE",
-          "value": "prod"
+          "value": "dev"
         }
       ],
       "secrets": [
@@ -79,7 +83,7 @@
         "interval": 30,
         "timeout": 5,
         "retries": 3,
-        "startPeriod": 60
+        "startPeriod": 120
       }
     }
   ]
