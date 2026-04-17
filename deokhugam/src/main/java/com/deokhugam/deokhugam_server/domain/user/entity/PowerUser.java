@@ -13,11 +13,15 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import java.time.LocalDate;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PowerUser extends BaseEntity {
 
@@ -34,7 +38,18 @@ public class PowerUser extends BaseEntity {
 
   private Double score;
 
+  private Double reviewScoreSum;
+
   private Integer rankOrder;
 
   private LocalDate calculatedDate;
+
+  private Integer likeCount;
+
+  private Integer commentCount;
+
+  public void assignRankOrder(int rank) {
+    this.rankOrder = rank;
+  }
+
 }

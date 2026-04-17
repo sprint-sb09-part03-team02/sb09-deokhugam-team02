@@ -2,13 +2,13 @@ package com.deokhugam.deokhugam_server.domain.book.repository;
 
 import com.deokhugam.deokhugam_server.domain.book.dto.request.BookSearchRequest;
 import com.deokhugam.deokhugam_server.domain.book.dto.response.BookRankQueryDto;
-import com.deokhugam.deokhugam_server.domain.book.entity.Book;
+import com.deokhugam.deokhugam_server.domain.book.dto.response.BookSearchQueryDto;
 import java.time.LocalDate;
 import java.util.List;
 
 public interface BookRepositoryCustom {
 
-    List<Book> searchBooks(BookSearchRequest request);
+    List<BookSearchQueryDto> searchBooks(BookSearchRequest request);
 
     long countBooks(BookSearchRequest request);
 

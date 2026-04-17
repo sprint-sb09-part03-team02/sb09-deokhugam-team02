@@ -19,8 +19,8 @@ public enum ErrorCode {
    */
   LOGIN_FAILED(401, "U101", "로그인 실패 (이메일 또는 비밀번호 불일치)"),
   DUPLICATE_EMAIL(409, "U102", "이메일 중복"),
-  DUPLICATE_NICKNAME(409, "U102", "닉네임 중복"),
-  USER_NOT_FOUND(404, "U103", "사용자 정보 없음"),
+  DUPLICATE_NICKNAME(409, "U103", "닉네임 중복"),
+  USER_NOT_FOUND(404, "U104", "사용자 정보 없음"),
 
   /*
    * [BOOK] 도서 관리
@@ -52,7 +52,11 @@ public enum ErrorCode {
    * [DASHBOARD] 대시보드
    * 명세서 /api/users/power, /api/reviews/popular 대응
    */
-  INVALID_PERIOD(400, "D601", "잘못된 요청 (랭킹 기간 오류 등)")
+  INVALID_PERIOD(400, "D601", "잘못된 요청 (랭킹 기간 오류 등)"),
+
+  // [STORAGE] 파일 저장소
+  S3_UPLOAD_FAILED(500, "S701", "파일 업로드에 실패했습니다."),
+  S3_DELETE_FAILED(500, "S702", "파일 삭제에 실패했습니다.")
   ;
 
   private final int status;

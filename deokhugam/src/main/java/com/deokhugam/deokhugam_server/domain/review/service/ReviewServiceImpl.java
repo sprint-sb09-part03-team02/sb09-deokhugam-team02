@@ -5,7 +5,9 @@ import com.deokhugam.deokhugam_server.domain.book.repository.BookRepository;
 import com.deokhugam.deokhugam_server.domain.review.dto.request.ReviewCreateRequest;
 import com.deokhugam.deokhugam_server.domain.review.dto.request.ReviewSearchRequest;
 import com.deokhugam.deokhugam_server.domain.review.dto.request.ReviewUpdateRequest;
+import com.deokhugam.deokhugam_server.domain.review.dto.response.PopularReviewDto;
 import com.deokhugam.deokhugam_server.domain.review.dto.response.ReviewDto;
+import com.deokhugam.deokhugam_server.domain.review.entity.PopularReview;
 import com.deokhugam.deokhugam_server.domain.review.entity.Review;
 import com.deokhugam.deokhugam_server.domain.review.mapper.ReviewMapper;
 import com.deokhugam.deokhugam_server.domain.review.repository.ReviewLikeRepository;
@@ -15,6 +17,8 @@ import com.deokhugam.deokhugam_server.domain.user.repository.UserRepository;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.exception.DeokhugamException;
 import com.deokhugam.deokhugam_server.global.exception.ErrorCode;
+import com.deokhugam.deokhugam_server.global.type.Period;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,7 +56,7 @@ public class ReviewServiceImpl implements ReviewService {
     Review review = reviewMapper.toEntity(request, book, user);
     Review savedReview = reviewRepository.save(review);
 
-    // 4. DTO 변환 (매퍼가 객체 내부를 타고 들어가므로 인자가 줄어듦!)
+    // 4. DTO 변환
     return reviewMapper.toDto(savedReview, false);
   }
 
@@ -77,7 +81,6 @@ public class ReviewServiceImpl implements ReviewService {
       reviews.remove(reviews.size() - 1);
     }
 
-    // [혁신!] 이제 루프 돌면서 레포지토리 다시 뒤질 필요 없음 (객체 안에 다 있으니까)
     List<ReviewDto> content = reviews.stream().map(review -> {
       boolean likedByMe = reviewLikeRepository.existsByReviewIdAndUserId(review.getId(), request.getRequestUserId());
       return reviewMapper.toDto(review, likedByMe);
@@ -118,5 +121,42 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     review.delete();
+  }
+
+  @Override
+  @Transactional
+  public void hardDeleteReview(UUID reviewId, UUID requestUserId) {
+    // 1. 리뷰 존재 여부 확인 (논리 삭제 여부와 상관없이 조회)
+    Review review = reviewRepository.findById(reviewId)
+        .orElseThrow(() -> new DeokhugamException(ErrorCode.REVIEW_NOT_FOUND));
+
+    // 2. 본인 확인 (권한 체크)
+    if (!review.getUser().getId().equals(requestUserId)) {
+      throw new DeokhugamException(ErrorCode.NOT_REVIEW_OWNER);
+    }
+
+    // 3. 물리 삭제 실행 (JPA의 Cascade 설정이 되어 있다면 관련 댓글/좋아요도 함께 삭제됨)
+    reviewRepository.delete(review);
+  }
+
+  @Override
+  public List<PopularReviewDto> searchPopularReviews(Period period, String direction, String cursor,
+      String after, int limit) {
+    LocalDateTime startTime = calculateStartTime(period);
+    List<PopularReview> popularReviews = reviewRepository.findPopularReviewsWithPaging(
+        startTime, direction, cursor, after, limit
+    );
+    return popularReviews.stream()
+        .map(reviewMapper::toPopularDto)
+        .collect(Collectors.toList());
+  }
+
+  private LocalDateTime calculateStartTime(Period period) {
+    return switch (period) {
+      case DAILY -> LocalDateTime.now().minusDays(1);
+      case WEEKLY -> LocalDateTime.now().minusWeeks(1);
+      case MONTHLY -> LocalDateTime.now().minusMonths(1);
+      case ALL_TIME -> LocalDateTime.of(2020, 1, 1, 0, 0); // 아주 오래전 시간
+    };
   }
 }

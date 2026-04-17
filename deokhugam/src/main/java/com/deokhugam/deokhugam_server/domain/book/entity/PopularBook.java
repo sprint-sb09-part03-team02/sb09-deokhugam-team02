@@ -14,19 +14,23 @@ import jakarta.persistence.ManyToOne;
 import java.time.LocalDate;
 import java.util.UUID;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.UuidGenerator;
 
 @Entity
 @Getter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PopularBook extends BaseEntity {
 
   @Id
-  @GeneratedValue
   @UuidGenerator
   @Column(name = "id", nullable = false, updatable = false)
+
   private UUID id;
 
   @ManyToOne(fetch = FetchType.LAZY)
@@ -46,6 +50,16 @@ public class PopularBook extends BaseEntity {
   @Column(name = "calculated_date", nullable = false)
   private LocalDate calculatedDate;
 
+
+  private Long reviewCount;
+
+  private Double rating;
+
+  public void assignRankOrder(int rank) {
+    this.rankOrder = rank;
+  }
+
+
   public PopularBook(
           Book book,
           Period periodType,
@@ -60,3 +74,4 @@ public class PopularBook extends BaseEntity {
     this.calculatedDate = calculatedDate;
   }
 }
+
