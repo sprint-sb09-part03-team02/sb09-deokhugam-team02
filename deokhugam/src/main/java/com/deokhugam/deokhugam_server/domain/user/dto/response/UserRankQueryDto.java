@@ -1,7 +1,9 @@
 package com.deokhugam.deokhugam_server.domain.user.dto.response;
 
+import java.util.UUID;
+
 public record UserRankQueryDto(
-    Long userId,
+    UUID userId,
     Double totalReviewScore,
     Long givenLikeCount,
     Long writtenCommentCount
