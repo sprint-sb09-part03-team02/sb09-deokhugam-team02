@@ -5,6 +5,8 @@ import static com.deokhugam.deokhugam_server.global.exception.ErrorCode.*;
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserLoginRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserRegisterRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserUpdateRequest;
+import com.deokhugam.deokhugam_server.domain.user.dto.response.PowerUserDto;
+import com.deokhugam.deokhugam_server.domain.user.entity.PowerUser;
 import com.deokhugam.deokhugam_server.global.type.Period;
 import com.deokhugam.deokhugam_server.domain.user.dto.response.UserDto;
 import com.deokhugam.deokhugam_server.domain.user.entity.User;
@@ -63,14 +65,14 @@ public class UserServiceImpl implements UserService{
   }
 
   @Override
-  public List<UserDto> findPowerUsers(Period period, String direction, String cursor, String after,
+  public List<PowerUserDto> findPowerUsers(Period period, String direction, String cursor, String after,
       int limit) {
     LocalDateTime startTime = calculateStartTime(period);
-    List<User> powerUsers = userRepository.findPowerUsersWithPaging(
+    List<PowerUser> powerUsers = userRepository.findPowerUsersWithPaging(
         startTime, direction, cursor, after, limit
     );
     return powerUsers.stream()
-        .map(userMapper::toDto)
+        .map(userMapper::toPowerUserDto)
         .collect(Collectors.toList());
   }
 

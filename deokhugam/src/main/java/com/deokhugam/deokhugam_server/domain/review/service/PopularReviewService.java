@@ -1,20 +1,13 @@
 package com.deokhugam.deokhugam_server.domain.review.service;
 
-import static com.deokhugam.deokhugam_server.global.exception.ErrorCode.BOOK_NOT_FOUND;
-import static com.deokhugam.deokhugam_server.global.exception.ErrorCode.USER_NOT_FOUND;
-
-import com.deokhugam.deokhugam_server.domain.book.entity.Book;
 import com.deokhugam.deokhugam_server.domain.book.repository.BookRepository;
 import com.deokhugam.deokhugam_server.domain.review.dto.response.PopularReviewDto;
 import com.deokhugam.deokhugam_server.domain.review.dto.response.ReviewRankQueryDto;
 import com.deokhugam.deokhugam_server.domain.review.entity.PopularReview;
-import com.deokhugam.deokhugam_server.domain.review.entity.Review;
 import com.deokhugam.deokhugam_server.domain.review.mapper.ReviewMapper;
 import com.deokhugam.deokhugam_server.domain.review.repository.PopularReviewRepository;
 import com.deokhugam.deokhugam_server.domain.review.repository.ReviewRepository;
-import com.deokhugam.deokhugam_server.domain.user.entity.User;
 import com.deokhugam.deokhugam_server.domain.user.repository.UserRepository;
-import com.deokhugam.deokhugam_server.global.exception.DeokhugamException;
 import com.deokhugam.deokhugam_server.global.type.Period;
 import java.time.LocalDate;
 import java.util.Comparator;
@@ -68,8 +61,7 @@ public class PopularReviewService {
   public List<PopularReviewDto> getPopularReviews(Period periodType, LocalDate date) {
     return popularReviewRepository.findAllWithFetchJoin(periodType, date)
         .stream()
-        .map(entity -> reviewMapper.toPopularDto(
-            entity, entity.getReview().getBook(), entity.getReview().getUser()))
+        .map(reviewMapper::toPopularDto)
         .toList();
   }
 

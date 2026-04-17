@@ -3,6 +3,7 @@ package com.deokhugam.deokhugam_server.domain.review.controller;
 import com.deokhugam.deokhugam_server.domain.review.dto.request.ReviewCreateRequest;
 import com.deokhugam.deokhugam_server.domain.review.dto.request.ReviewSearchRequest;
 import com.deokhugam.deokhugam_server.domain.review.dto.request.ReviewUpdateRequest;
+import com.deokhugam.deokhugam_server.domain.review.dto.response.PopularReviewDto;
 import com.deokhugam.deokhugam_server.domain.review.dto.response.ReviewDto;
 import com.deokhugam.deokhugam_server.domain.review.service.ReviewService;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
@@ -79,14 +80,14 @@ public class ReviewController {
 
   @Operation(summary = "인기 리뷰 목록 조회", description = "기간별 인기 리뷰 목록을 조회합니다.")
   @GetMapping("/popular")
-  public ResponseEntity<List<ReviewDto>> searchPopularReview(
+  public ResponseEntity<List<PopularReviewDto>> searchPopularReview(
       @RequestParam(defaultValue = "DAILY") Period period,
       @RequestParam(defaultValue = "ASC") String direction,
       @RequestParam(required = false) String cursor,
       @RequestParam(required = false) String after,
       @RequestParam(defaultValue = "50") int limit
   ) {
-    List<ReviewDto> popularReviews = reviewService.searchPopularReviews(period, direction, cursor, after, limit);
+    List<PopularReviewDto> popularReviews = reviewService.searchPopularReviews(period, direction, cursor, after, limit);
     return ResponseEntity.ok(popularReviews);
   }
 }

@@ -3,6 +3,7 @@ package com.deokhugam.deokhugam_server.domain.user.controller;
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserLoginRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserRegisterRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserUpdateRequest;
+import com.deokhugam.deokhugam_server.domain.user.dto.response.PowerUserDto;
 import com.deokhugam.deokhugam_server.global.type.Period;
 import com.deokhugam.deokhugam_server.domain.user.dto.response.UserDto;
 import com.deokhugam.deokhugam_server.domain.user.service.UserService;
@@ -52,14 +53,14 @@ public class UserController {
   }
 
   @GetMapping("/power")
-  public ResponseEntity<List<UserDto>> searchPowerUser(
+  public ResponseEntity<List<PowerUserDto>> searchPowerUser(
       @RequestParam(defaultValue = "DAILY") Period period,
       @RequestParam(defaultValue = "ASC") String direction,
       @RequestParam(required = false) String cursor,
       @RequestParam(required = false) String after,
       @RequestParam(defaultValue = "50") int limit
   ) {
-    List<UserDto> powerUsers = userService.findPowerUsers(period, direction, cursor, after, limit);
+    List<PowerUserDto> powerUsers = userService.findPowerUsers(period, direction, cursor, after, limit);
     return ResponseEntity.ok(powerUsers);
   }
 

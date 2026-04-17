@@ -5,7 +5,9 @@ import com.deokhugam.deokhugam_server.domain.book.repository.BookRepository;
 import com.deokhugam.deokhugam_server.domain.review.dto.request.ReviewCreateRequest;
 import com.deokhugam.deokhugam_server.domain.review.dto.request.ReviewSearchRequest;
 import com.deokhugam.deokhugam_server.domain.review.dto.request.ReviewUpdateRequest;
+import com.deokhugam.deokhugam_server.domain.review.dto.response.PopularReviewDto;
 import com.deokhugam.deokhugam_server.domain.review.dto.response.ReviewDto;
+import com.deokhugam.deokhugam_server.domain.review.entity.PopularReview;
 import com.deokhugam.deokhugam_server.domain.review.entity.Review;
 import com.deokhugam.deokhugam_server.domain.review.mapper.ReviewMapper;
 import com.deokhugam.deokhugam_server.domain.review.repository.ReviewLikeRepository;
@@ -123,14 +125,14 @@ public class ReviewServiceImpl implements ReviewService {
   }
 
   @Override
-  public List<ReviewDto> searchPopularReviews(Period period, String direction, String cursor,
+  public List<PopularReviewDto> searchPopularReviews(Period period, String direction, String cursor,
       String after, int limit) {
     LocalDateTime startTime = calculateStartTime(period);
-    List<Review> popularReviews = reviewRepository.findPopularReviewsWithPaging(
+    List<PopularReview> popularReviews = reviewRepository.findPopularReviewsWithPaging(
         startTime, direction, cursor, after, limit
     );
     return popularReviews.stream()
-        .map(r -> reviewMapper.toDto(r, false))
+        .map(reviewMapper::toPopularDto)
         .collect(Collectors.toList());
   }
 

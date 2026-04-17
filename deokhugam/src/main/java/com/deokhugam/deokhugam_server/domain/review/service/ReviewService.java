@@ -3,6 +3,7 @@ package com.deokhugam.deokhugam_server.domain.review.service;
 import com.deokhugam.deokhugam_server.domain.review.dto.request.ReviewCreateRequest;
 import com.deokhugam.deokhugam_server.domain.review.dto.request.ReviewSearchRequest;
 import com.deokhugam.deokhugam_server.domain.review.dto.request.ReviewUpdateRequest;
+import com.deokhugam.deokhugam_server.domain.review.dto.response.PopularReviewDto;
 import com.deokhugam.deokhugam_server.domain.review.dto.response.ReviewDto;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.type.Period;
@@ -26,6 +27,6 @@ public interface ReviewService {
   void deleteReview(UUID reviewId, UUID requestUserId);
 
   //인기 리뷰 목록 조회
-  List<ReviewDto> searchPopularReviews(Period period, String direction, String cursor, String after, int limit);
+  List<PopularReviewDto> searchPopularReviews(Period period, String direction, String cursor, String after, int limit);
 
 }

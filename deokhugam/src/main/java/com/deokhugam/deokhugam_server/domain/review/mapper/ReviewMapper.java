@@ -34,24 +34,9 @@ public interface ReviewMapper {
   @Mapping(target = "likedByMe", source = "likedByMe")
   ReviewDto toDto(Review review, boolean likedByMe);
 
-  default PopularReviewDto toPopularDto(PopularReview entity, Book book, User user) {
-    Review review = entity.getReview();
-    return new PopularReviewDto(
-        entity.getId(),
-        review.getId(),
-        book.getId(),
-        book.getTitle(),
-        book.getThumbnailUrl(),
-        user.getId(),
-        user.getNickname(),
-        review.getContent(),
-        (double) review.getRating(),
-        entity.getPeriodType(),
-        entity.getCreatedAt(),
-        entity.getRankOrder(),
-        entity.getScore(),
-        entity.getLikeCount(),
-        entity.getCommentCount()
-    );
+  @Mapping(target = "bookTitle", source = "popularReview.review.book.title")
+  @Mapping(target = "bookThumbnailUrl", source = "popularReview.review.book.thumbnailUrl")
+  @Mapping(target = "userNickname", source = "popularReview.review.user.nickname")
+  PopularReviewDto toPopularDto(PopularReview popularReview);
+
   }
-}
