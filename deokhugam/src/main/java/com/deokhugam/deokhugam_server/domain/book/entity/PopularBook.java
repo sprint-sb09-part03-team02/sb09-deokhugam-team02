@@ -74,3 +74,4 @@ public class PopularBook extends BaseEntity {
     this.calculatedDate = calculatedDate;
   }
 }
+
