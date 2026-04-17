@@ -14,5 +14,6 @@ public interface UserMapper {
   @Mapping(target = "userId", source = "user.id")
   @Mapping(target = "nickname", source = "user.nickname")
   @Mapping(target = "rank", source = "rankOrder")
+  @Mapping(target = "period", source = "periodType")
   PowerUserDto toPowerUserDto(PowerUser entity);
 }
