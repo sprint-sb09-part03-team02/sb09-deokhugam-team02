@@ -29,9 +29,6 @@ cloud:
       bucket: ${AWS_S3_BUCKET}
     region:
       static: ${AWS_REGION}
-    credentials:
-      access-key: ${AWS_ACCESS_KEY}
-      secret-key: ${AWS_SECRET_KEY}
     stack:
       auto: false
 
@@ -47,9 +44,9 @@ jwt:
 
 springdoc:
   swagger-ui:
-    enabled: true
+    enabled: false
   api-docs:
-    enabled: true
+    enabled: false
 
 logging:
   level:
