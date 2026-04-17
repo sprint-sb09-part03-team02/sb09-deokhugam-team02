@@ -52,7 +52,7 @@ public class UserController {
   }
 
   @GetMapping("/power")
-  public ResponseEntity<List<UserDto>> findPowerUser(
+  public ResponseEntity<List<UserDto>> searchPowerUser(
       @RequestParam(defaultValue = "DAILY") Period period,
       @RequestParam(defaultValue = "ASC") String direction,
       @RequestParam(required = false) String cursor,

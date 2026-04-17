@@ -51,8 +51,8 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
     return queryFactory
         .select(Projections.constructor(ReviewRankQueryDto.class,
             review.id,
-            reviewLike.count(),
-            comment.count()
+            reviewLike.id.countDistinct(),
+            comment.id.countDistinct()
         ))
         .from(review)
         // 객체 참조 방식으로 Join 조건 수정 (review_id 대신 review 객체 비교)

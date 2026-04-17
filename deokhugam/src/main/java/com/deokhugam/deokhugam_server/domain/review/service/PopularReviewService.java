@@ -60,23 +60,16 @@ public class PopularReviewService {
     List<PopularReview> existingRankings =
         popularReviewRepository.findAllByPeriodTypeAndCalculatedDate(periodType, endDate);
     if (!existingRankings.isEmpty()) {
-      popularReviewRepository.deleteAll(existingRankings);
+      popularReviewRepository.deleteAllInBatch(existingRankings);
     }
     popularReviewRepository.saveAll(rankings);
   }
 
   public List<PopularReviewDto> getPopularReviews(Period periodType, LocalDate date) {
-    return popularReviewRepository.findAllByPeriodTypeAndCalculatedDate(periodType, date)
+    return popularReviewRepository.findAllWithFetchJoin(periodType, date)
         .stream()
-        .map(entity -> {
-          Review review = entity.getReview();
-          Book book = bookRepository.findById(review.getBook().getId())
-              .orElseThrow(() -> new DeokhugamException(BOOK_NOT_FOUND));
-          User user = userRepository.findById(review.getUser().getId())
-              .orElseThrow(() -> new DeokhugamException(USER_NOT_FOUND));
-
-          return reviewMapper.toPopularDto(entity, book, user);
-        })
+        .map(entity -> reviewMapper.toPopularDto(
+            entity, entity.getReview().getBook(), entity.getReview().getUser()))
         .toList();
   }
 
