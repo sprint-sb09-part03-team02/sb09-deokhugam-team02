@@ -32,6 +32,10 @@
           "value": "deokhugam"
         },
         {
+          "name": "AWS_REGION",
+          "value": "ap-northeast-2"
+        },
+        {
           "name": "AWS_S3_BUCKET",
           "value": "deokhugam-storage"
         },
@@ -41,7 +45,7 @@
         },
         {
           "name": "SPRING_PROFILES_ACTIVE",
-          "value": "prod"
+          "value": "dev"
         }
       ],
       "secrets": [
