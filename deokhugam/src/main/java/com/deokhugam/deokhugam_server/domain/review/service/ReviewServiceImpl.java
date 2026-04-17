@@ -15,6 +15,8 @@ import com.deokhugam.deokhugam_server.domain.user.repository.UserRepository;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.exception.DeokhugamException;
 import com.deokhugam.deokhugam_server.global.exception.ErrorCode;
+import com.deokhugam.deokhugam_server.global.type.Period;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -118,5 +120,26 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     review.delete();
+  }
+
+  @Override
+  public List<ReviewDto> searchPopularReview(Period period, String direction, String cursor,
+      String after, int limit) {
+    LocalDateTime startTime = calculateStartTime(period);
+    List<Review> popularReview = reviewRepository.findPopularReviewsWithPaging(
+        startTime, direction, cursor, after, limit
+    );
+    return popularReview.stream()
+        .map(r -> reviewMapper.toDto(r, false))
+        .collect(Collectors.toList());
+  }
+
+  private LocalDateTime calculateStartTime(Period period) {
+    return switch (period) {
+      case DAILY -> LocalDateTime.now().minusDays(1);
+      case WEEKLY -> LocalDateTime.now().minusWeeks(1);
+      case MONTHLY -> LocalDateTime.now().minusMonths(1);
+      case ALL_TIME -> LocalDateTime.of(2020, 1, 1, 0, 0); // 아주 오래전 시간
+    };
   }
 }

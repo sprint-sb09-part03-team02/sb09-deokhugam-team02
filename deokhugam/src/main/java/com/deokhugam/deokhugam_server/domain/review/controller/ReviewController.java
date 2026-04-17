@@ -77,6 +77,7 @@ public class ReviewController {
     return ResponseEntity.noContent().build(); // 204 No Content
   }
 
+  @Operation(summary = "인기 리뷰 목록 조회", description = "기간별 인기 리뷰 목록을 조회합니다.")
   @GetMapping("/popular")
   public ResponseEntity<List<ReviewDto>> searchPopularReview(
       @RequestParam(defaultValue = "DAILY") Period period,

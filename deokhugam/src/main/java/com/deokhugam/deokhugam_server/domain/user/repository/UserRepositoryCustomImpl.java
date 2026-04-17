@@ -23,9 +23,9 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
     return queryFactory
         .select(Projections.constructor(UserRankQueryDto.class,
             user.id,
-            review.countDistinct(),
-            reviewLike.countDistinct(),
-            comment.countDistinct()
+            review.id.countDistinct(),
+            reviewLike.id.countDistinct(),
+            comment.id.countDistinct()
         ))
         .from(user)
         .leftJoin(review).on(review.user.id.eq(user.id))

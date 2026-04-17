@@ -32,7 +32,7 @@ public interface ReviewMapper {
   @Mapping(target = "bookTitle", source = "review.book.title")
   @Mapping(target = "bookThumbnailUrl", source = "review.book.thumbnailUrl")
   @Mapping(target = "likedByMe", source = "likedByMe")
-  ReviewDto toDto(Review review, String bookTitle, String bookThumbnailUrl, String userNickname, boolean likedByMe);
+  ReviewDto toDto(Review review, boolean likedByMe);
 
   default PopularReviewDto toPopularDto(PopularReview entity, Book book, User user) {
     Review review = entity.getReview();
