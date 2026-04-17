@@ -30,7 +30,7 @@ public interface ReviewMapper {
    */
   @Mapping(target = "userNickname", source = "review.user.nickname")
   @Mapping(target = "bookTitle", source = "review.book.title")
-  @Mapping(target = "bookThumbnailUrl", source = "review.book.thumbnailUrl")
+  @Mapping(target = "bookThumbnailUrl", source = "review.book.imageUrl")
   @Mapping(target = "likedByMe", source = "likedByMe")
   ReviewDto toDto(Review review, String bookTitle, String bookThumbnailUrl, String userNickname, boolean likedByMe);
 
@@ -41,7 +41,7 @@ public interface ReviewMapper {
         review.getId(),
         book.getId(),
         book.getTitle(),
-        book.getthumbnailUrl(),
+        book.getImageUrl(),
         user.getId(),
         user.getNickname(),
         review.getContent(),
