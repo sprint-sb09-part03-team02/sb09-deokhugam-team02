@@ -16,7 +16,7 @@ public interface ReviewRepository extends JpaRepository<Review, UUID>, ReviewRep
   // 1인 1리뷰 명세 준수: book.id와 user.id를 조회
   boolean existsByBookIdAndUserIdAndIsDeletedFalse(UUID bookId, UUID userId);
 
-  @Query("SELECT u FROM User u WHERE u.createdAt >= :startTime AND u.isDeleted = false") // 일단 기본 조회로 시작!
+  @Query("SELECT r FROM Review r WHERE r.createdAt >= :startTime AND r.isDeleted = false")
   List<Review> findPopularReviewsWithPaging(
       @Param("startTime") LocalDateTime startTime,
       @Param("direction") String direction,

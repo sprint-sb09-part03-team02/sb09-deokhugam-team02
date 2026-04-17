@@ -86,7 +86,7 @@ public class ReviewController {
       @RequestParam(required = false) String after,
       @RequestParam(defaultValue = "50") int limit
   ) {
-    List<ReviewDto> popularReviews = reviewService.searchPopularReview(period, direction, cursor, after, limit);
+    List<ReviewDto> popularReviews = reviewService.searchPopularReviews(period, direction, cursor, after, limit);
     return ResponseEntity.ok(popularReviews);
   }
 }

@@ -26,6 +26,6 @@ public interface ReviewService {
   void deleteReview(UUID reviewId, UUID requestUserId);
 
   //인기 리뷰 목록 조회
-  List<ReviewDto> searchPopularReview(Period period, String direction, String cursor, String after, int limit);
+  List<ReviewDto> searchPopularReviews(Period period, String direction, String cursor, String after, int limit);
 
 }

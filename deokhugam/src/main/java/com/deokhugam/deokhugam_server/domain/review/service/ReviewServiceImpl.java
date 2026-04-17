@@ -123,13 +123,13 @@ public class ReviewServiceImpl implements ReviewService {
   }
 
   @Override
-  public List<ReviewDto> searchPopularReview(Period period, String direction, String cursor,
+  public List<ReviewDto> searchPopularReviews(Period period, String direction, String cursor,
       String after, int limit) {
     LocalDateTime startTime = calculateStartTime(period);
-    List<Review> popularReview = reviewRepository.findPopularReviewsWithPaging(
+    List<Review> popularReviews = reviewRepository.findPopularReviewsWithPaging(
         startTime, direction, cursor, after, limit
     );
-    return popularReview.stream()
+    return popularReviews.stream()
         .map(r -> reviewMapper.toDto(r, false))
         .collect(Collectors.toList());
   }
