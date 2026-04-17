@@ -32,7 +32,7 @@ public class BookMapper {
         entity.getBook().getId(),
         entity.getBook().getTitle(),
         entity.getBook().getAuthor(),
-        entity.getBook().getImageUrl(),
+        entity.getBook().getThumbnailUrl(),
         entity.getPeriodType(),
         entity.getRankOrder(),
         entity.getScore(),

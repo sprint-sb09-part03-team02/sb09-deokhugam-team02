@@ -70,9 +70,9 @@ public class PopularReviewService {
         .stream()
         .map(entity -> {
           Review review = entity.getReview();
-          Book book = bookRepository.findById(review.getBookId())
+          Book book = bookRepository.findById(review.getBook().getId())
               .orElseThrow(() -> new DeokhugamException(BOOK_NOT_FOUND));
-          User user = userRepository.findById(review.getUserId())
+          User user = userRepository.findById(review.getUser().getId())
               .orElseThrow(() -> new DeokhugamException(USER_NOT_FOUND));
 
           return reviewMapper.toPopularDto(entity, book, user);
