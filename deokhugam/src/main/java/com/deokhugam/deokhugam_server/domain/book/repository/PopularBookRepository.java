@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PopularBookRepository extends JpaRepository<PopularBook, UUID> {
 
-  List<PopularBook> findAllByPeriodTypeAndCalculatedDate(Period periodType, LocalDate calculatedDate);
+  List<PopularBook> findAllByPeriodTypeAndCalculatedDateOrderByRankOrderAsc(
+          Period periodType,
+          LocalDate calculatedDate
+  );
 }
-

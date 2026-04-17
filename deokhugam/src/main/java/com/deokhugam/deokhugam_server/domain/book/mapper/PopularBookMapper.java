@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class PopularBookMapper {
 
-    public PopularBookDto toDto(PopularBook popularBook, int reviewCount, double rating) {
+    public PopularBookDto toDto(PopularBook popularBook) {
         return new PopularBookDto(
                 popularBook.getId(),
                 popularBook.getBook().getId(),
@@ -17,8 +17,8 @@ public class PopularBookMapper {
                 popularBook.getPeriodType(),
                 popularBook.getRankOrder(),
                 popularBook.getScore(),
-                reviewCount,
-                rating,
+                popularBook.getReviewCount().intValue(),
+                popularBook.getRating(),
                 popularBook.getCreatedAt()
         );
     }

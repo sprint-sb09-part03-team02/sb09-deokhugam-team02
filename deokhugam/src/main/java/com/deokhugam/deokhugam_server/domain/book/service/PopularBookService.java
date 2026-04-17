@@ -1,10 +1,9 @@
 package com.deokhugam.deokhugam_server.domain.book.service;
 
-
 import com.deokhugam.deokhugam_server.domain.book.dto.response.BookRankQueryDto;
 import com.deokhugam.deokhugam_server.domain.book.dto.response.PopularBookDto;
 import com.deokhugam.deokhugam_server.domain.book.entity.PopularBook;
-import com.deokhugam.deokhugam_server.domain.book.mapper.BookMapper;
+import com.deokhugam.deokhugam_server.domain.book.mapper.PopularBookMapper;
 import com.deokhugam.deokhugam_server.domain.book.repository.BookRepository;
 import com.deokhugam.deokhugam_server.domain.book.repository.PopularBookRepository;
 import com.deokhugam.deokhugam_server.global.type.Period;
@@ -22,7 +21,7 @@ public class PopularBookService {
 
   private final BookRepository bookRepository;
   private final PopularBookRepository popularBookRepository;
-
+  private final PopularBookMapper popularBookMapper;
 
   @Transactional
   public void calculateAndSaveRanks(Period periodType) {
@@ -32,34 +31,37 @@ public class PopularBookService {
     List<BookRankQueryDto> statistics = bookRepository.findBookStatisticsForRanking(startDate, endDate);
 
     List<PopularBook> rankings = statistics.stream()
-        .map(stat -> PopularBook.builder()
-            .book(bookRepository.getReferenceById(stat.bookId()))
-            .periodType(periodType)
-            .score(stat.calculateScore())
-            .reviewCount(stat.reviewCount())
-            .rating(stat.avgRating())
-            .calculatedDate(endDate)
-            .build())
-        .sorted(Comparator.comparing(PopularBook::getScore).reversed())
-        .toList();
+            .map(stat -> new PopularBook(
+                    bookRepository.getReferenceById(stat.bookId()),
+                    periodType,
+                    stat.calculateScore(),
+                    0,
+                    endDate,
+                    stat.reviewCount() == null ? 0L : stat.reviewCount(),
+                    stat.avgRating() == null ? 0.0 : stat.avgRating()
+            ))
+            .sorted(Comparator.comparing(PopularBook::getScore).reversed())
+            .toList();
 
     for (int i = 0; i < rankings.size(); i++) {
       rankings.get(i).assignRankOrder(i + 1);
     }
 
     List<PopularBook> existingRankings =
-        popularBookRepository.findAllByPeriodTypeAndCalculatedDate(periodType, endDate);
+            popularBookRepository.findAllByPeriodTypeAndCalculatedDateOrderByRankOrderAsc(periodType, endDate);
+
     if (!existingRankings.isEmpty()) {
       popularBookRepository.deleteAll(existingRankings);
     }
+
     popularBookRepository.saveAll(rankings);
   }
 
   public List<PopularBookDto> getPopularBooks(Period periodType, LocalDate date) {
-    return popularBookRepository.findAllByPeriodTypeAndCalculatedDate(periodType, date)
-        .stream()
-        .map(BookMapper::toPopularDto)
-        .toList();
+    return popularBookRepository.findAllByPeriodTypeAndCalculatedDateOrderByRankOrderAsc(periodType, date)
+            .stream()
+            .map(popularBookMapper::toDto)
+            .toList();
   }
 
   private LocalDate getStartDate(Period type, LocalDate endDate) {
