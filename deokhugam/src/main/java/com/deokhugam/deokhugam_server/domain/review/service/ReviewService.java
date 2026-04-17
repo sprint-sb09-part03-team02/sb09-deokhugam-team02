@@ -22,4 +22,6 @@ public interface ReviewService {
 
   // 리뷰 삭제 (논리 삭제)
   void deleteReview(UUID reviewId, UUID requestUserId);
+
+  void hardDeleteReview(UUID reviewId, UUID requestUserId);
 }

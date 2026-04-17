@@ -52,7 +52,7 @@ public class ReviewServiceImpl implements ReviewService {
     Review review = reviewMapper.toEntity(request, book, user);
     Review savedReview = reviewRepository.save(review);
 
-    // 4. DTO 변환 (매퍼가 객체 내부를 타고 들어가므로 인자가 줄어듦!)
+    // 4. DTO 변환
     return reviewMapper.toDto(savedReview, false);
   }
 
@@ -77,7 +77,6 @@ public class ReviewServiceImpl implements ReviewService {
       reviews.remove(reviews.size() - 1);
     }
 
-    // [혁신!] 이제 루프 돌면서 레포지토리 다시 뒤질 필요 없음 (객체 안에 다 있으니까)
     List<ReviewDto> content = reviews.stream().map(review -> {
       boolean likedByMe = reviewLikeRepository.existsByReviewIdAndUserId(review.getId(), request.getRequestUserId());
       return reviewMapper.toDto(review, likedByMe);
@@ -118,5 +117,21 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     review.delete();
+  }
+
+  @Override
+  @Transactional
+  public void hardDeleteReview(UUID reviewId, UUID requestUserId) {
+    // 1. 리뷰 존재 여부 확인 (논리 삭제 여부와 상관없이 조회)
+    Review review = reviewRepository.findById(reviewId)
+        .orElseThrow(() -> new DeokhugamException(ErrorCode.REVIEW_NOT_FOUND));
+
+    // 2. 본인 확인 (권한 체크)
+    if (!review.getUser().getId().equals(requestUserId)) {
+      throw new DeokhugamException(ErrorCode.NOT_REVIEW_OWNER);
+    }
+
+    // 3. 물리 삭제 실행 (JPA의 Cascade 설정이 되어 있다면 관련 댓글/좋아요도 함께 삭제됨)
+    reviewRepository.delete(review);
   }
 }
