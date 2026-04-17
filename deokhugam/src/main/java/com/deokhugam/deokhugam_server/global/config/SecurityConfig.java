@@ -1,5 +1,7 @@
 package com.deokhugam.deokhugam_server.global.config;
 
+import com.deokhugam.deokhugam_server.global.filter.JwtAuthenticationFilter;
+import com.deokhugam.deokhugam_server.global.filter.MdcLoggingFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -11,6 +13,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -40,7 +43,9 @@ public class SecurityConfig {
 
             // 3. 나머지는 인증 필요
             .anyRequest().authenticated()
-        );
+        )
+        .addFilterBefore(new MdcLoggingFilter(), UsernamePasswordAuthenticationFilter.class)
+        .addFilterBefore(new JwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
   }
