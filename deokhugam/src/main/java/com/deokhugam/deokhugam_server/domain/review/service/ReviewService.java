@@ -26,6 +26,8 @@ public interface ReviewService {
   // 리뷰 삭제 (논리 삭제)
   void deleteReview(UUID reviewId, UUID requestUserId);
 
+  void hardDeleteReview(UUID reviewId, UUID requestUserId);
+
   //인기 리뷰 목록 조회
   List<PopularReviewDto> searchPopularReviews(Period period, String direction, String cursor, String after, int limit);
 
