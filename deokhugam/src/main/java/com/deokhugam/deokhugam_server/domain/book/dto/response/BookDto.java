@@ -8,11 +8,13 @@ public record BookDto(
         UUID id,
         String title,
         String author,
-        String isbn,
-        String publisher,
         String description,
-        String imageUrl,
-        LocalDate publishedAt,
+        String publisher,
+        LocalDate publishedDate,
+        String isbn,
+        String thumbnailUrl,
+        int reviewCount,
+        double rating,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {

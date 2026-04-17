@@ -17,6 +17,6 @@ public record BookUpdateRequest(
         @Size(max = 5000, message = "도서 설명은 5000자 이하여야 합니다.")
         String description,
 
-        LocalDate publishedAt
+        LocalDate publishedDate
 ) {
 }
