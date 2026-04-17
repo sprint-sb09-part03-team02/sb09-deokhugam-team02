@@ -52,6 +52,12 @@ public class PowerUserService {
     for (int i = 0; i < rankings.size(); i++) {
       rankings.get(i).assignRankOrder(i + 1);
     }
+
+    List<PowerUser> existingRankings =
+        powerUserRepository.findAllByPeriodTypeAndCalculatedDate(periodType, endDate);
+    if (!existingRankings.isEmpty()) {
+      powerUserRepository.deleteAll(existingRankings);
+    }
     powerUserRepository.saveAll(rankings);
   }
 

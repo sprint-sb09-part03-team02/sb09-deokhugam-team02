@@ -13,7 +13,7 @@ import org.springframework.data.repository.query.Param;
 public interface PopularReviewRepository extends JpaRepository<PopularReview, UUID> {
   @Query("select sum(pr.score) from PopularReview pr " +
       "join pr.review r " + // Review 엔티티와 조인
-      "where r.userId = :userId " +
+      "where r.user.id = :userId " +
       "and pr.periodType = :period " +
       "and pr.calculatedDate = :date")
   Optional<Double> sumScoreByUserIdAndPeriod(

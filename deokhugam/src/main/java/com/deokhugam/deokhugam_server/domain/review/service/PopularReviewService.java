@@ -57,6 +57,11 @@ public class PopularReviewService {
       rankings.get(i).assignRankOrder(i + 1);
     }
 
+    List<PopularReview> existingRankings =
+        popularReviewRepository.findAllByPeriodTypeAndCalculatedDate(periodType, endDate);
+    if (!existingRankings.isEmpty()) {
+      popularReviewRepository.deleteAll(existingRankings);
+    }
     popularReviewRepository.saveAll(rankings);
   }
 
