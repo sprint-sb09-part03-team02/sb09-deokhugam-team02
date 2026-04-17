@@ -25,11 +25,11 @@ public abstract class BaseEntity {
   @Column(nullable = false)
   private boolean isDeleted = false;
 
-  private LocalDateTime deletedAt; // 삭체 시점 기록 필드 추가
+  private LocalDateTime deletedAt;
 
   public void delete() {
     this.isDeleted = true;
-    this.deletedAt = LocalDateTime.now(); // 삭제하는 순간의 시간 기록
+    this.deletedAt = LocalDateTime.now();
   }
 
   public void undoDelete() {
