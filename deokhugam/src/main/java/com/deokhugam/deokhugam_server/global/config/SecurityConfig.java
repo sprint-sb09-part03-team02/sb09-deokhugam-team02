@@ -29,8 +29,9 @@ public class SecurityConfig {
             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
         .authorizeHttpRequests(auth -> auth
-            // 1. 유저 관련 API는 모두 허용 (회원가입, 로그인 등)
-            .requestMatchers("/api/users", "/api/users/**").permitAll()
+            // 1. 회원가입, 로그인만 허용 (비인증 접근 가능)
+            .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/users").permitAll()
+            .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/users/login").permitAll()
 
             // 2. 스웨거(Swagger) 관련 경로들 - 문자열로 간단하게!
             .requestMatchers(
