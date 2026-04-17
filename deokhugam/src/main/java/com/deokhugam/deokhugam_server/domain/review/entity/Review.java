@@ -6,12 +6,15 @@ import com.deokhugam.deokhugam_server.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import java.util.UUID;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@Builder
+@AllArgsConstructor // 1. 모든 필드를 인자로 받는 생성자가 반드시 있어야 함 (Builder용)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
     name = "review",
@@ -42,13 +45,14 @@ public class Review extends BaseEntity {
   @Column(nullable = false)
   private int rating;
 
+  @Builder.Default
   @Column(nullable = false)
   private int likeCount = 0;
 
+  @Builder.Default // 2. 위와 동일
   @Column(nullable = false)
   private int commentCount = 0;
 
-  @Builder
   public Review(Book book, User user, String content, int rating) {
     this.book = book;
     this.user = user;
@@ -60,6 +64,4 @@ public class Review extends BaseEntity {
     this.content = content;
     this.rating = rating;
   }
-
-  // 좋아요/댓글 수 증감 로직 좋아요/댓글 기능 구현 시 추가
 }
