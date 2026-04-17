@@ -11,6 +11,6 @@ public class PopularBookBatch {
   private final PopularBookService popularBookService;
 
   public void execute(Period period) {
-    popularBookService.calculateAndSaveRanks(period);
-  }
+    popularBookService.calculateAndSavePopularBooks(period, LocalDate.now());
+
 }
