@@ -30,20 +30,20 @@ public class BookRepositoryCustomImpl implements BookRepositoryCustom {
   @Override
   public List<BookRankQueryDto> findBookStatisticsForRanking(LocalDate startDate, LocalDate endDate) {
     return queryFactory
-            .select(Projections.constructor(
-                    BookRankQueryDto.class,
-                    review.book.id,
-                    review.count(),
-                    review.rating.avg()
-            ))
-            .from(review)
-            .where(
-                    review.createdAt.between(
-                            startDate.atStartOfDay(),
-                            endDate.atTime(LocalTime.MAX)
-                    )
+        .select(Projections.constructor(
+            BookRankQueryDto.class,
+            review.book.id,
+            review.id.countDistinct(),
+            review.rating.avg()
+        ))
+        .from(review)
+        .where(
+            review.createdAt.between(
+                startDate.atStartOfDay(),
+                endDate.atTime(LocalTime.MAX)
             )
-            .groupBy(review.book.id)
-            .fetch();
+        )
+        .groupBy(review.book.id)
+        .fetch();
   }
 }

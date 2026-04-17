@@ -3,6 +3,7 @@ package com.deokhugam.deokhugam_server.domain.user.service;
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserLoginRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserRegisterRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserUpdateRequest;
+import com.deokhugam.deokhugam_server.domain.user.dto.response.PowerUserDto;
 import com.deokhugam.deokhugam_server.global.type.Period;
 import com.deokhugam.deokhugam_server.domain.user.dto.response.UserDto;
 import java.util.List;
@@ -15,7 +16,7 @@ public interface UserService {
 
   UserDto find(UUID userId);
 
-  List<UserDto> findPowerUsers(Period period, String direction, String cursor, String after, int limit);
+  List<PowerUserDto> findPowerUsers(Period period, String direction, String cursor, String after, int limit);
 
   void update(UUID userId, UserUpdateRequest request);
 

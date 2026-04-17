@@ -12,7 +12,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface PopularReviewRepository extends JpaRepository<PopularReview, UUID> {
   @Query("select sum(pr.score) from PopularReview pr " +
-      "join pr.review r " + // Review 엔티티와 조인
+      "join pr.review r " +
       "where r.user.id = :userId " +
       "and pr.periodType = :period " +
       "and pr.calculatedDate = :date")
@@ -24,4 +24,10 @@ public interface PopularReviewRepository extends JpaRepository<PopularReview, UU
 
   List<PopularReview> findAllByPeriodTypeAndCalculatedDate(Period periodType, LocalDate calculatedDate);
 
+  @Query("select pr from PopularReview pr " +
+      "join fetch pr.review r " +
+      "join fetch r.book " +
+      "join fetch r.user " +
+      "where pr.periodType = :periodType and pr.calculatedDate = :date")
+  List<PopularReview> findAllWithFetchJoin(@Param("periodType") Period periodType, @Param("date") LocalDate date);
 }

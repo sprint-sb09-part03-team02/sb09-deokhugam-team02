@@ -29,16 +29,10 @@ public interface ReviewMapper {
   @Mapping(target = "user", source = "user")
   Review toEntity(ReviewCreateRequest request, Book book, User user);
 
-  // 3. PopularReview -> PopularReviewDto
-  @Mapping(target = "reviewId", source = "entity.review.id")
-  @Mapping(target = "bookId", source = "book.id")
-  @Mapping(target = "bookTitle", source = "book.title")
-  @Mapping(target = "bookThumbnailUrl", source = "book.thumbnailUrl")
-  @Mapping(target = "userId", source = "user.id")
-  @Mapping(target = "userNickname", source = "user.nickname")
-  @Mapping(target = "reviewContent", source = "entity.review.content")
-  @Mapping(target = "reviewRating", source = "entity.review.rating")
-  @Mapping(target = "period", source = "entity.periodType")
-  @Mapping(target = "rank", source = "entity.rankOrder")
-  PopularReviewDto toPopularDto(PopularReview entity, Book book, User user);
-}
+
+  @Mapping(target = "bookTitle", source = "popularReview.review.book.title")
+  @Mapping(target = "bookThumbnailUrl", source = "popularReview.review.book.thumbnailUrl")
+  @Mapping(target = "userNickname", source = "popularReview.review.user.nickname")
+  PopularReviewDto toPopularDto(PopularReview popularReview);
+
+  }

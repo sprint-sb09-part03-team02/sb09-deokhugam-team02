@@ -58,7 +58,7 @@ public class PopularBook extends BaseEntity {
   public void assignRankOrder(int rank) {
     this.rankOrder = rank;
   }
-}
+
 
   public PopularBook(
           Book book,

@@ -23,13 +23,13 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
     return queryFactory
         .select(Projections.constructor(UserRankQueryDto.class,
             user.id,
-            review.countDistinct(),
-            reviewLike.countDistinct(),
-            comment.countDistinct()
+            review.id.countDistinct(),
+            reviewLike.id.countDistinct(),
+            comment.id.countDistinct()
         ))
         .from(user)
-        .leftJoin(review).on(review.userId.eq(user.id))
-        .leftJoin(reviewLike).on(reviewLike.userId.eq(user.id))
+        .leftJoin(review).on(review.user.id.eq(user.id))
+        .leftJoin(reviewLike).on(reviewLike.user.id.eq(user.id))
         .leftJoin(comment).on(comment.userId.eq(user.id))
         .where(user.createdAt.between(start.atStartOfDay(), end.atTime(LocalTime.MAX)))
         .groupBy(user.id)

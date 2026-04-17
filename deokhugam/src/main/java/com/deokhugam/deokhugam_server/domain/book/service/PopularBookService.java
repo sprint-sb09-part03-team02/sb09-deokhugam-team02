@@ -22,6 +22,7 @@ public class PopularBookService {
 
   private final BookRepository bookRepository;
   private final PopularBookRepository popularBookRepository;
+  private final BookMapper bookMapper;
 
 
   @Transactional
@@ -58,7 +59,7 @@ public class PopularBookService {
   public List<PopularBookDto> getPopularBooks(Period periodType, LocalDate date) {
     return popularBookRepository.findAllByPeriodTypeAndCalculatedDate(periodType, date)
         .stream()
-        .map(BookMapper::toPopularDto)
+        .map(bookMapper::toPopularDto)
         .toList();
   }
 

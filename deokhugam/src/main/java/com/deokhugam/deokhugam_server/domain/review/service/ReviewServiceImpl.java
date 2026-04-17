@@ -5,7 +5,9 @@ import com.deokhugam.deokhugam_server.domain.book.repository.BookRepository;
 import com.deokhugam.deokhugam_server.domain.review.dto.request.ReviewCreateRequest;
 import com.deokhugam.deokhugam_server.domain.review.dto.request.ReviewSearchRequest;
 import com.deokhugam.deokhugam_server.domain.review.dto.request.ReviewUpdateRequest;
+import com.deokhugam.deokhugam_server.domain.review.dto.response.PopularReviewDto;
 import com.deokhugam.deokhugam_server.domain.review.dto.response.ReviewDto;
+import com.deokhugam.deokhugam_server.domain.review.entity.PopularReview;
 import com.deokhugam.deokhugam_server.domain.review.entity.Review;
 import com.deokhugam.deokhugam_server.domain.review.mapper.ReviewMapper;
 import com.deokhugam.deokhugam_server.domain.review.repository.ReviewLikeRepository;
@@ -15,6 +17,8 @@ import com.deokhugam.deokhugam_server.domain.user.repository.UserRepository;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.exception.DeokhugamException;
 import com.deokhugam.deokhugam_server.global.exception.ErrorCode;
+import com.deokhugam.deokhugam_server.global.type.Period;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -133,5 +137,26 @@ public class ReviewServiceImpl implements ReviewService {
 
     // 3. 물리 삭제 실행 (JPA의 Cascade 설정이 되어 있다면 관련 댓글/좋아요도 함께 삭제됨)
     reviewRepository.delete(review);
+  }
+
+  @Override
+  public List<PopularReviewDto> searchPopularReviews(Period period, String direction, String cursor,
+      String after, int limit) {
+    LocalDateTime startTime = calculateStartTime(period);
+    List<PopularReview> popularReviews = reviewRepository.findPopularReviewsWithPaging(
+        startTime, direction, cursor, after, limit
+    );
+    return popularReviews.stream()
+        .map(reviewMapper::toPopularDto)
+        .collect(Collectors.toList());
+  }
+
+  private LocalDateTime calculateStartTime(Period period) {
+    return switch (period) {
+      case DAILY -> LocalDateTime.now().minusDays(1);
+      case WEEKLY -> LocalDateTime.now().minusWeeks(1);
+      case MONTHLY -> LocalDateTime.now().minusMonths(1);
+      case ALL_TIME -> LocalDateTime.of(2020, 1, 1, 0, 0); // 아주 오래전 시간
+    };
   }
 }
