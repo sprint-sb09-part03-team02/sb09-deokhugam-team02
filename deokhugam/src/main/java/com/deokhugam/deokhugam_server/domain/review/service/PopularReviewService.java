@@ -1,5 +1,7 @@
 package com.deokhugam.deokhugam_server.domain.review.service;
 
+import static com.deokhugam.deokhugam_server.global.util.PeriodUtil.getStartDate;
+
 import com.deokhugam.deokhugam_server.domain.book.repository.BookRepository;
 import com.deokhugam.deokhugam_server.domain.review.dto.response.PopularReviewDto;
 import com.deokhugam.deokhugam_server.domain.review.dto.response.ReviewRankQueryDto;
@@ -65,12 +67,4 @@ public class PopularReviewService {
         .toList();
   }
 
-  private LocalDate getStartDate(Period type, LocalDate endDate) {
-    return switch (type) {
-      case DAILY -> endDate;
-      case WEEKLY -> endDate.minusWeeks(1);
-      case MONTHLY -> endDate.minusMonths(1);
-      case ALL_TIME -> LocalDate.of(2000, 1, 1);
-    };
-  }
 }

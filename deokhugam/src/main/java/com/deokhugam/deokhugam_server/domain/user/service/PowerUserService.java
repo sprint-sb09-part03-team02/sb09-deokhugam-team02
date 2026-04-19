@@ -6,6 +6,7 @@ import com.deokhugam.deokhugam_server.domain.user.entity.PowerUser;
 import com.deokhugam.deokhugam_server.domain.user.repository.PowerUserRepository;
 import com.deokhugam.deokhugam_server.domain.user.repository.UserRepository;
 import com.deokhugam.deokhugam_server.global.type.Period;
+import com.deokhugam.deokhugam_server.global.util.PeriodUtil;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
@@ -25,7 +26,7 @@ public class PowerUserService {
   @Transactional
   public void calculateAndSavePowerUserRanks(Period periodType) {
     LocalDate endDate = LocalDate.now().minusDays(1);
-    LocalDate startDate = getStartDate(periodType, endDate);
+    LocalDate startDate = PeriodUtil.getStartDate(periodType, endDate);
 
     List<UserRankQueryDto> statistics = userRepository.findUserActivityStatistics(startDate,
         endDate);
@@ -61,12 +62,4 @@ public class PowerUserService {
     powerUserRepository.saveAll(rankings);
   }
 
-  private LocalDate getStartDate(Period type, LocalDate endDate) {
-    return switch (type) {
-      case DAILY -> endDate;
-      case WEEKLY -> endDate.minusWeeks(1);
-      case MONTHLY -> endDate.minusMonths(1);
-      case ALL_TIME -> LocalDate.of(2000, 1, 1);
-    };
-  }
 }
