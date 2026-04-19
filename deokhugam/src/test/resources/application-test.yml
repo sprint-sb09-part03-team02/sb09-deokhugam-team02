@@ -1,0 +1,36 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
+  # 외부 서비스 비활성화
+  data:
+    redis:
+      host: localhost  # TestContainers or embedded 사용
+
+cloud:
+  aws:
+    credentials:
+      access-key: test-access-key
+      secret-key: test-secret-key
+    s3:
+      bucket: test-bucket
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false
+
+naver:
+  api:
+    client-id: test-client-id
+    client-secret: test-client-secret
+    url: https://openapi.naver.com/v1/search/book.json
+
+jwt:
+  secret: test-secret-key-for-test-environment-must-be-long-enough
+  expiration: 86400000
