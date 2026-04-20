@@ -13,6 +13,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -25,7 +26,7 @@ public class NotificationEventListener {
     private final NotificationService notificationService;
     private final ReviewRepository reviewRepository;
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleCommentCreated(CommentCreatedEvent event) {
         Review review = reviewRepository.findByIdAndIsDeletedFalse(event.reviewId())
@@ -44,7 +45,7 @@ public class NotificationEventListener {
         );
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleReviewLiked(ReviewLikedEvent event) {
         if (event.targetUserId().equals(event.likerId())) {
@@ -59,7 +60,7 @@ public class NotificationEventListener {
         );
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleReviewRanked(ReviewRankedEvent event) {
         String content = String.format(
