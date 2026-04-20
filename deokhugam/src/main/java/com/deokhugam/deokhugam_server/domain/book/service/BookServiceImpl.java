@@ -14,6 +14,7 @@ import com.deokhugam.deokhugam_server.global.exception.DeokhugamException;
 import com.deokhugam.deokhugam_server.global.exception.ErrorCode;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.type.Period;
+import com.deokhugam.deokhugam_server.global.util.PeriodUtil;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -136,7 +137,7 @@ public class BookServiceImpl implements BookService {
             String after,
             int limit
     ) {
-        LocalDateTime startTime = calculateStartTime(period);
+        LocalDateTime startTime = PeriodUtil.calculateStartTime(period);
         List<PopularBook> popularBooks = bookRepository.findPopularBooksWithPaging(
                 startTime,
                 direction,
@@ -187,15 +188,6 @@ public class BookServiceImpl implements BookService {
             case "reviewCount" -> String.valueOf(item.reviewCount());
             case "title" -> item.title();
             default -> item.title();
-        };
-    }
-
-    private LocalDateTime calculateStartTime(Period period) {
-        return switch (period) {
-            case DAILY -> LocalDateTime.now().minusDays(1);
-            case WEEKLY -> LocalDateTime.now().minusWeeks(1);
-            case MONTHLY -> LocalDateTime.now().minusMonths(1);
-            case ALL_TIME -> LocalDateTime.of(2020, 1, 1, 0, 0);
         };
     }
 }
