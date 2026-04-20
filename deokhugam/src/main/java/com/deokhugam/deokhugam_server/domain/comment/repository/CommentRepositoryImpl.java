@@ -1,10 +1,12 @@
 package com.deokhugam.deokhugam_server.domain.comment.repository;
 
 import static com.deokhugam.deokhugam_server.domain.comment.entity.QComment.comment;
+import static com.deokhugam.deokhugam_server.domain.user.entity.QUser.user;
 
 import com.deokhugam.deokhugam_server.domain.comment.dto.request.CommentSearchRequest;
-import com.deokhugam.deokhugam_server.domain.comment.entity.Comment;
+import com.deokhugam.deokhugam_server.domain.comment.dto.response.CommentDto;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDateTime;
@@ -18,21 +20,31 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom {
   private final JPAQueryFactory queryFactory;
 
   @Override
-  public List<Comment> searchComments(CommentSearchRequest request) {
+  public List<CommentDto> searchComments(CommentSearchRequest request) {
     int pageSize = request.getLimit();
 
     return queryFactory
-        .selectFrom(comment)
+        .select(Projections.constructor(CommentDto.class,
+            comment.id,
+            comment.reviewId,
+            comment.userId,
+            user.nickname, // User와 조인하여 닉네임을 직접 가져옴 (N+1 해결)
+            comment.content,
+            comment.createdAt,
+            comment.updatedAt
+        ))
+        .from(comment)
+        // Comment 엔티티의 userId(UUID) 필드를 기반으로 User 테이블과 조인
+        .leftJoin(user).on(comment.userId.eq(user.id))
         .where(
             eqReviewId(request.getReviewId()),
             eqUserId(request.getUserId()),
             ltCursorAfter(request.getAfter(), request.getCursor()),
-            comment.isDeleted.isFalse() // 목록 조회 시 삭제된 데이터 제외
+            comment.isDeleted.isFalse()
         )
-        // 명세서 기반 정렬 조건 적용
         .orderBy(
             getOrderSpecifier(request.getDirection()),
-            comment.id.desc() // 동시간대 데이터 정렬을 위한 ID 보조 정렬
+            comment.id.desc()
         )
         .limit(pageSize + 1)
         .fetch();
@@ -45,7 +57,7 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom {
         .from(comment)
         .where(
             eqReviewId(reviewId),
-            comment.isDeleted.isFalse() // 일반 카운트 시 삭제 데이터 제외
+            comment.isDeleted.isFalse()
         )
         .fetchOne();
   }
@@ -58,7 +70,6 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom {
     return userId != null ? comment.userId.eq(userId) : null;
   }
 
-  // 복합 커서 페이지네이션 로직 (createdAt + ID)
   private BooleanExpression ltCursorAfter(LocalDateTime after, String cursor) {
     if (after == null || cursor == null) return null;
 
