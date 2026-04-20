@@ -1,6 +1,6 @@
 package com.deokhugam.deokhugam_server.domain.notification.repository;
 
-import com.deokhugam.deokhugam_server.domain.notification.entity.QNotification.notification;
+import static com.deokhugam.deokhugam_server.domain.notification.entity.QNotification.notification;
 
 import com.deokhugam.deokhugam_server.domain.notification.dto.request.NotificationSearchRequest;
 import com.deokhugam.deokhugam_server.domain.notification.entity.Notification;
