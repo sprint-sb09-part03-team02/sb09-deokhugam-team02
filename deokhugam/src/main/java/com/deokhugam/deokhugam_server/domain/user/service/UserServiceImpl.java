@@ -18,6 +18,7 @@ import com.deokhugam.deokhugam_server.global.exception.DeokhugamException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
@@ -125,17 +126,18 @@ public class UserServiceImpl implements UserService {
         .orElseThrow(() -> new DeokhugamException(USER_NOT_FOUND));
     userRepository.deleteById(userId);
   }
-
   private LocalDateTime parseLocalDateTime(String after) {
     if (after == null || after.isBlank())
       return null;
     try {
+      ZoneId kstZone = ZoneId.of("Asia/Seoul");
       if (after.endsWith("Z")) {
-        return LocalDateTime.ofInstant(Instant.parse(after), ZoneOffset.UTC);
+        return LocalDateTime.ofInstant(Instant.parse(after), kstZone);
       }
       return LocalDateTime.parse(after);
     } catch (Exception e) {
       return LocalDate.parse(after.substring(0, 10)).atStartOfDay();
     }
   }
+
 }
