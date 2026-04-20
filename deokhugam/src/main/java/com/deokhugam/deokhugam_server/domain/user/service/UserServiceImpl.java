@@ -13,6 +13,7 @@ import com.deokhugam.deokhugam_server.domain.user.entity.User;
 import com.deokhugam.deokhugam_server.domain.user.mapper.UserMapper;
 import com.deokhugam.deokhugam_server.domain.user.repository.UserRepository;
 import com.deokhugam.deokhugam_server.global.exception.DeokhugamException;
+import com.deokhugam.deokhugam_server.global.util.PeriodUtil;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -67,7 +68,7 @@ public class UserServiceImpl implements UserService{
   @Override
   public List<PowerUserDto> findPowerUsers(Period period, String direction, String cursor, String after,
       int limit) {
-    LocalDateTime startTime = calculateStartTime(period);
+    LocalDateTime startTime = PeriodUtil.calculateStartTime(period);
     List<PowerUser> powerUsers = userRepository.findPowerUsersWithPaging(
         startTime, direction, cursor, after, limit
     );
@@ -105,12 +106,4 @@ public class UserServiceImpl implements UserService{
     userRepository.deleteById(userId);
   }
 
-  private LocalDateTime calculateStartTime(Period period) {
-    return switch (period) {
-      case DAILY -> LocalDateTime.now().minusDays(1);
-      case WEEKLY -> LocalDateTime.now().minusWeeks(1);
-      case MONTHLY -> LocalDateTime.now().minusMonths(1);
-      case ALL_TIME -> LocalDateTime.of(2020, 1, 1, 0, 0); // 아주 오래전 시간
-    };
-  }
 }

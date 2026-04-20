@@ -8,6 +8,7 @@ import com.deokhugam.deokhugam_server.domain.book.mapper.BookMapper;
 import com.deokhugam.deokhugam_server.domain.book.repository.BookRepository;
 import com.deokhugam.deokhugam_server.domain.book.repository.PopularBookRepository;
 import com.deokhugam.deokhugam_server.global.type.Period;
+import com.deokhugam.deokhugam_server.global.util.PeriodUtil;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
@@ -28,7 +29,7 @@ public class PopularBookService {
   @Transactional
   public void calculateAndSaveRanks(Period periodType) {
     LocalDate endDate = LocalDate.now().minusDays(1);
-    LocalDate startDate = getStartDate(periodType, endDate);
+    LocalDate startDate = PeriodUtil.getStartDate(periodType, endDate);
 
     List<BookRankQueryDto> statistics = bookRepository.findBookStatisticsForRanking(startDate, endDate);
 
@@ -63,12 +64,4 @@ public class PopularBookService {
         .toList();
   }
 
-  private LocalDate getStartDate(Period type, LocalDate endDate) {
-    return switch (type) {
-      case DAILY -> endDate;
-      case WEEKLY -> endDate.minusWeeks(1);
-      case MONTHLY -> endDate.minusMonths(1);
-      case ALL_TIME -> LocalDate.of(2000, 1, 1);
-    };
-  }
 }
