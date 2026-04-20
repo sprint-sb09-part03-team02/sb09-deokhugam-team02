@@ -6,6 +6,7 @@ import com.deokhugam.deokhugam_server.domain.book.repository.BookRepository;
 import com.deokhugam.deokhugam_server.domain.review.dto.response.PopularReviewDto;
 import com.deokhugam.deokhugam_server.domain.review.dto.response.ReviewRankQueryDto;
 import com.deokhugam.deokhugam_server.domain.review.entity.PopularReview;
+import com.deokhugam.deokhugam_server.domain.review.event.ReviewRankedEvent;
 import com.deokhugam.deokhugam_server.domain.review.mapper.ReviewMapper;
 import com.deokhugam.deokhugam_server.domain.review.repository.PopularReviewRepository;
 import com.deokhugam.deokhugam_server.domain.review.repository.ReviewRepository;
@@ -15,6 +16,7 @@ import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +30,7 @@ public class PopularReviewService {
   private final BookRepository bookRepository;
   private final UserRepository userRepository;
   private final ReviewMapper reviewMapper;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public void calculateAndSaveReviewRanks(Period periodType) {
@@ -58,6 +61,16 @@ public class PopularReviewService {
       popularReviewRepository.deleteAllInBatch(existingRankings);
     }
     popularReviewRepository.saveAll(rankings);
+
+    rankings.stream()
+        .filter(r -> r.getRankOrder() <= 10)
+        .forEach(r -> eventPublisher.publishEvent(new ReviewRankedEvent(
+            r.getReview().getId(),
+            r.getReview().getUser().getId(),
+            periodType,
+            r.getRankOrder(),
+            r.getReview().getContent()
+        )));
   }
 
   public List<PopularReviewDto> getPopularReviews(Period periodType, LocalDate date) {
