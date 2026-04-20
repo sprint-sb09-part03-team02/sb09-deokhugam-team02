@@ -7,8 +7,11 @@ import com.deokhugam.deokhugam_server.domain.review.dto.request.ReviewSearchRequ
 import com.deokhugam.deokhugam_server.domain.review.dto.request.ReviewUpdateRequest;
 import com.deokhugam.deokhugam_server.domain.review.dto.response.PopularReviewDto;
 import com.deokhugam.deokhugam_server.domain.review.dto.response.ReviewDto;
+import com.deokhugam.deokhugam_server.domain.review.dto.response.ReviewLikeDto;
 import com.deokhugam.deokhugam_server.domain.review.entity.PopularReview;
 import com.deokhugam.deokhugam_server.domain.review.entity.Review;
+import com.deokhugam.deokhugam_server.domain.review.entity.ReviewLike;
+import com.deokhugam.deokhugam_server.domain.review.event.ReviewLikedEvent;
 import com.deokhugam.deokhugam_server.domain.review.mapper.ReviewMapper;
 import com.deokhugam.deokhugam_server.domain.review.repository.ReviewLikeRepository;
 import com.deokhugam.deokhugam_server.domain.review.repository.ReviewRepository;
@@ -20,7 +23,9 @@ import com.deokhugam.deokhugam_server.global.exception.ErrorCode;
 import com.deokhugam.deokhugam_server.global.type.Period;
 import com.deokhugam.deokhugam_server.global.util.PeriodUtil;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,26 +43,23 @@ public class ReviewServiceImpl implements ReviewService {
   private final BookRepository bookRepository;
   private final UserRepository userRepository;
   private final ReviewMapper reviewMapper;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Override
   @Transactional
   public ReviewDto createReview(ReviewCreateRequest request) {
-    // 1. 도서 및 사용자 객체 직접 조회 (참조를 위해 필요)
     Book book = bookRepository.findById(request.bookId())
         .orElseThrow(() -> new DeokhugamException(ErrorCode.BOOK_NOT_FOUND));
     User user = userRepository.findById(request.userId())
         .orElseThrow(() -> new DeokhugamException(ErrorCode.USER_NOT_FOUND));
 
-    // 2. 1인 1리뷰 체크
     if (reviewRepository.existsByBookIdAndUserIdAndIsDeletedFalse(request.bookId(), request.userId())) {
       throw new DeokhugamException(ErrorCode.ALREADY_REVIEWED);
     }
 
-    // 3. 리뷰 저장 (이제 매퍼에 book, user 객체를 직접 넘김)
     Review review = reviewMapper.toEntity(request, book, user);
     Review savedReview = reviewRepository.save(review);
 
-    // 4. DTO 변환
     return reviewMapper.toDto(savedReview, false);
   }
 
@@ -66,29 +68,28 @@ public class ReviewServiceImpl implements ReviewService {
     Review review = reviewRepository.findByIdAndIsDeletedFalse(reviewId)
         .orElseThrow(() -> new DeokhugamException(ErrorCode.REVIEW_NOT_FOUND));
 
-    // 좋아요 여부 확인
     boolean likedByMe = reviewLikeRepository.existsByReviewIdAndUserId(reviewId, requestUserId);
-
-    // 매퍼가 review.getBook().getTitle() 등을 자동으로 호출함
     return reviewMapper.toDto(review, likedByMe);
   }
 
   @Override
   public CursorPageResponse<ReviewDto> searchReviews(ReviewSearchRequest request) {
-    List<Review> reviews = reviewRepository.searchReviews(request);
+    // 리포지토리에서 이미 ReviewDto 리스트를 반환함
+    List<ReviewDto> content = reviewRepository.searchReviews(request);
 
-    boolean hasNext = reviews.size() > request.getLimit();
+    boolean hasNext = content.size() > request.getLimit();
     if (hasNext) {
-      reviews.remove(reviews.size() - 1);
+      content.remove(content.size() - 1);
     }
 
-    List<ReviewDto> content = reviews.stream().map(review -> {
-      boolean likedByMe = reviewLikeRepository.existsByReviewIdAndUserId(review.getId(), request.getRequestUserId());
-      return reviewMapper.toDto(review, likedByMe);
-    }).collect(Collectors.toList());
+    String nextCursor = null;
+    LocalDateTime nextAfter = null;
 
-    String nextCursor = hasNext ? reviews.get(reviews.size() - 1).getId().toString() : null;
-    java.time.LocalDateTime nextAfter = hasNext ? reviews.get(reviews.size() - 1).getCreatedAt() : null;
+    if (hasNext && !content.isEmpty()) {
+      ReviewDto lastItem = content.get(content.size() - 1);
+      nextCursor = lastItem.id().toString();
+      nextAfter = lastItem.createdAt();
+    }
 
     return new CursorPageResponse<>(content, nextCursor, nextAfter, request.getLimit(), 0L, hasNext);
   }
@@ -99,7 +100,6 @@ public class ReviewServiceImpl implements ReviewService {
     Review review = reviewRepository.findByIdAndIsDeletedFalse(reviewId)
         .orElseThrow(() -> new DeokhugamException(ErrorCode.REVIEW_NOT_FOUND));
 
-    // 본인 확인: review.getUser().getId()로 접근
     if (!review.getUser().getId().equals(requestUserId)) {
       throw new DeokhugamException(ErrorCode.NOT_REVIEW_OWNER);
     }
@@ -116,7 +116,6 @@ public class ReviewServiceImpl implements ReviewService {
     Review review = reviewRepository.findByIdAndIsDeletedFalse(reviewId)
         .orElseThrow(() -> new DeokhugamException(ErrorCode.REVIEW_NOT_FOUND));
 
-    // 본인 확인: review.getUser().getId()로 접근
     if (!review.getUser().getId().equals(requestUserId)) {
       throw new DeokhugamException(ErrorCode.NOT_REVIEW_OWNER);
     }
@@ -127,17 +126,44 @@ public class ReviewServiceImpl implements ReviewService {
   @Override
   @Transactional
   public void hardDeleteReview(UUID reviewId, UUID requestUserId) {
-    // 1. 리뷰 존재 여부 확인 (논리 삭제 여부와 상관없이 조회)
     Review review = reviewRepository.findById(reviewId)
         .orElseThrow(() -> new DeokhugamException(ErrorCode.REVIEW_NOT_FOUND));
 
-    // 2. 본인 확인 (권한 체크)
     if (!review.getUser().getId().equals(requestUserId)) {
       throw new DeokhugamException(ErrorCode.NOT_REVIEW_OWNER);
     }
 
-    // 3. 물리 삭제 실행 (JPA의 Cascade 설정이 되어 있다면 관련 댓글/좋아요도 함께 삭제됨)
     reviewRepository.delete(review);
+  }
+
+  @Override
+  @Transactional
+  public ReviewLikeDto likeReview(UUID reviewId, UUID requestUserId) {
+    Review review = reviewRepository.findByIdAndIsDeletedFalse(reviewId)
+        .orElseThrow(() -> new DeokhugamException(ErrorCode.REVIEW_NOT_FOUND));
+    User user = userRepository.findById(requestUserId)
+        .orElseThrow(() -> new DeokhugamException(ErrorCode.USER_NOT_FOUND));
+
+    Optional<ReviewLike> existingLike = reviewLikeRepository.findByReviewIdAndUserId(reviewId, requestUserId);
+
+    if (existingLike.isPresent()) {
+      reviewLikeRepository.delete(existingLike.get());
+      review.decreaseLikeCount();
+      return new ReviewLikeDto(reviewId, requestUserId, false);
+    } else {
+      ReviewLike newLike = ReviewLike.builder()
+          .review(review)
+          .user(user)
+          .build();
+      reviewLikeRepository.save(newLike);
+      review.increaseLikeCount();
+
+      eventPublisher.publishEvent(new ReviewLikedEvent(
+          reviewId, requestUserId, review.getUser().getId(), review.getContent()
+      ));
+
+      return new ReviewLikeDto(reviewId, requestUserId, true);
+    }
   }
 
   @Override
