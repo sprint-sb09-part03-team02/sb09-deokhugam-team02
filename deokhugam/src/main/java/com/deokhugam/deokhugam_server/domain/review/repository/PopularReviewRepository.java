@@ -1,6 +1,5 @@
 package com.deokhugam.deokhugam_server.domain.review.repository;
 
-import com.deokhugam.deokhugam_server.domain.book.entity.PopularBook;
 import com.deokhugam.deokhugam_server.domain.review.entity.PopularReview;
 import com.deokhugam.deokhugam_server.global.type.Period;
 import java.time.LocalDate;
@@ -44,12 +43,15 @@ public interface PopularReviewRepository extends JpaRepository<PopularReview, UU
       "  CASE WHEN :direction = 'DESC' THEN p.rankOrder END ASC, " +
       "  CASE WHEN :direction = 'ASC' THEN p.createdAt END ASC, " +
       "  CASE WHEN :direction = 'ASC' THEN p.rankOrder END DESC")
-  List<PopularBook> findPopularBooksWithPaging(
+  List<PopularReview> findPopularReviewsWithPaging(
       @Param("period") Period period,
       @Param("direction") String direction,
       @Param("cursor") Integer cursor,
       @Param("after") LocalDateTime after,
       @Param("limit") Limit limit
   );
+
+  long countByPeriodType(Period periodType);
+
 
 }

@@ -73,8 +73,7 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public CursorPageResponse<PowerUserDto> findPowerUsers(Period period, String direction,
-      String cursor, String after,
-      int limit) {
+      String cursor, String after, int limit) {
     Integer cursorRank = (cursor != null && !cursor.isBlank()) ? Integer.parseInt(cursor) : null;
     LocalDateTime afterLdt = parseLocalDateTime(after);
 

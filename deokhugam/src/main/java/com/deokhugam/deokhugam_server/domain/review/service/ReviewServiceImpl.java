@@ -13,6 +13,7 @@ import com.deokhugam.deokhugam_server.domain.review.entity.Review;
 import com.deokhugam.deokhugam_server.domain.review.entity.ReviewLike;
 import com.deokhugam.deokhugam_server.domain.review.event.ReviewLikedEvent;
 import com.deokhugam.deokhugam_server.domain.review.mapper.ReviewMapper;
+import com.deokhugam.deokhugam_server.domain.review.repository.PopularReviewRepository;
 import com.deokhugam.deokhugam_server.domain.review.repository.ReviewLikeRepository;
 import com.deokhugam.deokhugam_server.domain.review.repository.ReviewRepository;
 import com.deokhugam.deokhugam_server.domain.user.entity.User;
@@ -21,17 +22,19 @@ import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.exception.DeokhugamException;
 import com.deokhugam.deokhugam_server.global.exception.ErrorCode;
 import com.deokhugam.deokhugam_server.global.type.Period;
-import com.deokhugam.deokhugam_server.global.util.PeriodUtil;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Limit;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -44,6 +47,7 @@ public class ReviewServiceImpl implements ReviewService {
   private final UserRepository userRepository;
   private final ReviewMapper reviewMapper;
   private final ApplicationEventPublisher eventPublisher;
+  private final PopularReviewRepository popularReviewRepository;
 
   @Override
   @Transactional
@@ -169,12 +173,38 @@ public class ReviewServiceImpl implements ReviewService {
   @Override
   public CursorPageResponse<PopularReviewDto> searchPopularReviews(Period period, String direction, String cursor,
       String after, int limit) {
-    LocalDateTime startTime = PeriodUtil.calculateStartTime(period);
-    List<PopularReview> popularReviews = reviewRepository.findPopularReviewsWithPaging(
-        startTime, direction, cursor, after, limit
+    Integer cursorRank = (cursor != null && !cursor.isBlank()) ? Integer.parseInt(cursor) : null;
+    LocalDateTime afterLdt = parseLocalDateTime(after);
+
+    List<PopularReview> popularReviews = popularReviewRepository.findPopularReviewsWithPaging(
+        period, direction.toUpperCase(), cursorRank, afterLdt,
+        Limit.of(limit + 1)
     );
-    return popularReviews.stream()
-        .map(reviewMapper::toPopularDto)
-        .collect(Collectors.toList());
+
+    long totalElements = popularReviewRepository.countByPeriodType(period);
+
+    boolean hasNext = popularReviews.size() > limit;
+    List<PopularReview> content = hasNext ? popularReviews.subList(0, limit) : popularReviews;
+
+    String nextCursor =
+        content.isEmpty() ? null : String.valueOf(content.get(content.size() - 1).getRankOrder());
+    LocalDateTime nextAfter =
+        content.isEmpty() ? null : content.get(content.size() - 1).getCreatedAt();
+    return new CursorPageResponse<>(
+        content.stream().map(reviewMapper::toPopularDto).toList(),
+        nextCursor, nextAfter, content.size(), totalElements, hasNext
+    );
+  }
+  private LocalDateTime parseLocalDateTime(String after) {
+    if (after == null || after.isBlank())
+      return null;
+    try {
+      if (after.endsWith("Z")) {
+        return LocalDateTime.ofInstant(Instant.parse(after), ZoneOffset.UTC);
+      }
+      return LocalDateTime.parse(after);
+    } catch (Exception e) {
+      return LocalDate.parse(after.substring(0, 10)).atStartOfDay();
+    }
   }
 }
