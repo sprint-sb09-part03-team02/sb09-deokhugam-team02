@@ -7,14 +7,19 @@ import com.deokhugam.deokhugam_server.domain.user.dto.request.UserRegisterReques
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserUpdateRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.response.PowerUserDto;
 import com.deokhugam.deokhugam_server.domain.user.entity.PowerUser;
+import com.deokhugam.deokhugam_server.domain.user.repository.PowerUserRepository;
+import com.deokhugam.deokhugam_server.global.exception.ErrorCode;
 import com.deokhugam.deokhugam_server.global.type.Period;
 import com.deokhugam.deokhugam_server.domain.user.dto.response.UserDto;
 import com.deokhugam.deokhugam_server.domain.user.entity.User;
 import com.deokhugam.deokhugam_server.domain.user.mapper.UserMapper;
 import com.deokhugam.deokhugam_server.domain.user.repository.UserRepository;
 import com.deokhugam.deokhugam_server.global.exception.DeokhugamException;
-import com.deokhugam.deokhugam_server.global.util.PeriodUtil;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -29,6 +34,7 @@ public class UserServiceImpl implements UserService{
   private final UserRepository userRepository;
   private final UserMapper userMapper;
   private final PasswordEncoder passwordEncoder;
+  private final PowerUserRepository powerUserRepository;
 
   @Override
   @Transactional
@@ -68,14 +74,26 @@ public class UserServiceImpl implements UserService{
   @Override
   public List<PowerUserDto> findPowerUsers(Period period, String direction, String cursor, String after,
       int limit) {
-    LocalDateTime startTime = PeriodUtil.calculateStartTime(period);
-    List<PowerUser> powerUsers = userRepository.findPowerUsersWithPaging(
-        startTime, direction, cursor, after, limit
-    );
-    return powerUsers.stream()
-        .map(userMapper::toPowerUserDto)
-        .collect(Collectors.toList());
-  }
+    Integer cursorRank = (cursor != null && !cursor.isBlank()) ? Integer.parseInt(cursor) : null;
+    LocalDateTime afterLdt = null;
+    if (after != null && !after.isBlank()) {
+      try {
+        if (after.endsWith("Z")) {
+          afterLdt = LocalDateTime.ofInstant(Instant.parse(after), ZoneOffset.UTC);
+        } else {
+          afterLdt = LocalDateTime.parse(after);
+        }
+      } catch (Exception e) {
+        afterLdt = LocalDate.parse(after.substring(0, 10)).atStartOfDay();
+      }
+    }
+      List<PowerUser> powerUsers = powerUserRepository.findPowerUsersByRequirements(
+          period, direction.toUpperCase(), cursorRank, afterLdt, limit
+      );
+      return powerUsers.stream()
+          .map(userMapper::toPowerUserDto)
+          .collect(Collectors.toList());
+    }
 
   @Override
   @Transactional

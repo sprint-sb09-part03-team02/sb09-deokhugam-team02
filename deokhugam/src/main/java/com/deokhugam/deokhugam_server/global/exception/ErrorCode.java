@@ -53,6 +53,7 @@ public enum ErrorCode {
    * 명세서 /api/users/power, /api/reviews/popular 대응
    */
   INVALID_PERIOD(400, "D601", "잘못된 요청 (랭킹 기간 오류 등)"),
+  INVALID_CURSOR_PARAMETER(400, "D602", "메인 커서(cursor)가 있는 경우 보조 커서(after)가 필요합니다."),
 
   // [STORAGE] 파일 저장소
   S3_UPLOAD_FAILED(500, "S701", "파일 업로드에 실패했습니다."),
