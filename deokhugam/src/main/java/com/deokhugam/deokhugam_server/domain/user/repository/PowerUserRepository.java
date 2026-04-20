@@ -5,6 +5,7 @@ import com.deokhugam.deokhugam_server.global.type.Period;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.UUID;
@@ -30,8 +31,10 @@ public interface PowerUserRepository extends JpaRepository<PowerUser, UUID> {
       @Param("direction") String direction,
       @Param("cursor") Integer cursor,
       @Param("after") LocalDateTime after,
-      @Param("limit") int limit
+      @Param("limit") Limit limit
   );
 
   List<PowerUser> findAllByPeriodTypeAndCalculatedDate(Period periodType, LocalDate calculatedDate);
+
+  long countByPeriodType(Period periodType);
 }
