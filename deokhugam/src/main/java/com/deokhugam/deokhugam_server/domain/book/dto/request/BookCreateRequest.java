@@ -15,6 +15,7 @@ public record BookCreateRequest(
         @Size(max = 100, message = "저자는 100자 이하여야 합니다.")
         String author,
 
+        @NotBlank(message = "ISBN은 필수입니다.")
         @Size(min = 1, max = 20, message = "ISBN은 1자 이상 20자 이하여야 합니다.")
         String isbn,
 

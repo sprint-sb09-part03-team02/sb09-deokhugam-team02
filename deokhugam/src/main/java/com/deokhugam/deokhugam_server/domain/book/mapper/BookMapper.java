@@ -60,8 +60,8 @@ public class BookMapper {
             popularBook.getPeriodType(),
             popularBook.getRankOrder(),
             popularBook.getScore(),
-            popularBook.getReviewCount().intValue(),
-            popularBook.getRating(),
+            popularBook.getReviewCount() == null ? 0 : popularBook.getReviewCount().intValue(),
+            popularBook.getRating() == null ? 0.0 : popularBook.getRating(),
             popularBook.getCreatedAt()
     );
   }
