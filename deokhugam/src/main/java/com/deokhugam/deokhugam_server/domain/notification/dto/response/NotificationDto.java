@@ -1,5 +1,6 @@
 package com.deokhugam.deokhugam_server.domain.notification.dto.response;
 
+import com.deokhugam.deokhugam_server.domain.notification.entity.NotificationType;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
