@@ -10,16 +10,20 @@ import com.deokhugam.deokhugam_server.domain.book.entity.Book;
 import com.deokhugam.deokhugam_server.domain.book.entity.PopularBook;
 import com.deokhugam.deokhugam_server.domain.book.mapper.BookMapper;
 import com.deokhugam.deokhugam_server.domain.book.repository.BookRepository;
+import com.deokhugam.deokhugam_server.domain.book.repository.PopularBookRepository;
 import com.deokhugam.deokhugam_server.global.exception.DeokhugamException;
 import com.deokhugam.deokhugam_server.global.exception.ErrorCode;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.type.Period;
-import com.deokhugam.deokhugam_server.global.util.PeriodUtil;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Limit;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,6 +35,7 @@ public class BookServiceImpl implements BookService {
 
     private final BookRepository bookRepository;
     private final BookMapper bookMapper;
+    private final PopularBookRepository popularBookRepository;
 
     @Override
     @Transactional
@@ -130,25 +135,30 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public List<PopularBookDto> searchPopularBooks(
-            Period period,
-            String direction,
-            String cursor,
-            String after,
-            int limit
+    public CursorPageResponse<PopularBookDto> searchPopularBooks(
+            Period period, String direction, String cursor, String after, int limit
     ) {
-        LocalDateTime startTime = PeriodUtil.calculateStartTime(period);
-        List<PopularBook> popularBooks = bookRepository.findPopularBooksWithPaging(
-                startTime,
-                direction,
-                cursor,
-                after,
-                limit
+        Integer cursorRank = (cursor != null && !cursor.isBlank()) ? Integer.parseInt(cursor) : null;
+        LocalDateTime afterLdt = parseLocalDateTime(after);
+
+        List<PopularBook> popularBooks = popularBookRepository.findPopularBooksWithPaging(
+            period, direction.toUpperCase(), cursorRank, afterLdt,
+            Limit.of(limit + 1)
         );
 
-        return popularBooks.stream()
-                .map(bookMapper::toPopularDto)
-                .collect(Collectors.toList());
+        long totalElements = popularBookRepository.countByPeriodType(period);
+
+        boolean hasNext = popularBooks.size() > limit;
+        List<PopularBook> content = hasNext ? popularBooks.subList(0, limit) : popularBooks;
+
+        String nextCursor =
+            content.isEmpty() ? null : String.valueOf(content.get(content.size() - 1).getRankOrder());
+        LocalDateTime nextAfter =
+            content.isEmpty() ? null : content.get(content.size() - 1).getCreatedAt();
+        return new CursorPageResponse<>(
+            content.stream().map(bookMapper::toPopularDto).toList(),
+            nextCursor, nextAfter, content.size(), totalElements, hasNext
+        );
     }
 
     private BookDto toBookDto(Book book) {
@@ -189,5 +199,18 @@ public class BookServiceImpl implements BookService {
             case "title" -> item.title();
             default -> item.title();
         };
+    }
+    private LocalDateTime parseLocalDateTime(String after) {
+        if (after == null || after.isBlank())
+            return null;
+        try {
+            ZoneId kstZone = ZoneId.of("Asia/Seoul");
+            if (after.endsWith("Z")) {
+                return LocalDateTime.ofInstant(Instant.parse(after), kstZone);
+            }
+            return LocalDateTime.parse(after);
+        } catch (Exception e) {
+            return LocalDate.parse(after.substring(0, 10)).atStartOfDay();
+        }
     }
 }

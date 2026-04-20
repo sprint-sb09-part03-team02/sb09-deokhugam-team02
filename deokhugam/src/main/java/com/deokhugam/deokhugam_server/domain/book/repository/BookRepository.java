@@ -18,12 +18,4 @@ public interface BookRepository extends JpaRepository<Book, UUID>, BookRepositor
 
     boolean existsByIsbnAndIsDeletedFalse(String isbn);
 
-    @Query("SELECT b FROM Book b WHERE b.createdAt >= :startTime AND b.isDeleted = false")
-    List<PopularBook> findPopularBooksWithPaging(
-        @Param("startTime") LocalDateTime startTime,
-        @Param("direction") String direction,
-        @Param("cursor") String cursor,
-        @Param("after") String after,
-        @Param("limit") int limit
-    );
 }

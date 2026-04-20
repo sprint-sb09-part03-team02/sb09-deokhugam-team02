@@ -10,7 +10,6 @@ import com.deokhugam.deokhugam_server.global.response.ApiResponse;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.type.Period;
 import jakarta.validation.Valid;
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -78,19 +77,15 @@ public class BookController {
   }
 
   @GetMapping("/popular")
-  public ApiResponse<List<PopularBookDto>> searchPopularBooks(
+  public ApiResponse<CursorPageResponse<PopularBookDto>> searchPopularBooks(
           @RequestParam(defaultValue = "DAILY") Period period,
           @RequestParam(defaultValue = "ASC") String direction,
           @RequestParam(required = false) String cursor,
           @RequestParam(required = false) String after,
           @RequestParam(defaultValue = "50") int limit
   ) {
-    List<PopularBookDto> popularBooks = bookService.searchPopularBooks(
-            period,
-            direction,
-            cursor,
-            after,
-            limit
+    CursorPageResponse<PopularBookDto> popularBooks = bookService.searchPopularBooks(
+            period, direction, cursor, after, limit
     );
     return ApiResponse.success(popularBooks);
   }
