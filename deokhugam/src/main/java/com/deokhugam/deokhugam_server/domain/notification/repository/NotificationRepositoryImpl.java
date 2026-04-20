@@ -32,6 +32,18 @@ public class NotificationRepositoryImpl implements NotificationRepositoryCustom 
     }
 
     @Override
+    public List<Notification> findUnreadByUserId(UUID userId) {
+        return queryFactory
+            .selectFrom(notification)
+            .where(
+                notification.userId.eq(userId),
+                notification.isDeleted.isFalse(),
+                notification.isRead.isFalse()
+            )
+            .fetch();
+    }
+
+    @Override
     public long countByUserId(UUID userId) {
         Long count = queryFactory
             .select(notification.count())

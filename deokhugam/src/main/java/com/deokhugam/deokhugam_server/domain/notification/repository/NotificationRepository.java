@@ -13,6 +13,11 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
 
     Optional<Notification> findByIdAndIsDeletedFalse(UUID id);
 
-    @Query("SELECT n FROM Notification n WHERE n.isRead = true AND n.updatedAt < :threshold AND n.isDeleted = false")
+    List<Notification> findAllByUserIdAndIsDeletedFalse(UUID userId);
+
+    @Query("SELECT n FROM Notification n WHERE n.userId = :userId AND n.isRead = false AND n.isDeleted = false")
+    List<Notification> findUnreadByUserId(@Param("userId") UUID userId);
+
+    @Query("SELECT n FROM Notification n WHERE n.isRead = true AND n.createdAt < :threshold AND n.isDeleted = false")
     List<Notification> findExpiredReadNotifications(@Param("threshold") LocalDateTime threshold);
 }

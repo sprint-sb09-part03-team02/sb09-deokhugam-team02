@@ -10,4 +10,6 @@ public interface NotificationRepositoryCustom {
     List<Notification> searchNotifications(NotificationSearchRequest request);
 
     long countByUserId(UUID userId);
+
+    List<Notification> findUnreadByUserId(UUID userId);
 }

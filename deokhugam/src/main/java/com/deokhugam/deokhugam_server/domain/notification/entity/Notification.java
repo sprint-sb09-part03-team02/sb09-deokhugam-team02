@@ -11,14 +11,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.util.UUID;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "notification")
 @Getter
-@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Notification extends BaseEntity {
 
@@ -47,7 +45,7 @@ public class Notification extends BaseEntity {
         this.userId = userId;
         this.type = type;
         this.content = content;
-        this.isRead = false;
+        // isRead 기본값(false)은 필드 선언부에서 처리
     }
 
     public void markAsRead() {

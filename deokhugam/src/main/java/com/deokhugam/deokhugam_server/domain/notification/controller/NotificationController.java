@@ -27,7 +27,7 @@ public class NotificationController {
         @Valid NotificationSearchRequest request,
         @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId) {
 
-        request.setUserId(requestUserId);
+        request.assignUserId(requestUserId);
         return ResponseEntity.ok(notificationService.getNotifications(request));
     }
 

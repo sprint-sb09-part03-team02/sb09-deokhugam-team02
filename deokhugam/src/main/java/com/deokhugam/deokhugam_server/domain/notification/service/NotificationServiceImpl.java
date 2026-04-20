@@ -49,14 +49,8 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional
     public void readAllNotifications(UUID userId) {
-        NotificationSearchRequest request = new NotificationSearchRequest();
-        request.setUserId(userId);
-        request.setLimit(Integer.MAX_VALUE);
-
-        List<Notification> notifications = notificationRepository.searchNotifications(request);
-        notifications.stream()
-            .filter(n -> !n.isRead())
-            .forEach(Notification::markAsRead);
+        List<Notification> unread = notificationRepository.findUnreadByUserId(userId);
+        unread.forEach(Notification::markAsRead);
     }
 
     @Override
@@ -79,8 +73,6 @@ public class NotificationServiceImpl implements NotificationService {
     public void deleteExpiredNotifications() {
         LocalDateTime threshold = LocalDateTime.now().minusDays(7);
         List<Notification> expired = notificationRepository.findExpiredReadNotifications(threshold);
-        if (!expired.isEmpty()) {
-            notificationRepository.deleteAllInBatch(expired);
-        }
+        expired.forEach(Notification::delete);
     }
 }
