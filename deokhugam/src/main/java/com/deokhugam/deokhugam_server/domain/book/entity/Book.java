@@ -31,7 +31,7 @@ public class Book extends BaseEntity {
     @Column(name = "author", nullable = false, length = 100)
     private String author;
 
-    @Column(name = "isbn", unique = true, length = 20)
+    @Column(name = "isbn", nullable = false, unique = true, length = 20)
     private String isbn;
 
     @Column(name = "publisher", length = 100)
@@ -43,7 +43,7 @@ public class Book extends BaseEntity {
     @Column(name = "image_url", length = 500)
     private String thumbnailUrl;
 
-    @Column(name = "published_at")
+    @Column(name = "published_at", nullable = false)
     private LocalDate publishedDate;
 
     public Book(
