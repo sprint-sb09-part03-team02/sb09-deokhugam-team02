@@ -7,7 +7,6 @@ import com.deokhugam.deokhugam_server.domain.book.dto.response.BookDto;
 import com.deokhugam.deokhugam_server.domain.book.dto.response.PopularBookDto;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.type.Period;
-import java.util.List;
 import java.util.UUID;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,11 +24,7 @@ public interface BookService {
 
     void hardDeleteBook(UUID bookId);
 
-    List<PopularBookDto> searchPopularBooks(
-            Period period,
-            String direction,
-            String cursor,
-            String after,
-            int limit
+    CursorPageResponse<PopularBookDto> searchPopularBooks(
+            Period period, String direction, String cursor, String after, int limit
     );
 }

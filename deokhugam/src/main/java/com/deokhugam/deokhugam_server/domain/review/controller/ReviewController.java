@@ -89,14 +89,14 @@ public class ReviewController {
 
   @Operation(summary = "인기 리뷰 목록 조회", description = "기간별 인기 리뷰 목록을 조회합니다.")
   @GetMapping("/popular")
-  public ResponseEntity<List<PopularReviewDto>> searchPopularReview(
+  public ResponseEntity<CursorPageResponse<PopularReviewDto>> searchPopularReview(
       @RequestParam(defaultValue = "DAILY") Period period,
       @RequestParam(defaultValue = "ASC") String direction,
       @RequestParam(required = false) String cursor,
       @RequestParam(required = false) String after,
       @RequestParam(defaultValue = "50") int limit
   ) {
-    List<PopularReviewDto> popularReviews = reviewService.searchPopularReviews(period, direction, cursor, after, limit);
+    CursorPageResponse<PopularReviewDto> popularReviews = reviewService.searchPopularReviews(period, direction, cursor, after, limit);
     return ResponseEntity.ok(popularReviews);
   }
 }

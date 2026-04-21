@@ -7,7 +7,6 @@ import static com.deokhugam.deokhugam_server.domain.review.entity.QReviewLike.re
 import com.deokhugam.deokhugam_server.domain.review.dto.request.ReviewSearchRequest;
 import com.deokhugam.deokhugam_server.domain.review.dto.response.ReviewDto;
 import com.deokhugam.deokhugam_server.domain.review.dto.response.ReviewRankQueryDto;
-import com.deokhugam.deokhugam_server.domain.review.entity.Review;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
