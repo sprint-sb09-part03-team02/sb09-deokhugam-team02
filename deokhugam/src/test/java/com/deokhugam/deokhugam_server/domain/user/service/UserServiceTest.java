@@ -252,24 +252,33 @@ class UserServiceTest {
     PowerUser user1 = PowerUser.builder().rankOrder(1).build();
     PowerUser user2 = PowerUser.builder().rankOrder(2).build();
     ReflectionTestUtils.setField(user1, "createdAt", LocalDateTime.now());
+    ReflectionTestUtils.setField(user2, "createdAt", LocalDateTime.now());
 
     given(powerUserRepository.findPowerUsersByRequirements(any(), any(), any(), any(), any()))
         .willReturn(List.of(user1, user2));
     given(powerUserRepository.countByPeriodType(any())).willReturn(10L);
 
+    given(userMapper.toPowerUserDto(any())).willReturn(
+        new PowerUserDto(userId,"tester", Period.MONTHLY, LocalDateTime.now(), 1, 100.0,
+            500.0,10, 5 )
+    );
+
     // when
-    CursorPageResponse<PowerUserDto> result = userService.findPowerUsers(Period.MONTHLY, "DESC",
-        null, null, limit);
+    CursorPageResponse<PowerUserDto> result = userService.findPowerUsers(Period.MONTHLY, "DESC", null, null, limit);
 
     // then
-    assertThat(result.hasNext()).isFalse();
+    assertThat(result.hasNext()).isTrue();
+    assertThat(result.content()).asList().hasSize(1);
+    assertThat(result.nextCursor()).isEqualTo("1");
   }
 
   @Test
   @DisplayName("[RED] 파워 유저 조회 실패 - 커서가 숫자가 아닌 경우")
   void findPowerUsers_Fail_InvalidCursor() {
     // when & then
-    userService.findPowerUsers(Period.MONTHLY, "DESC", "abc", null, 10);
+    assertThatThrownBy(() ->
+        userService.findPowerUsers(Period.MONTHLY, "DESC", "abc", null, 10)
+    ).isInstanceOf(NumberFormatException.class);
   }
-
 }
+
