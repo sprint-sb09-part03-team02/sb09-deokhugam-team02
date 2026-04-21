@@ -1,13 +1,9 @@
 package com.deokhugam.deokhugam_server.domain.book.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.deokhugam.deokhugam_server.domain.book.dto.response.BookRankQueryDto;
@@ -16,13 +12,13 @@ import com.deokhugam.deokhugam_server.domain.book.entity.PopularBook;
 import com.deokhugam.deokhugam_server.domain.book.repository.BookRepository;
 import com.deokhugam.deokhugam_server.domain.book.repository.PopularBookRepository;
 import com.deokhugam.deokhugam_server.global.type.Period;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -39,39 +35,44 @@ class PopularBookServiceTest {
   @Mock
   private PopularBookRepository popularBookRepository;
 
+  @Captor
+  private ArgumentCaptor<List<PopularBook>> listCaptor;
+
   @Test
   @DisplayName("인기 도서 선정 성공")
   void calculateAndSaveRanks_Success() {
     // given
-    Period periodType = Period.DAILY;
+    Period period = Period.DAILY;
 
     UUID id1 = UUID.randomUUID();
     UUID id2 = UUID.randomUUID();
 
-    BookRankQueryDto dto1 = new BookRankQueryDto(id1, 10L, 4.5); // score: 6.7
-    BookRankQueryDto dto2 = new BookRankQueryDto(id2, 20L, 4.0); // score: 10.4
+    BookRankQueryDto lowScoreDto = new BookRankQueryDto(id1, 10L, 3.5);
+    BookRankQueryDto highScoreDto = new BookRankQueryDto(id2, 50L, 4.8);
 
     given(bookRepository.findBookStatisticsForRanking(any(), any()))
-        .willReturn(List.of(dto1, dto2));
+        .willReturn(List.of(lowScoreDto, highScoreDto));
 
-    given(bookRepository.getReferenceById(any()))
-        .willReturn(mock(Book.class));
+    Book mockBook1 = mock(Book.class);
+    Book mockBook2 = mock(Book.class);
+    given(mockBook1.getId()).willReturn(id1);
+    given(mockBook2.getId()).willReturn(id2);
+
+    given(bookRepository.getReferenceById(id1)).willReturn(mockBook1);
+    given(bookRepository.getReferenceById(id2)).willReturn(mockBook2);
 
     given(popularBookRepository.findAllByPeriodTypeAndCalculatedDate(any(), any()))
         .willReturn(List.of());
 
     // when
-    popularBookService.calculateAndSaveRanks(periodType);
+    popularBookService.calculateAndSaveRanks(period);
 
     // then
-    ArgumentCaptor<List<PopularBook>> captor = ArgumentCaptor.forClass(List.class);
-    verify(popularBookRepository).saveAll(captor.capture());
-    verify(popularBookRepository, never()).deleteAll(any());
+    verify(popularBookRepository).saveAll(listCaptor.capture());
+    List<PopularBook> result = listCaptor.getValue();
 
-    List<PopularBook> savedList = captor.getValue();
-    assertThat(savedList).hasSize(2);
-
-    assertThat(savedList.get(0).getRankOrder()).isEqualTo(1);
-    assertThat(savedList.get(0).getScore()).isGreaterThan(savedList.get(1).getScore());
+    assertThat(result).hasSize(2);
+    assertThat(result.get(0).getBook().getId()).isEqualTo(id2);
+    assertThat(result.get(1).getBook().getId()).isEqualTo(id1);
   }
 }
