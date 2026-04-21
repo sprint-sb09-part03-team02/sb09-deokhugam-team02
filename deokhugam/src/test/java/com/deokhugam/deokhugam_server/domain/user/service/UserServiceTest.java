@@ -147,6 +147,7 @@ class UserServiceTest {
     given(userRepository.existsByNickname("newNickname")).willReturn(false);
 
     // when
+    userService.update(userId, request);
 
     // then
     assertThat(user.getNickname()).isEqualTo("newNickname");
