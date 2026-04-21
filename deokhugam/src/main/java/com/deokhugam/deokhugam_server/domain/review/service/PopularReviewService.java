@@ -74,7 +74,7 @@ public class PopularReviewService {
   }
 
   public List<PopularReviewDto> getPopularReviews(Period periodType, LocalDate date) {
-    return popularReviewRepository.findAllWithFetchJoin(periodType, date)
+    return popularReviewRepository.findAllByPeriodTypeAndCalculatedDate(periodType, date)
         .stream()
         .map(reviewMapper::toPopularDto)
         .toList();

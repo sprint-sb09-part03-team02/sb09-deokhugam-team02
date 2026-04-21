@@ -8,7 +8,6 @@ import com.deokhugam.deokhugam_server.domain.review.dto.response.ReviewDto;
 import com.deokhugam.deokhugam_server.domain.review.dto.response.ReviewLikeDto;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.type.Period;
-import java.util.List;
 import java.util.UUID;
 
 public interface ReviewService {
@@ -26,5 +25,5 @@ public interface ReviewService {
 
   ReviewLikeDto likeReview(UUID reviewId, UUID requestUserId);
 
-  List<PopularReviewDto> searchPopularReviews(Period period, String direction, String cursor, String after, int limit);
+  CursorPageResponse<PopularReviewDto> searchPopularReviews(Period period, String direction, String cursor, String after, int limit);
 }
