@@ -278,7 +278,7 @@ class UserServiceTest {
   }
 
   @Test
-  @DisplayName("[RED] 파워 유저 조회 실패 - 커서가 숫자가 아닌 경우")
+  @DisplayName("파워 유저 조회 실패 - 커서가 숫자가 아닌 경우")
   void findPowerUsers_Fail_InvalidCursor() {
     // given
     String invalidCursor = "abc";
