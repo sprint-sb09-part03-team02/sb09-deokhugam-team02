@@ -3,8 +3,11 @@ package com.deokhugam.deokhugam_server.domain.user.service;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -26,6 +29,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -55,7 +59,6 @@ class UserServiceTest {
 
   private User user;
   private UUID userId;
-  private PowerUser powerUser;
 
   private static final String TEST_EMAIL = "test@example.com";
   private static final String TEST_NICKNAME = "tester";
@@ -254,13 +257,11 @@ class UserServiceTest {
     ReflectionTestUtils.setField(user1, "createdAt", LocalDateTime.now());
     ReflectionTestUtils.setField(user2, "createdAt", LocalDateTime.now());
 
-    given(powerUserRepository.findPowerUsersByRequirements(any(), any(), any(), any(), any()))
+    given(powerUserRepository.findPowerUsersByRequirements(eq(Period.MONTHLY), anyString(), any(), any(), any()))
         .willReturn(List.of(user1, user2));
-    given(powerUserRepository.countByPeriodType(any())).willReturn(10L);
-
+    given(powerUserRepository.countByPeriodType(Period.MONTHLY)).willReturn(10L);
     given(userMapper.toPowerUserDto(any())).willReturn(
-        new PowerUserDto(userId,"tester", Period.MONTHLY, LocalDateTime.now(), 1, 100.0,
-            500.0,10, 5 )
+        new PowerUserDto(userId, "tester", Period.MONTHLY, LocalDateTime.now(), 1, 100.0, 500.0, 10, 5)
     );
 
     // when
@@ -268,17 +269,26 @@ class UserServiceTest {
 
     // then
     assertThat(result.hasNext()).isTrue();
-    assertThat(result.content()).asList().hasSize(1);
+    assertThat(result.content()).asInstanceOf(InstanceOfAssertFactories.LIST).hasSize(1);
     assertThat(result.nextCursor()).isEqualTo("1");
+    assertThat(result.totalElements()).isEqualTo(10L);
+
+    verify(powerUserRepository).findPowerUsersByRequirements(eq(Period.MONTHLY), eq("DESC"), any(), any(), any());
+    verify(userMapper, atLeastOnce()).toPowerUserDto(any());
   }
 
   @Test
   @DisplayName("[RED] 파워 유저 조회 실패 - 커서가 숫자가 아닌 경우")
   void findPowerUsers_Fail_InvalidCursor() {
+    // given
+    String invalidCursor = "abc";
+
     // when & then
     assertThatThrownBy(() ->
-        userService.findPowerUsers(Period.MONTHLY, "DESC", "abc", null, 10)
+        userService.findPowerUsers(Period.MONTHLY, "DESC", invalidCursor, null, 10)
     ).isInstanceOf(NumberFormatException.class);
+
+    verify(powerUserRepository, never()).findPowerUsersByRequirements(any(), any(), any(), any(), any());
   }
 }
 
