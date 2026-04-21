@@ -163,6 +163,7 @@ class UserServiceTest {
   void find_Success() {
     // given
     given(userRepository.findById(userId)).willReturn(Optional.of(user));
+    given(userMapper.toDto(user)).willReturn(new UserDto(userId, "test@example.com", "tester", LocalDateTime.now()));
 
     // when
     UserDto result = userService.find(userId);
@@ -180,6 +181,6 @@ class UserServiceTest {
     // when & then
     assertThatThrownBy(() -> userService.find(UUID.randomUUID()))
         .isInstanceOf(DeokhugamException.class)
-        .hasMessage(ErrorCode.COMMENT_BAD_REQUEST.getMessage());
+        .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
   }
 }
