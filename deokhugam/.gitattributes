@@ -1,4 +1,39 @@
-/gradlew text eol=lf
-*.bat text eol=crlf
-*.jar binary
 * text=auto
+
+/gradlew text eol=lf
+*.sh text eol=lf
+*.bat text eol=crlf
+
+*.java text eol=lf
+*.gradle text eol=lf
+*.md text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.svg text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.sql text eol=lf
+
+# Protect static assets from accidental text normalization.
+src/main/resources/static/**/*.html text eol=lf
+src/main/resources/static/**/*.css text eol=lf
+src/main/resources/static/**/*.js text eol=lf
+src/main/resources/static/**/*.svg text eol=lf
+src/main/resources/static/**/*.json text eol=lf
+src/main/resources/static/**/*.txt text eol=lf
+src/main/resources/static/**/*.xml text eol=lf
+src/main/resources/static/**/*.webmanifest text eol=lf
+
+*.jar binary
+*.png binary
+*.gif binary
+*.ico binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.avif binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
