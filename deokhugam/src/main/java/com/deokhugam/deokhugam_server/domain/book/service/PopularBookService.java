@@ -57,11 +57,4 @@ public class PopularBookService {
     popularBookRepository.saveAll(rankings);
   }
 
-  public List<PopularBookDto> getPopularBooks(Period periodType, LocalDate date) {
-    return popularBookRepository.findAllByPeriodTypeAndCalculatedDate(periodType, date)
-        .stream()
-        .map(bookMapper::toPopularDto)
-        .toList();
-  }
-
 }
