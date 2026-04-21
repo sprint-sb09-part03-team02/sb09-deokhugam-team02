@@ -142,15 +142,20 @@ class UserServiceTest {
   @DisplayName("사용자 정보 수정 - 닉네임 변경 성공")
   void update_Success_NewNickname() {
     // given
-    UserUpdateRequest request = new UserUpdateRequest("newNickname");
+    String newNickname = "newNickname";
+    UserUpdateRequest request = new UserUpdateRequest(newNickname);
+
     given(userRepository.findById(userId)).willReturn(Optional.of(user));
-    given(userRepository.existsByNickname("newNickname")).willReturn(false);
+    given(userRepository.existsByNickname(newNickname)).willReturn(false);
 
     // when
     userService.update(userId, request);
 
     // then
-    assertThat(user.getNickname()).isEqualTo("newNickname");
+    assertThat(user.getNickname()).isEqualTo(newNickname);
+
+    verify(userRepository).findById(userId);
+    verify(userRepository).existsByNickname(newNickname);
   }
 
 }
