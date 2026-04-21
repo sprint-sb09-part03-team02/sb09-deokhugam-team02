@@ -200,6 +200,7 @@ class UserServiceTest {
     given(userRepository.findById(userId)).willReturn(Optional.of(user));
 
     // when
+    userService.deleteSoft(userId);
 
     // then
     verify(userRepository).findById(userId);
@@ -212,6 +213,7 @@ class UserServiceTest {
     given(userRepository.findById(userId)).willReturn(Optional.of(user));
 
     // when
+    userService.deleteHard(userId);
 
     // then
     verify(userRepository, times(1)).findById(userId);
@@ -227,7 +229,7 @@ class UserServiceTest {
     // when & then
     assertThatThrownBy(() -> userService.deleteHard(userId))
         .isInstanceOf(DeokhugamException.class)
-        .hasMessage(ErrorCode.INTERNAL_SERVER_ERROR.getMessage());
+        .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
 
     verify(userRepository, never()).deleteById(any());
   }
