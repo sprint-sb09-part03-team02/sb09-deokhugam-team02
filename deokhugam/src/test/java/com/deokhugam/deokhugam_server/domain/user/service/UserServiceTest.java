@@ -3,23 +3,27 @@ package com.deokhugam.deokhugam_server.domain.user.service;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserLoginRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserRegisterRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserUpdateRequest;
+import com.deokhugam.deokhugam_server.domain.user.dto.response.PowerUserDto;
 import com.deokhugam.deokhugam_server.domain.user.dto.response.UserDto;
+import com.deokhugam.deokhugam_server.domain.user.entity.PowerUser;
 import com.deokhugam.deokhugam_server.domain.user.entity.User;
 import com.deokhugam.deokhugam_server.domain.user.mapper.UserMapper;
+import com.deokhugam.deokhugam_server.domain.user.repository.PowerUserRepository;
 import com.deokhugam.deokhugam_server.domain.user.repository.UserRepository;
 import com.deokhugam.deokhugam_server.global.exception.DeokhugamException;
 import com.deokhugam.deokhugam_server.global.exception.ErrorCode;
+import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
+import com.deokhugam.deokhugam_server.global.type.Period;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,6 +34,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
@@ -45,8 +50,12 @@ class UserServiceTest {
   @InjectMocks
   private UserServiceImpl userService;
 
+  @Mock
+  private PowerUserRepository powerUserRepository;
+
   private User user;
   private UUID userId;
+  private PowerUser powerUser;
 
   private static final String TEST_EMAIL = "test@example.com";
   private static final String TEST_NICKNAME = "tester";
@@ -233,6 +242,34 @@ class UserServiceTest {
         .isInstanceOf(DeokhugamException.class)
         .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
     verify(userRepository, never()).deleteById(any());
+  }
+
+  @Test
+  @DisplayName("파워 유저 조회 성공")
+  void findPowerUsers_Success() {
+    // given
+    int limit = 1;
+    PowerUser user1 = PowerUser.builder().rankOrder(1).build();
+    PowerUser user2 = PowerUser.builder().rankOrder(2).build();
+    ReflectionTestUtils.setField(user1, "createdAt", LocalDateTime.now());
+
+    given(powerUserRepository.findPowerUsersByRequirements(any(), any(), any(), any(), any()))
+        .willReturn(List.of(user1, user2));
+    given(powerUserRepository.countByPeriodType(any())).willReturn(10L);
+
+    // when
+    CursorPageResponse<PowerUserDto> result = userService.findPowerUsers(Period.MONTHLY, "DESC",
+        null, null, limit);
+
+    // then
+    assertThat(result.hasNext()).isFalse();
+  }
+
+  @Test
+  @DisplayName("[RED] 파워 유저 조회 실패 - 커서가 숫자가 아닌 경우")
+  void findPowerUsers_Fail_InvalidCursor() {
+    // when & then
+    userService.findPowerUsers(Period.MONTHLY, "DESC", "abc", null, 10);
   }
 
 }
