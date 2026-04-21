@@ -102,6 +102,8 @@ class UserServiceTest {
   void login_Success() {
     // given
     UserLoginRequest request = new UserLoginRequest("test@example.com", "password123");
+    given(userRepository.findByEmail(request.email())).willReturn(Optional.of(user));
+    given(passwordEncoder.matches(request.password(), user.getPassword())).willReturn(true);
     given(userMapper.toDto(user)).willReturn(new UserDto(userId, "test@example.com", "tester", LocalDateTime.now()));
 
     // when
@@ -123,7 +125,7 @@ class UserServiceTest {
     // when & then
     assertThatThrownBy(() -> userService.login(request))
         .isInstanceOf(DeokhugamException.class)
-        .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
+        .hasMessage(ErrorCode.LOGIN_FAILED.getMessage());
   }
 
 }
