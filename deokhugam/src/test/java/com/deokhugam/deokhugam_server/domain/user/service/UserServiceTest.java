@@ -64,6 +64,8 @@ class UserServiceTest {
     UserRegisterRequest request = new UserRegisterRequest("test@example.com", "tester", "password123");
     given(userRepository.existsByEmail(anyString())).willReturn(false);
     given(userRepository.existsByNickname(anyString())).willReturn(false);
+    given(passwordEncoder.encode(anyString())).willReturn("encodedPassword");
+    given(userRepository.save(any(User.class))).willReturn(user);
     given(userMapper.toDto(any(User.class))).willReturn(new UserDto(userId, "test@example.com", "tester", LocalDateTime.now()));
     UserDto result = userService.register(request);
 
@@ -75,6 +77,7 @@ class UserServiceTest {
   @DisplayName("회원가입 실패 - 이메일 중복")
   void register_fail_duplicateEmail() {
     UserRegisterRequest request = new UserRegisterRequest("test@example.com", "tester", "password123");
+    given(userRepository.existsByEmail(request.email())).willReturn(true);
 
     assertThatThrownBy(() -> userService.register(request))
         .isInstanceOf(DeokhugamException.class)
