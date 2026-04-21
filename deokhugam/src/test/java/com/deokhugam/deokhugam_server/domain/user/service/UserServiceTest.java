@@ -192,4 +192,44 @@ class UserServiceTest {
         .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
     verify(userMapper, never()).toDto(any());
   }
+
+  @Test
+  @DisplayName("소프트 삭제 성공")
+  void deleteSoft_Success() {
+    // given
+    given(userRepository.findById(userId)).willReturn(Optional.of(user));
+
+    // when
+
+    // then
+    verify(userRepository).findById(userId);
+  }
+
+  @Test
+  @DisplayName("물리 삭제 성공")
+  void deleteHard_Success() {
+    // given
+    given(userRepository.findById(userId)).willReturn(Optional.of(user));
+
+    // when
+
+    // then
+    verify(userRepository, times(1)).findById(userId);
+    verify(userRepository, times(1)).deleteById(userId);
+  }
+
+  @Test
+  @DisplayName("물리 삭제 실패 - 존재하지 않는 사용자")
+  void deleteHard_Fail_UserNotFound() {
+    // given
+    given(userRepository.findById(userId)).willReturn(Optional.empty());
+
+    // when & then
+    assertThatThrownBy(() -> userService.deleteHard(userId))
+        .isInstanceOf(DeokhugamException.class)
+        .hasMessage(ErrorCode.INTERNAL_SERVER_ERROR.getMessage());
+
+    verify(userRepository, never()).deleteById(any());
+  }
+
 }
