@@ -6,9 +6,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.deokhugam.deokhugam_server.domain.book.dto.response.BookRankQueryDto;
+import com.deokhugam.deokhugam_server.domain.book.entity.Book;
 import com.deokhugam.deokhugam_server.domain.book.entity.PopularBook;
 import com.deokhugam.deokhugam_server.domain.book.repository.BookRepository;
 import com.deokhugam.deokhugam_server.domain.book.repository.PopularBookRepository;
@@ -40,11 +43,8 @@ class PopularBookServiceTest {
   @DisplayName("인기 도서 선정 성공")
   void calculateAndSaveRanks_Success() {
     // given
-    // given
-    Period period = Period.DAILY;
-    LocalDate endDate = LocalDate.now().minusDays(1);
+    Period periodType = Period.DAILY;
 
-    // 1. UUID 타입에 맞춰서 생성
     UUID id1 = UUID.randomUUID();
     UUID id2 = UUID.randomUUID();
 
@@ -54,20 +54,24 @@ class PopularBookServiceTest {
     given(bookRepository.findBookStatisticsForRanking(any(), any()))
         .willReturn(List.of(dto1, dto2));
 
+    given(bookRepository.getReferenceById(any()))
+        .willReturn(mock(Book.class));
+
+    given(popularBookRepository.findAllByPeriodTypeAndCalculatedDate(any(), any()))
+        .willReturn(List.of());
+
     // when
-    popularBookService.calculateAndSaveRanks(period);
+    popularBookService.calculateAndSaveRanks(periodType);
 
     // then
     ArgumentCaptor<List<PopularBook>> captor = ArgumentCaptor.forClass(List.class);
-
-    verify(popularBookRepository).deleteAll(any());
     verify(popularBookRepository).saveAll(captor.capture());
+    verify(popularBookRepository, never()).deleteAll(any());
 
-    List<PopularBook> savedRankings = captor.getValue();
+    List<PopularBook> savedList = captor.getValue();
+    assertThat(savedList).hasSize(2);
 
-    // 검증 (AssertJ 사용 추천)
-    assertThat(savedRankings).hasSize(2);
-    assertThat(savedRankings.get(0).getRankOrder()).isEqualTo(1);
-    assertThat(savedRankings.get(0).getBook().getId()).isEqualTo(id2); // 점수 높은 dto2가 1위
+    assertThat(savedList.get(0).getRankOrder()).isEqualTo(1);
+    assertThat(savedList.get(0).getScore()).isGreaterThan(savedList.get(1).getScore());
   }
 }
