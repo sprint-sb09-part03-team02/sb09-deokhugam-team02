@@ -101,31 +101,41 @@ class UserServiceTest {
   @DisplayName("로그인 성공")
   void login_Success() {
     // given
-    UserLoginRequest request = new UserLoginRequest("test@example.com", "password123");
-    given(userRepository.findByEmail(request.email())).willReturn(Optional.of(user));
-    given(passwordEncoder.matches(request.password(), user.getPassword())).willReturn(true);
-    given(userMapper.toDto(user)).willReturn(new UserDto(userId, "test@example.com", "tester", LocalDateTime.now()));
+    UserLoginRequest request = new UserLoginRequest(TEST_EMAIL, RAW_PASSWORD);
+
+    given(userRepository.findByEmail(TEST_EMAIL)).willReturn(Optional.of(user));
+    given(passwordEncoder.matches(RAW_PASSWORD, user.getPassword())).willReturn(true);
+    given(userMapper.toDto(user)).willReturn(
+        new UserDto(userId, TEST_EMAIL, TEST_NICKNAME, LocalDateTime.now())
+    );
 
     // when
     UserDto result = userService.login(request);
 
     // then
     assertThat(result.id()).isEqualTo(userId);
+    assertThat(result.email()).isEqualTo(TEST_EMAIL);
+
+    verify(userRepository).findByEmail(TEST_EMAIL);
+    verify(passwordEncoder).matches(RAW_PASSWORD, user.getPassword());
   }
 
   @Test
   @DisplayName("로그인 실패 - 비밀번호 불일치")
   void login_Fail_InvalidPassword() {
     // given
-    UserLoginRequest request = new UserLoginRequest(TEST_EMAIL, "wrong_password");
-    given(userRepository.findByEmail(TEST_EMAIL)).willReturn(Optional.of(user));
+    String wrongPassword = "wrong_password";
+    UserLoginRequest request = new UserLoginRequest(TEST_EMAIL, wrongPassword);
 
-    given(passwordEncoder.matches("wrong_password", user.getPassword())).willReturn(false);
+    given(userRepository.findByEmail(TEST_EMAIL)).willReturn(Optional.of(user));
+    given(passwordEncoder.matches(wrongPassword, user.getPassword())).willReturn(false);
 
     // when & then
     assertThatThrownBy(() -> userService.login(request))
         .isInstanceOf(DeokhugamException.class)
         .hasMessage(ErrorCode.LOGIN_FAILED.getMessage());
+
+    verify(userMapper, never()).toDto(any());
   }
 
 }
