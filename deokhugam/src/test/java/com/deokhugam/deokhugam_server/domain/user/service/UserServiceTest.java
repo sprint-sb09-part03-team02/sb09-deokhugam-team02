@@ -97,6 +97,33 @@ class UserServiceTest {
     verify(userRepository, never()).save(any());
   }
 
+  @Test
+  @DisplayName("로그인 성공")
+  void login_Success() {
+    // given
+    UserLoginRequest request = new UserLoginRequest("test@example.com", "password123");
+    given(userMapper.toDto(user)).willReturn(new UserDto(userId, "test@example.com", "tester", LocalDateTime.now()));
 
+    // when
+    UserDto result = userService.login(request);
+
+    // then
+    assertThat(result.id()).isEqualTo(userId);
+  }
+
+  @Test
+  @DisplayName("로그인 실패 - 비밀번호 불일치")
+  void login_Fail_InvalidPassword() {
+    // given
+    UserLoginRequest request = new UserLoginRequest(TEST_EMAIL, "wrong_password");
+    given(userRepository.findByEmail(TEST_EMAIL)).willReturn(Optional.of(user));
+
+    given(passwordEncoder.matches("wrong_password", user.getPassword())).willReturn(false);
+
+    // when & then
+    assertThatThrownBy(() -> userService.login(request))
+        .isInstanceOf(DeokhugamException.class)
+        .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
+  }
 
 }
