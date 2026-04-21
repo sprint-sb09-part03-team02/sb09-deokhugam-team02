@@ -65,6 +65,9 @@ class PowerUserServiceTest {
     given(popularReviewRepository.sumScoreByUserIdAndPeriod(any(), any(), any()))
         .willReturn(Optional.of(0.0));
 
+    // when
+    powerUserService.calculateAndSavePowerUserRanks(period);
+
     // then
     verify(powerUserRepository).saveAll(argThat(rankings -> {
       List<PowerUser> list = StreamSupport.stream(rankings.spliterator(), false).toList();
@@ -83,13 +86,12 @@ class PowerUserServiceTest {
   void calculateAndSavePowerUserRanks_EmptyStatistics() {
     // given
     Period period = Period.MONTHLY;
-    // 통계 데이터가 하나도 없는 상황
     given(userRepository.findUserActivityStatistics(any(), any())).willReturn(List.of());
 
     // when
+    powerUserService.calculateAndSavePowerUserRanks(period);
 
     // then
-    // 통계가 없으면 saveAll에 빈 리스트가 넘어가거나, 로직에 따라 호출되지 않아야 함
     verify(powerUserRepository).saveAll(argThat(rankings -> !rankings.iterator().hasNext()));
   }
 }
