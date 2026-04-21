@@ -158,4 +158,28 @@ class UserServiceTest {
     verify(userRepository).existsByNickname(newNickname);
   }
 
+  @Test
+  @DisplayName("사용자 조회 성공")
+  void find_Success() {
+    // given
+    given(userRepository.findById(userId)).willReturn(Optional.of(user));
+
+    // when
+    UserDto result = userService.find(userId);
+
+    // then
+    verify(userRepository).findById(userId);
+  }
+
+  @Test
+  @DisplayName("사용자 조회 실패 - 존재하지 않는 사용자")
+  void find_Fail_UserNotFound() {
+    // given
+    given(userRepository.findById(any(UUID.class))).willReturn(Optional.empty());
+
+    // when & then
+    assertThatThrownBy(() -> userService.find(UUID.randomUUID()))
+        .isInstanceOf(DeokhugamException.class)
+        .hasMessage(ErrorCode.COMMENT_BAD_REQUEST.getMessage());
+  }
 }
