@@ -163,24 +163,33 @@ class UserServiceTest {
   void find_Success() {
     // given
     given(userRepository.findById(userId)).willReturn(Optional.of(user));
-    given(userMapper.toDto(user)).willReturn(new UserDto(userId, "test@example.com", "tester", LocalDateTime.now()));
+    given(userMapper.toDto(user)).willReturn(
+        new UserDto(userId, TEST_EMAIL, TEST_NICKNAME, LocalDateTime.now())
+    );
 
     // when
     UserDto result = userService.find(userId);
 
     // then
+    assertThat(result.id()).isEqualTo(userId);
+    assertThat(result.email()).isEqualTo(TEST_EMAIL);
+    assertThat(result.nickname()).isEqualTo(TEST_NICKNAME);
+
     verify(userRepository).findById(userId);
+    verify(userMapper).toDto(user);
   }
 
   @Test
   @DisplayName("사용자 조회 실패 - 존재하지 않는 사용자")
   void find_Fail_UserNotFound() {
     // given
-    given(userRepository.findById(any(UUID.class))).willReturn(Optional.empty());
+    UUID nonExistentId = UUID.randomUUID();
+    given(userRepository.findById(nonExistentId)).willReturn(Optional.empty());
 
     // when & then
-    assertThatThrownBy(() -> userService.find(UUID.randomUUID()))
+    assertThatThrownBy(() -> userService.find(nonExistentId))
         .isInstanceOf(DeokhugamException.class)
         .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
+    verify(userMapper, never()).toDto(any());
   }
 }
