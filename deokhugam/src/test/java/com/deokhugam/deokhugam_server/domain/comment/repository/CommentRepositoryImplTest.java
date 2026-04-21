@@ -36,8 +36,10 @@ public class CommentRepositoryImplTest {
 
   @BeforeEach
   void setUp() {
+    // 1. 나노초를 0으로 자름 (가장 안전)
     LocalDateTime now = LocalDateTime.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
 
+    // 2. 유저/도서/리뷰 생성 시 시간 수동 주입 (이거 빠지면 NULL 에러 남!)
     user = User.builder().email("test@test.com").nickname("민주").password("1234").build();
     ReflectionTestUtils.setField(user, "createdAt", now);
     ReflectionTestUtils.setField(user, "updatedAt", now);
@@ -53,7 +55,7 @@ public class CommentRepositoryImplTest {
     ReflectionTestUtils.setField(review, "updatedAt", now);
     em.persist(review);
 
-    // 옛날 댓글은 확실하게 1일 전으로 설정해서 CI가 헷갈리지 않게 함
+    // 3. 댓글 생성 (시간 간격을 1시간 -> 1일로 벌려서 정밀도 이슈 원천 봉쇄)
     commentOld = Comment.builder().reviewId(review.getId()).userId(user.getId()).content("옛날댓글").build();
     ReflectionTestUtils.setField(commentOld, "createdAt", now.minusDays(1));
     ReflectionTestUtils.setField(commentOld, "updatedAt", now.minusDays(1));
