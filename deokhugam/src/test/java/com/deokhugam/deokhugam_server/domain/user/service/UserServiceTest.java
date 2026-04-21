@@ -4,6 +4,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -47,30 +48,41 @@ class UserServiceTest {
   private User user;
   private UUID userId;
 
+  private static final String TEST_EMAIL = "test@example.com";
+  private static final String TEST_NICKNAME = "tester";
+  private static final String RAW_PASSWORD = "password123";
+  private static final String ENCODED_PASSWORD = "encodedPassword";
+
   @BeforeEach
   void setUp() {
     userId = UUID.randomUUID();
     user = User.builder()
         .id(userId)
-        .email("test@example.com")
-        .nickname("tester")
-        .password("encodedPassword")
+        .email(TEST_EMAIL)
+        .nickname(TEST_NICKNAME)
+        .password(ENCODED_PASSWORD)
         .build();
   }
 
   @Test
   @DisplayName("회원가입 성공")
   void register_success() {
-    UserRegisterRequest request = new UserRegisterRequest("test@example.com", "tester", "password123");
-    given(userRepository.existsByEmail(anyString())).willReturn(false);
-    given(userRepository.existsByNickname(anyString())).willReturn(false);
-    given(passwordEncoder.encode(anyString())).willReturn("encodedPassword");
+    UserRegisterRequest request = new UserRegisterRequest(TEST_EMAIL, TEST_NICKNAME, RAW_PASSWORD);
+    given(userRepository.existsByEmail(TEST_EMAIL)).willReturn(false);
+    given(userRepository.existsByNickname(TEST_NICKNAME)).willReturn(false);
+    given(passwordEncoder.encode(RAW_PASSWORD)).willReturn(ENCODED_PASSWORD);
+
     given(userRepository.save(any(User.class))).willReturn(user);
-    given(userMapper.toDto(any(User.class))).willReturn(new UserDto(userId, "test@example.com", "tester", LocalDateTime.now()));
+    given(userMapper.toDto(any(User.class))).willReturn(new UserDto(userId, TEST_EMAIL, TEST_NICKNAME, LocalDateTime.now()));
+
     UserDto result = userService.register(request);
 
-    assertThat(result.email()).isEqualTo(request.email());
-    verify(userRepository, times(1)).save(any(User.class));
+    assertThat(result.email()).isEqualTo(TEST_EMAIL);
+
+    verify(userRepository).save(argThat(savedUser ->
+        savedUser.getEmail().equals(TEST_EMAIL) &&
+            savedUser.getPassword().equals(ENCODED_PASSWORD)
+    ));
   }
 
   @Test
@@ -82,6 +94,7 @@ class UserServiceTest {
     assertThatThrownBy(() -> userService.register(request))
         .isInstanceOf(DeokhugamException.class)
         .hasMessage(ErrorCode.DUPLICATE_EMAIL.getMessage());
+    verify(userRepository, never()).save(any());
   }
 
 
