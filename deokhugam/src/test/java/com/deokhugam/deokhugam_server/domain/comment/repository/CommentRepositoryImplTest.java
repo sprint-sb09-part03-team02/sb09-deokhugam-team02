@@ -36,39 +36,31 @@ public class CommentRepositoryImplTest {
 
   @BeforeEach
   void setUp() {
-    // 🔥 핵심: 나노초 단위를 0으로 맞춰서 DB와 Java의 시간 정밀도 차이를 없앰 (C++의 정밀도 보정 같은 작업)
-    LocalDateTime now = LocalDateTime.now().withNano(0);
+    LocalDateTime now = LocalDateTime.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
 
-    // 1. 유저 생성 (createdAt, updatedAt 수동 주입)
-    user = User.builder()
-        .email("test@test.com")
-        .nickname("민주")
-        .password("1234")
-        .build();
+    user = User.builder().email("test@test.com").nickname("민주").password("1234").build();
     ReflectionTestUtils.setField(user, "createdAt", now);
     ReflectionTestUtils.setField(user, "updatedAt", now);
     em.persist(user);
 
-    // 2. 도서 생성
     Book book = new Book("제목", "저자", "ISBN", "출판사", "설명", "url", LocalDate.now());
     ReflectionTestUtils.setField(book, "createdAt", now);
     ReflectionTestUtils.setField(book, "updatedAt", now);
     em.persist(book);
 
-    // 3. 리뷰 생성
     review = Review.builder().user(user).book(book).content("리뷰").rating(5).build();
     ReflectionTestUtils.setField(review, "createdAt", now);
     ReflectionTestUtils.setField(review, "updatedAt", now);
     em.persist(review);
 
-    // 4. 댓글 생성 (시간차를 확실히 줌)
+    // 옛날 댓글은 확실하게 1일 전으로 설정해서 CI가 헷갈리지 않게 함
     commentOld = Comment.builder().reviewId(review.getId()).userId(user.getId()).content("옛날댓글").build();
-    ReflectionTestUtils.setField(commentOld, "createdAt", now.minusHours(1)); // 1시간 전
-    ReflectionTestUtils.setField(commentOld, "updatedAt", now.minusHours(1));
+    ReflectionTestUtils.setField(commentOld, "createdAt", now.minusDays(1));
+    ReflectionTestUtils.setField(commentOld, "updatedAt", now.minusDays(1));
     em.persist(commentOld);
 
     commentNew = Comment.builder().reviewId(review.getId()).userId(user.getId()).content("최신댓글").build();
-    ReflectionTestUtils.setField(commentNew, "createdAt", now); // 현재 시간
+    ReflectionTestUtils.setField(commentNew, "createdAt", now);
     ReflectionTestUtils.setField(commentNew, "updatedAt", now);
     em.persist(commentNew);
 

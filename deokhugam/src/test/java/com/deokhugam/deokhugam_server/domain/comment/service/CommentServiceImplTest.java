@@ -56,6 +56,8 @@ class CommentServiceImplTest {
 
   @BeforeEach
   void setUp() {
+    LocalDateTime now = LocalDateTime.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
+
     user = User.builder().email("test@test.com").nickname("민주").build();
     ReflectionTestUtils.setField(user, "id", userId);
 
@@ -64,7 +66,7 @@ class CommentServiceImplTest {
 
     comment = Comment.builder().reviewId(reviewId).userId(userId).content("댓글 내용").build();
     ReflectionTestUtils.setField(comment, "id", commentId);
-    ReflectionTestUtils.setField(comment, "createdAt", LocalDateTime.now());
+    ReflectionTestUtils.setField(comment, "createdAt", now); // 정밀도 보정 완료
   }
 
   @Nested
@@ -159,7 +161,6 @@ class CommentServiceImplTest {
 
       // then
       assertThat(review.getCommentCount()).isZero();
-      // comment.isDeleted() 검증은 BaseEntity 로직이므로 생략하거나 필요시 추가
     }
 
     @Test
