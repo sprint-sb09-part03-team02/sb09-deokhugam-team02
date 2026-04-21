@@ -203,6 +203,7 @@ class UserServiceTest {
     userService.deleteSoft(userId);
 
     // then
+    assertThat(user.isDeleted()).isTrue();
     verify(userRepository).findById(userId);
   }
 
@@ -216,21 +217,21 @@ class UserServiceTest {
     userService.deleteHard(userId);
 
     // then
-    verify(userRepository, times(1)).findById(userId);
-    verify(userRepository, times(1)).deleteById(userId);
+    verify(userRepository).findById(userId);
+    verify(userRepository).deleteById(userId);
   }
 
   @Test
   @DisplayName("물리 삭제 실패 - 존재하지 않는 사용자")
   void deleteHard_Fail_UserNotFound() {
     // given
-    given(userRepository.findById(userId)).willReturn(Optional.empty());
+    UUID nonExistentId = UUID.randomUUID();
+    given(userRepository.findById(nonExistentId)).willReturn(Optional.empty());
 
     // when & then
-    assertThatThrownBy(() -> userService.deleteHard(userId))
+    assertThatThrownBy(() -> userService.deleteHard(nonExistentId))
         .isInstanceOf(DeokhugamException.class)
         .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
-
     verify(userRepository, never()).deleteById(any());
   }
 
