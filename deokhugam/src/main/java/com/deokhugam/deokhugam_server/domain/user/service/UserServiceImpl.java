@@ -8,6 +8,7 @@ import com.deokhugam.deokhugam_server.domain.user.dto.request.UserUpdateRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.response.PowerUserDto;
 import com.deokhugam.deokhugam_server.domain.user.entity.PowerUser;
 import com.deokhugam.deokhugam_server.domain.user.repository.PowerUserRepository;
+import com.deokhugam.deokhugam_server.global.exception.ErrorCode;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.type.Period;
 import com.deokhugam.deokhugam_server.domain.user.dto.response.UserDto;
@@ -74,7 +75,14 @@ public class UserServiceImpl implements UserService {
   @Override
   public CursorPageResponse<PowerUserDto> findPowerUsers(Period period, String direction,
       String cursor, String after, int limit) {
-    Integer cursorRank = (cursor != null && !cursor.isBlank()) ? Integer.parseInt(cursor) : null;
+    Integer cursorRank = null;
+    if (cursor != null && !cursor.isBlank()) {
+      try {
+        cursorRank = Integer.parseInt(cursor);
+      } catch (NumberFormatException e) {
+        throw new DeokhugamException(ErrorCode.INVALID_INPUT_VALUE);
+      }
+    }
     LocalDateTime afterLdt = parseLocalDateTime(after);
 
     List<PowerUser> powerUsers = powerUserRepository.findPowerUsersByRequirements(

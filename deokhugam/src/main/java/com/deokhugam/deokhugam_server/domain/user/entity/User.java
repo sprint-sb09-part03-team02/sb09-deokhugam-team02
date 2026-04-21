@@ -19,6 +19,7 @@ import lombok.*;
 public class User extends BaseEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
+  @Column(columnDefinition = "UUID")
   private UUID id;
 
   @Column(nullable = false, unique = true)
