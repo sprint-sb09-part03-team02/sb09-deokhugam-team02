@@ -138,4 +138,18 @@ class UserServiceTest {
     verify(userMapper, never()).toDto(any());
   }
 
+  @Test
+  @DisplayName("사용자 정보 수정 - 닉네임 변경 성공")
+  void update_Success_NewNickname() {
+    // given
+    UserUpdateRequest request = new UserUpdateRequest("newNickname");
+    given(userRepository.findById(userId)).willReturn(Optional.of(user));
+    given(userRepository.existsByNickname("newNickname")).willReturn(false);
+
+    // when
+
+    // then
+    assertThat(user.getNickname()).isEqualTo("newNickname");
+  }
+
 }
