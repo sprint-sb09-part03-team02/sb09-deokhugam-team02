@@ -34,9 +34,7 @@ public class ReviewControllerTest {
   private final UUID bookId = UUID.randomUUID();
   private final UUID reviewId = UUID.randomUUID();
 
-  // 1. 주소 수정: 소스코드에 맞춰 /api/v1 삭제
   private final String BASE_URL = "/api/reviews";
-  // 2. 헤더 명칭 수정: 컨트롤러에 적힌 그대로!
   private final String USER_ID_HEADER = "Deokhugam-Request-User-ID";
 
   @Test
@@ -57,7 +55,7 @@ public class ReviewControllerTest {
     given(reviewService.getReview(any(), any())).willReturn(response);
 
     mockMvc.perform(get(BASE_URL + "/{reviewId}", reviewId)
-            .header(USER_ID_HEADER, userId.toString())) // 쿼리 파람 대신 헤더 사용
+            .header(USER_ID_HEADER, userId.toString()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").value("내용"));
   }

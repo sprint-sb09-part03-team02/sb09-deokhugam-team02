@@ -158,7 +158,6 @@ class ReviewServiceImplTest {
 
       assertThatThrownBy(() -> reviewService.updateReview(reviewId, new ReviewUpdateRequest("내용", 5), userId))
           .isInstanceOf(DeokhugamException.class)
-          // .hasMessageContaining("NOT_REVIEW_OWNER") 대신 아래처럼 수정!
           .hasMessageContaining(ErrorCode.NOT_REVIEW_OWNER.getMessage());
     }
 

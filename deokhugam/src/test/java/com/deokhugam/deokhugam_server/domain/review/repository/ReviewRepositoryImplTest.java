@@ -40,15 +40,19 @@ public class ReviewRepositoryImplTest {
   void setUp() {
     LocalDateTime now = LocalDateTime.now();
 
-    // 1. User 생성: ID를 먼저 넣고, 날짜 채우고, 그다음 persist!
+    // 1. User 생성: .id() 호출을 삭제해서 JPA가 ID를 자동 생성하게 함
     user = User.builder()
-        .id(UUID.randomUUID())
-        .email("test@example.com").password("1234").nickname("테스터").build();
+        .email("test@example.com")
+        .password("1234")
+        .nickname("테스터")
+        .build();
+
+    // 필수 필드인 시간 정보는 persist 전에 미리 주입
     ReflectionTestUtils.setField(user, "createdAt", now);
     ReflectionTestUtils.setField(user, "updatedAt", now);
     em.persist(user);
 
-    // 2. Book 생성: 날짜 채우고 persist! (ID는 JPA가 자동 생성)
+    // 2. Book 생성 (기존과 동일)
     book1 = new Book("자바의 정석 1", "저자1", "ISBN-001", "도우", "설명", "url", LocalDate.now());
     ReflectionTestUtils.setField(book1, "createdAt", now);
     ReflectionTestUtils.setField(book1, "updatedAt", now);
@@ -59,20 +63,18 @@ public class ReviewRepositoryImplTest {
     ReflectionTestUtils.setField(book2, "updatedAt", now);
     em.persist(book2);
 
-    // 3. Review 생성: 1인 1리뷰 원칙 준수 + 날짜 먼저 채우고 persist!
-    // Review 1 (어제 쓴 리뷰)
+    // 3. Review 생성 (기존과 동일)
     reviewOld = Review.builder().user(user).book(book1).content("옛날 리뷰").rating(3).build();
     ReflectionTestUtils.setField(reviewOld, "createdAt", now.minusDays(1));
     ReflectionTestUtils.setField(reviewOld, "updatedAt", now.minusDays(1));
     em.persist(reviewOld);
 
-    // Review 2 (오늘 쓴 리뷰)
     reviewNew = Review.builder().user(user).book(book2).content("최신 리뷰").rating(5).build();
     ReflectionTestUtils.setField(reviewNew, "createdAt", now);
     ReflectionTestUtils.setField(reviewNew, "updatedAt", now);
     em.persist(reviewNew);
 
-    // 4. Like 추가: 날짜 채우고 persist!
+    // 4. Like 추가 (기존과 동일)
     ReviewLike like = new ReviewLike(reviewNew, user);
     ReflectionTestUtils.setField(like, "createdAt", now);
     ReflectionTestUtils.setField(like, "updatedAt", now);

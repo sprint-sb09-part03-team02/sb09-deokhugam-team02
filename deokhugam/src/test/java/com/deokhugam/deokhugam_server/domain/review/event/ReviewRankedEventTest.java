@@ -33,7 +33,6 @@ public class ReviewRankedEventTest {
 
   @Mock private ReviewRepository reviewRepository;
 
-  // 이 녀석이 빠져 있어서 NullPointerException이 났던 거야!
   @Mock private PopularReviewRepository popularReviewRepository;
 
   @Mock private ApplicationEventPublisher eventPublisher;
