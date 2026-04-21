@@ -2,7 +2,6 @@ package com.deokhugam.deokhugam_server.domain.user.repository;
 
 import com.deokhugam.deokhugam_server.domain.user.entity.PowerUser;
 import com.deokhugam.deokhugam_server.global.type.Period;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import org.springframework.data.domain.Limit;
