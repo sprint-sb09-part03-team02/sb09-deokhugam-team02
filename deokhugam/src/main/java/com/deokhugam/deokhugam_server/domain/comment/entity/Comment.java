@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "comments")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Comment extends BaseEntity {
+public class Comment extends BaseEntity { // BaseEntity를 상속받음
 
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
@@ -27,9 +27,6 @@ public class Comment extends BaseEntity {
   @Column(nullable = false, columnDefinition = "TEXT")
   private String content;
 
-  @Column(nullable = false)
-  private boolean isDeleted = false;
-
   @Builder
   public Comment(UUID reviewId, UUID userId, String content) {
     this.reviewId = reviewId;
@@ -39,9 +36,5 @@ public class Comment extends BaseEntity {
 
   public void updateContent(String content) {
     this.content = content;
-  }
-
-  public void delete() {
-    this.isDeleted = true;
   }
 }
