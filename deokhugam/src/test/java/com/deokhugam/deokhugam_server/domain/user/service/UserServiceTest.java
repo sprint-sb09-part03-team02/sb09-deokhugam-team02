@@ -293,4 +293,3 @@ class UserServiceTest {
     verify(powerUserRepository, never()).findPowerUsersByRequirements(any(), any(), any(), any(), any());
   }
 }
-
