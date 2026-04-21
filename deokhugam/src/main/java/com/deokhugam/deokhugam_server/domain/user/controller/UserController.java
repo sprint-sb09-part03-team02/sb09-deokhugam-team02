@@ -12,8 +12,6 @@ import com.deokhugam.deokhugam_server.domain.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -87,9 +85,5 @@ public class UserController {
     userService.deleteHard(userId);
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
-  @PostMapping("/power/calculate")
-  public ResponseEntity<String> triggerCalculate(@RequestParam Period period) {
-    powerUserService.calculateAndSavePowerUserRanks(period);
-    return ResponseEntity.ok(period + " 파워 유저 데이터 생성 완료!");
-  }
+
 }
