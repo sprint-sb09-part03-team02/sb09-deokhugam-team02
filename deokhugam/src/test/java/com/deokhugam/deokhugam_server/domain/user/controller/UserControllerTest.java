@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -19,6 +20,7 @@ import com.deokhugam.deokhugam_server.global.type.Period;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,21 +45,31 @@ class UserControllerTest {
   @MockitoBean
   private PowerUserService powerUserService;
 
+  private UserRegisterRequest commonRequest;
+  private UserDto commonResponse;
+
+  @BeforeEach
+  void setUp() {
+    commonRequest = new UserRegisterRequest("test@example.com", "nickname", "Password123!");
+    commonResponse = new UserDto(UUID.randomUUID(), "test@example.com", "nickname", LocalDateTime.now());
+  }
+
   @Test
   @DisplayName("회원가입 성공")
   void register_Success() throws Exception {
     // given
-    UserRegisterRequest request = new UserRegisterRequest(
-      "test@example.com","nickname","Password123!");
-    UserDto response = new UserDto(UUID.randomUUID(), "test@example.com","nickname", LocalDateTime.now());
-    given(userService.register(any(UserRegisterRequest.class))).willReturn(response);
+    given(userService.register(any())).willReturn(commonResponse);
+
+    given(userService.register(any(UserRegisterRequest.class))).willReturn(commonResponse);
 
     // when & then
     mockMvc.perform(post("/api/users")
         .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.nickname").value("nickname"));
+        .content(objectMapper.writeValueAsString(commonRequest)))
+      .andExpect(status().isCreated())
+      .andExpect(jsonPath("$.id").exists())
+      .andExpect(jsonPath("$.email").value(commonResponse.email()))
+      .andExpect(jsonPath("$.nickname").value(commonResponse.nickname()));
   }
 
   @Test
