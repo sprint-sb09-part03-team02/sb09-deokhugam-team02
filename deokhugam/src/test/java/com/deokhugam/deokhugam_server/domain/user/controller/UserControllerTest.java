@@ -22,12 +22,14 @@ import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(UserController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class UserControllerTest {
   @Autowired
   private MockMvc mockMvc;
@@ -45,16 +47,17 @@ class UserControllerTest {
   @DisplayName("회원가입 성공")
   void register_Success() throws Exception {
     // given
-    UserRegisterRequest request = new UserRegisterRequest("test@example.com", "password", "nickname");
-    UserDto response = new UserDto(UUID.randomUUID(), "nickname", "test@example.com", LocalDateTime.now());
+    UserRegisterRequest request = new UserRegisterRequest(
+      "test@example.com","nickname","Password123!");
+    UserDto response = new UserDto(UUID.randomUUID(), "test@example.com","nickname", LocalDateTime.now());
     given(userService.register(any(UserRegisterRequest.class))).willReturn(response);
 
     // when & then
     mockMvc.perform(post("/api/users")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(request)))
-      .andExpect(status().isCreated())
-      .andExpect(jsonPath("$.nickname").value("nickname"));
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.nickname").value("nickname"));
   }
 
   @Test
