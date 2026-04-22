@@ -107,7 +107,7 @@ public class UserServiceImpl implements UserService {
 
   @Override
   @Transactional
-  public void update(UUID userId, UserUpdateRequest request) {
+  public UserDto update(UUID userId, UserUpdateRequest request) {
     User user = userRepository.findById(userId).orElseThrow(() ->
         new DeokhugamException(USER_NOT_FOUND));
     if (!user.getNickname().equals(request.nickname())) {
@@ -116,6 +116,7 @@ public class UserServiceImpl implements UserService {
       }
       user.updateNickname(request.nickname());
     }
+    return userMapper.toDto(user);
   }
 
   @Override

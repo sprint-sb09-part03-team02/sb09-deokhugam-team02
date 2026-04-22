@@ -18,7 +18,7 @@ public interface UserService {
 
   CursorPageResponse<PowerUserDto> findPowerUsers(Period period, String direction, String cursor, String after, int limit);
 
-  void update(UUID userId, UserUpdateRequest request);
+  UserDto update(UUID userId, UserUpdateRequest request);
 
   void deleteSoft(UUID userId);
 
