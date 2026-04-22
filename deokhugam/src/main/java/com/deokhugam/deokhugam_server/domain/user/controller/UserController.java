@@ -54,14 +54,14 @@ public class UserController {
   @DeleteMapping("/{userId}")
   public ResponseEntity<Void> delete(@PathVariable UUID userId) {
     userService.deleteSoft(userId);
-    return ResponseEntity.status(HttpStatus.OK).build();
+    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 
   @Operation(summary = "사용자 정보 수정", description = "사용자의 닉네임을 수정합니다.")
   @PatchMapping("/{userId}")
-  public ResponseEntity<Void> update(@PathVariable UUID userId, @Valid @RequestBody UserUpdateRequest request) {
-    userService.update(userId, request);
-    return ResponseEntity.status(HttpStatus.OK).build();
+  public ResponseEntity<UserDto> update(@PathVariable UUID userId, @Valid @RequestBody UserUpdateRequest request) {
+    UserDto user =  userService.update(userId, request);
+    return ResponseEntity.status(HttpStatus.OK).body(user);
   }
 
   @Operation(summary = "파워 유저 목록 조회", description = "기간별 파워 유저 목록을 조회합니다.")
@@ -84,10 +84,5 @@ public class UserController {
   public ResponseEntity<Void> deleteHard(@PathVariable UUID userId) {
     userService.deleteHard(userId);
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-  }
-  @PostMapping("/power/calculate")
-  public ResponseEntity<String> triggerCalculate(@RequestParam Period period) {
-    powerUserService.calculateAndSavePowerUserRanks(period);
-    return ResponseEntity.ok(period + " 파워 유저 데이터 생성 완료!");
   }
 }
