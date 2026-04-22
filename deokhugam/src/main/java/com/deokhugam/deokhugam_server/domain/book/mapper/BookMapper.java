@@ -5,64 +5,45 @@ import com.deokhugam.deokhugam_server.domain.book.dto.response.BookSearchQueryDt
 import com.deokhugam.deokhugam_server.domain.book.dto.response.PopularBookDto;
 import com.deokhugam.deokhugam_server.domain.book.entity.Book;
 import com.deokhugam.deokhugam_server.domain.book.entity.PopularBook;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-@Component
-public class BookMapper {
+@Mapper(componentModel = "spring")
+public interface BookMapper {
 
-  public BookDto toDto(Book book, int reviewCount, double rating) {
-    return new BookDto(
-            book.getId(),
-            book.getTitle(),
-            book.getAuthor(),
-            book.getDescription(),
-            book.getPublisher(),
-            book.getPublishedDate(),
-            book.getIsbn(),
-            book.getThumbnailUrl(),
-            reviewCount,
-            rating,
-            book.getCreatedAt(),
-            book.getUpdatedAt()
-    );
-  }
+  @Mapping(target = "id", source = "book.id")
+  @Mapping(target = "title", source = "book.title")
+  @Mapping(target = "author", source = "book.author")
+  @Mapping(target = "description", source = "book.description")
+  @Mapping(target = "publisher", source = "book.publisher")
+  @Mapping(target = "publishedDate", source = "book.publishedDate")
+  @Mapping(target = "isbn", source = "book.isbn")
+  @Mapping(target = "thumbnailUrl", source = "book.thumbnailUrl")
+  @Mapping(target = "reviewCount", source = "reviewCount")
+  @Mapping(target = "rating", source = "rating")
+  @Mapping(target = "createdAt", source = "book.createdAt")
+  @Mapping(target = "updatedAt", source = "book.updatedAt")
+  BookDto toDto(Book book, int reviewCount, double rating);
 
-  public BookDto toDto(BookSearchQueryDto queryDto) {
-    return new BookDto(
-            queryDto.id(),
-            queryDto.title(),
-            queryDto.author(),
-            queryDto.description(),
-            queryDto.publisher(),
-            queryDto.publishedDate(),
-            queryDto.isbn(),
-            queryDto.thumbnailUrl(),
-            (int) queryDto.reviewCount(),
-            queryDto.rating(),
-            queryDto.createdAt(),
-            queryDto.updatedAt()
-    );
-  }
+  @Mapping(target = "reviewCount", expression = "java((int) queryDto.reviewCount())")
+  BookDto toDto(BookSearchQueryDto queryDto);
 
-  public PopularBookDto toPopularDto(PopularBook popularBook) {
-    if (popularBook == null) {
-      return null;
-    }
-
-    Book book = popularBook.getBook();
-
-    return new PopularBookDto(
-            popularBook.getId(),
-            book.getId(),
-            book.getTitle(),
-            book.getAuthor(),
-            book.getThumbnailUrl(),
-            popularBook.getPeriodType(),
-            popularBook.getRankOrder(),
-            popularBook.getScore(),
-            popularBook.getReviewCount() == null ? 0 : popularBook.getReviewCount().intValue(),
-            popularBook.getRating() == null ? 0.0 : popularBook.getRating(),
-            popularBook.getCreatedAt()
-    );
-  }
+  @Mapping(target = "id", source = "popularBook.id")
+  @Mapping(target = "bookId", source = "popularBook.book.id")
+  @Mapping(target = "title", source = "popularBook.book.title")
+  @Mapping(target = "author", source = "popularBook.book.author")
+  @Mapping(target = "thumbnailUrl", source = "popularBook.book.thumbnailUrl")
+  @Mapping(target = "period", source = "popularBook.periodType")
+  @Mapping(target = "rank", source = "popularBook.rankOrder")
+  @Mapping(target = "score", source = "popularBook.score")
+  @Mapping(
+    target = "reviewCount",
+    expression = "java(popularBook.getReviewCount() == null ? 0 : popularBook.getReviewCount().intValue())"
+  )
+  @Mapping(
+    target = "rating",
+    expression = "java(popularBook.getRating() == null ? 0.0 : popularBook.getRating())"
+  )
+  @Mapping(target = "createdAt", source = "popularBook.createdAt")
+  PopularBookDto toPopularDto(PopularBook popularBook);
 }
