@@ -1,11 +1,12 @@
 package com.deokhugam.deokhugam_server.domain.review.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 
 import com.deokhugam.deokhugam_server.domain.book.repository.BookRepository;
 import com.deokhugam.deokhugam_server.domain.review.dto.response.ReviewRankQueryDto;
+import com.deokhugam.deokhugam_server.domain.review.entity.PopularReview;
 import com.deokhugam.deokhugam_server.domain.review.entity.Review;
 import com.deokhugam.deokhugam_server.domain.review.event.ReviewRankedEvent;
 import com.deokhugam.deokhugam_server.domain.review.mapper.ReviewMapper;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.context.ApplicationEventPublisher;
@@ -40,14 +42,9 @@ class PopularReviewServiceTest {
   @BeforeEach
   void setUp() {
     closeable = MockitoAnnotations.openMocks(this);
-
     popularReviewService = new PopularReviewService(
-        reviewRepository,
-        popularReviewRepository,
-        bookRepository,
-        userRepository,
-        reviewMapper,
-        eventPublisher
+        reviewRepository, popularReviewRepository, bookRepository,
+        userRepository, reviewMapper, eventPublisher
     );
   }
 
@@ -61,22 +58,17 @@ class PopularReviewServiceTest {
   void calculateAndSaveReviewRanks_Success() {
     // given
     Period period = Period.DAILY;
-    UUID reviewId = UUID.randomUUID();
-    UUID userId = UUID.randomUUID();
+    UUID reviewId1 = UUID.randomUUID();
+    UUID reviewId2 = UUID.randomUUID();
 
-    ReviewRankQueryDto stat = new ReviewRankQueryDto(reviewId, 10L, 5L);
+    ReviewRankQueryDto highStat = new ReviewRankQueryDto(reviewId1, 10L, 5L);
+    ReviewRankQueryDto lowStat = new ReviewRankQueryDto(reviewId2, 1L, 1L);
 
     when(reviewRepository.findReviewStatistics(any(), any()))
-        .thenReturn(List.of(stat));
+        .thenReturn(List.of(lowStat, highStat));
 
-    Review mockReview = mock(Review.class);
-    User mockUser = mock(User.class);
-
-    when(reviewRepository.getReferenceById(reviewId)).thenReturn(mockReview);
-    when(mockReview.getUser()).thenReturn(mockUser);
-    when(mockReview.getId()).thenReturn(reviewId);
-    when(mockReview.getContent()).thenReturn("테스트 콘텐츠");
-    when(mockUser.getId()).thenReturn(userId);
+    setupMockReview(reviewId1, "높은 점수 리뷰");
+    setupMockReview(reviewId2, "낮은 점수 리뷰");
 
     when(popularReviewRepository.findAllByPeriodTypeAndCalculatedDate(any(), any()))
         .thenReturn(Collections.emptyList());
@@ -85,7 +77,25 @@ class PopularReviewServiceTest {
     popularReviewService.calculateAndSaveReviewRanks(period);
 
     // then
-    verify(popularReviewRepository).saveAll(anyList());
-    verify(eventPublisher).publishEvent(any(ReviewRankedEvent.class));
+    ArgumentCaptor<List<PopularReview>> captor = ArgumentCaptor.forClass(List.class);
+    verify(popularReviewRepository).saveAll(captor.capture());
+
+    List<PopularReview> savedRankings = captor.getValue();
+    assertThat(savedRankings).hasSize(2);
+    assertThat(savedRankings.get(0).getRankOrder()).isEqualTo(1);
+    assertThat(savedRankings.get(1).getRankOrder()).isEqualTo(2);
+
+    verify(eventPublisher, times(2)).publishEvent(any(ReviewRankedEvent.class));
+  }
+
+  private void setupMockReview(UUID reviewId, String content) {
+    Review mockReview = mock(Review.class);
+    User mockUser = mock(User.class);
+
+    when(reviewRepository.getReferenceById(reviewId)).thenReturn(mockReview);
+    when(mockReview.getId()).thenReturn(reviewId);
+    when(mockReview.getUser()).thenReturn(mockUser);
+    when(mockReview.getContent()).thenReturn(content);
+    when(mockUser.getId()).thenReturn(UUID.randomUUID());
   }
 }
