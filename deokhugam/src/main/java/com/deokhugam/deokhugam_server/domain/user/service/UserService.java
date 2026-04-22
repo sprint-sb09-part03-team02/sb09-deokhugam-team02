@@ -14,14 +14,14 @@ public interface UserService {
 
   UserDto login(UserLoginRequest request);
 
-  UserDto find(UUID userId);
+  UserDto find( UUID requestUserId, UUID targetUserId);
 
   CursorPageResponse<PowerUserDto> findPowerUsers(Period period, String direction, String cursor, String after, int limit);
 
-  UserDto update(UUID userId, UserUpdateRequest request);
+  UserDto update( UUID requestUserId, UUID targetUserId, UserUpdateRequest request);
 
-  void deleteSoft(UUID userId);
+  void deleteSoft(UUID requestUserId, UUID targetUserId);
 
-  void deleteHard(UUID userId);
+  void deleteHard( UUID requestUserId, UUID targetUserId);
 
 }
