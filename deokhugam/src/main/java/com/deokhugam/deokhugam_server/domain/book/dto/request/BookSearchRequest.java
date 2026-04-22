@@ -26,7 +26,7 @@ public record BookSearchRequest(
         }
 
         if (limit == null) {
-            limit = 10;
+            limit = 50;
         }
     }
 }
