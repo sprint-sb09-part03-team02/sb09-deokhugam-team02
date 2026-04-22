@@ -1,6 +1,7 @@
 package com.deokhugam.deokhugam_server.domain.notification.service;
 
 import com.deokhugam.deokhugam_server.domain.notification.dto.request.NotificationSearchRequest;
+import com.deokhugam.deokhugam_server.domain.notification.dto.request.NotificationUpdateRequest;
 import com.deokhugam.deokhugam_server.domain.notification.dto.response.NotificationDto;
 import com.deokhugam.deokhugam_server.domain.notification.entity.Notification;
 import com.deokhugam.deokhugam_server.domain.notification.entity.NotificationType;
@@ -34,7 +35,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional
-    public NotificationDto readNotification(UUID notificationId, UUID requestUserId) {
+    public NotificationDto readNotification(UUID notificationId, UUID requestUserId, NotificationUpdateRequest request) {
         Notification notification = notificationRepository.findByIdAndIsDeletedFalse(notificationId)
             .orElseThrow(() -> new DeokhugamException(ErrorCode.NOTIFICATION_NOT_FOUND));
 
@@ -42,7 +43,7 @@ public class NotificationServiceImpl implements NotificationService {
             throw new DeokhugamException(ErrorCode.NOT_NOTIFICATION_OWNER);
         }
 
-        notification.markAsRead();
+        notification.updateConfirmed(request.confirmed());
         return notificationMapper.toDto(notification);
     }
 
