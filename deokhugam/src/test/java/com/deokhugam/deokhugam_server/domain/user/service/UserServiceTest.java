@@ -42,7 +42,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
-
   @Mock
   private UserRepository userRepository;
 
@@ -60,6 +59,7 @@ class UserServiceTest {
 
   private User user;
   private UUID userId;
+  private UUID requestUserId;
 
   private static final String TEST_EMAIL = "test@example.com";
   private static final String TEST_NICKNAME = "tester";
@@ -69,12 +69,13 @@ class UserServiceTest {
   @BeforeEach
   void setUp() {
     userId = UUID.randomUUID();
+    requestUserId = userId;
     user = User.builder()
-      .id(userId)
-      .email(TEST_EMAIL)
-      .nickname(TEST_NICKNAME)
-      .password(ENCODED_PASSWORD)
-      .build();
+        .id(userId)
+        .email(TEST_EMAIL)
+        .nickname(TEST_NICKNAME)
+        .password(ENCODED_PASSWORD)
+        .build();
   }
 
   @Test
@@ -86,29 +87,27 @@ class UserServiceTest {
     given(passwordEncoder.encode(RAW_PASSWORD)).willReturn(ENCODED_PASSWORD);
 
     given(userRepository.save(any(User.class))).willReturn(user);
-    given(userMapper.toDto(any(User.class))).willReturn(
-      new UserDto(userId, TEST_EMAIL, TEST_NICKNAME, LocalDateTime.now()));
+    given(userMapper.toDto(any(User.class))).willReturn(new UserDto(userId, TEST_EMAIL, TEST_NICKNAME, LocalDateTime.now()));
 
     UserDto result = userService.register(request);
 
     assertThat(result.email()).isEqualTo(TEST_EMAIL);
 
     verify(userRepository).save(argThat(savedUser ->
-      savedUser.getEmail().equals(TEST_EMAIL) &&
-        savedUser.getPassword().equals(ENCODED_PASSWORD)
+        savedUser.getEmail().equals(TEST_EMAIL) &&
+            savedUser.getPassword().equals(ENCODED_PASSWORD)
     ));
   }
 
   @Test
   @DisplayName("회원가입 실패 - 이메일 중복")
   void register_fail_duplicateEmail() {
-    UserRegisterRequest request = new UserRegisterRequest("test@example.com", "tester",
-      "password123");
+    UserRegisterRequest request = new UserRegisterRequest("test@example.com", "tester", "password123");
     given(userRepository.existsByEmail(request.email())).willReturn(true);
 
     assertThatThrownBy(() -> userService.register(request))
-      .isInstanceOf(DeokhugamException.class)
-      .hasMessage(ErrorCode.DUPLICATE_EMAIL.getMessage());
+        .isInstanceOf(DeokhugamException.class)
+        .hasMessage(ErrorCode.DUPLICATE_EMAIL.getMessage());
     verify(userRepository, never()).save(any());
   }
 
@@ -121,7 +120,7 @@ class UserServiceTest {
     given(userRepository.findByEmail(TEST_EMAIL)).willReturn(Optional.of(user));
     given(passwordEncoder.matches(RAW_PASSWORD, user.getPassword())).willReturn(true);
     given(userMapper.toDto(user)).willReturn(
-      new UserDto(userId, TEST_EMAIL, TEST_NICKNAME, LocalDateTime.now())
+        new UserDto(userId, TEST_EMAIL, TEST_NICKNAME, LocalDateTime.now())
     );
 
     // when
@@ -147,8 +146,8 @@ class UserServiceTest {
 
     // when & then
     assertThatThrownBy(() -> userService.login(request))
-      .isInstanceOf(DeokhugamException.class)
-      .hasMessage(ErrorCode.LOGIN_FAILED.getMessage());
+        .isInstanceOf(DeokhugamException.class)
+        .hasMessage(ErrorCode.LOGIN_FAILED.getMessage());
 
     verify(userMapper, never()).toDto(any());
   }
@@ -164,13 +163,28 @@ class UserServiceTest {
     given(userRepository.existsByNickname(newNickname)).willReturn(false);
 
     // when
-    userService.update(userId, request);
+    userService.update(requestUserId, userId, request);
 
     // then
     assertThat(user.getNickname()).isEqualTo(newNickname);
 
     verify(userRepository).findById(userId);
     verify(userRepository).existsByNickname(newNickname);
+  }
+  @Test
+  @DisplayName("사용자 정보 수정 실패 - 권한 없음")
+  void update_Fail_Forbidden() {
+    UUID otherUserId = UUID.randomUUID(); // 요청자 ≠ 대상
+
+    UserUpdateRequest request = new UserUpdateRequest("newNickname");
+
+    assertThatThrownBy(() ->
+      userService.update(otherUserId, userId, request)
+    )
+      .isInstanceOf(DeokhugamException.class)
+      .hasMessage(ErrorCode.HANDLE_ACCESS_DENIED.getMessage());
+
+    verify(userRepository, never()).findById(any());
   }
 
   @Test
@@ -179,11 +193,11 @@ class UserServiceTest {
     // given
     given(userRepository.findById(userId)).willReturn(Optional.of(user));
     given(userMapper.toDto(user)).willReturn(
-      new UserDto(userId, TEST_EMAIL, TEST_NICKNAME, LocalDateTime.now())
+        new UserDto(userId, TEST_EMAIL, TEST_NICKNAME, LocalDateTime.now())
     );
 
     // when
-    UserDto result = userService.find(userId);
+    UserDto result = userService.find(requestUserId, userId);
 
     // then
     assertThat(result.id()).isEqualTo(userId);
@@ -202,9 +216,9 @@ class UserServiceTest {
     given(userRepository.findById(nonExistentId)).willReturn(Optional.empty());
 
     // when & then
-    assertThatThrownBy(() -> userService.find(nonExistentId))
-      .isInstanceOf(DeokhugamException.class)
-      .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
+    assertThatThrownBy(() -> userService.find(nonExistentId, nonExistentId))
+        .isInstanceOf(DeokhugamException.class)
+        .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
     verify(userMapper, never()).toDto(any());
   }
 
@@ -215,7 +229,7 @@ class UserServiceTest {
     given(userRepository.findById(userId)).willReturn(Optional.of(user));
 
     // when
-    userService.deleteSoft(userId);
+    userService.deleteSoft(requestUserId, userId);
 
     // then
     assertThat(user.isDeleted()).isTrue();
@@ -229,7 +243,7 @@ class UserServiceTest {
     given(userRepository.findById(userId)).willReturn(Optional.of(user));
 
     // when
-    userService.deleteHard(userId);
+    userService.deleteHard(requestUserId, userId);
 
     // then
     verify(userRepository).findById(userId);
@@ -244,9 +258,9 @@ class UserServiceTest {
     given(userRepository.findById(nonExistentId)).willReturn(Optional.empty());
 
     // when & then
-    assertThatThrownBy(() -> userService.deleteHard(nonExistentId))
-      .isInstanceOf(DeokhugamException.class)
-      .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
+    assertThatThrownBy(() -> userService.deleteHard(nonExistentId, nonExistentId))
+        .isInstanceOf(DeokhugamException.class)
+        .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
     verify(userRepository, never()).deleteById(any());
   }
 
@@ -260,18 +274,15 @@ class UserServiceTest {
     ReflectionTestUtils.setField(user1, "createdAt", LocalDateTime.now());
     ReflectionTestUtils.setField(user2, "createdAt", LocalDateTime.now());
 
-    given(powerUserRepository.findPowerUsersByRequirements(eq(Period.MONTHLY), anyString(), any(),
-      any(), any()))
-      .willReturn(List.of(user1, user2));
+    given(powerUserRepository.findPowerUsersByRequirements(eq(Period.MONTHLY), anyString(), any(), any(), any()))
+        .willReturn(List.of(user1, user2));
     given(powerUserRepository.countByPeriodType(Period.MONTHLY)).willReturn(10L);
     given(userMapper.toPowerUserDto(any())).willReturn(
-      new PowerUserDto(userId, "tester", Period.MONTHLY, LocalDateTime.now(), 1, 100.0, 500.0, 10,
-        5)
+        new PowerUserDto(userId, "tester", Period.MONTHLY, LocalDateTime.now(), 1, 100.0, 500.0, 10, 5)
     );
 
     // when
-    CursorPageResponse<PowerUserDto> result = userService.findPowerUsers(Period.MONTHLY, "DESC",
-      null, null, limit);
+    CursorPageResponse<PowerUserDto> result = userService.findPowerUsers(Period.MONTHLY, "DESC", null, null, limit);
 
     // then
     assertThat(result.hasNext()).isTrue();
@@ -279,8 +290,7 @@ class UserServiceTest {
     assertThat(result.nextCursor()).isEqualTo("1");
     assertThat(result.totalElements()).isEqualTo(10L);
 
-    verify(powerUserRepository).findPowerUsersByRequirements(eq(Period.MONTHLY), eq("DESC"), any(),
-      any(), any());
+    verify(powerUserRepository).findPowerUsersByRequirements(eq(Period.MONTHLY), eq("DESC"), any(), any(), any());
     verify(userMapper, atLeastOnce()).toPowerUserDto(any());
   }
 
@@ -292,11 +302,11 @@ class UserServiceTest {
 
     // when & then
     assertThatThrownBy(() ->
-      userService.findPowerUsers(Period.MONTHLY, "DESC", invalidCursor, null, 10)
+        userService.findPowerUsers(Period.MONTHLY, "DESC", invalidCursor, null, 10)
     )
-      .isInstanceOf(DeokhugamException.class)
-      .hasMessage(ErrorCode.INVALID_INPUT_VALUE.getMessage());
+        .isInstanceOf(DeokhugamException.class)
+        .hasMessage(ErrorCode.INVALID_INPUT_VALUE.getMessage());
 
     verify(powerUserRepository, never()).findPowerUsersByRequirements(any(), any(), any(), any(), any());
-}
+  }
 }
