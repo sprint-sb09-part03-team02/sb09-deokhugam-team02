@@ -124,9 +124,10 @@ class UserControllerTest {
     willDoNothing().given(userService).deleteSoft(any(UUID.class), any(UUID.class));
 
     // when & then
-    mockMvc.perform(delete("/api/users/{userId}", commonResponse.email())
+    mockMvc.perform(delete("/api/users/{userId}", commonResponse.id())
         .header("Deokhugam-Request-User-ID", commonResponse.id()))
       .andExpect(status().isNoContent());
+//리팩톨링
   }
 
   @Test
