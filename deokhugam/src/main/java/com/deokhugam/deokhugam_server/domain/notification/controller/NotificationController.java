@@ -1,6 +1,7 @@
 package com.deokhugam.deokhugam_server.domain.notification.controller;
 
 import com.deokhugam.deokhugam_server.domain.notification.dto.request.NotificationSearchRequest;
+import com.deokhugam.deokhugam_server.domain.notification.dto.request.NotificationUpdateRequest;
 import com.deokhugam.deokhugam_server.domain.notification.dto.response.NotificationDto;
 import com.deokhugam.deokhugam_server.domain.notification.service.NotificationService;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
@@ -9,6 +10,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -31,12 +33,13 @@ public class NotificationController {
         return ResponseEntity.ok(notificationService.getNotifications(request));
     }
 
-    @PatchMapping("/{notificationId}/read")
+    @PatchMapping("/{notificationId}")
     public ResponseEntity<NotificationDto> readNotification(
         @PathVariable UUID notificationId,
+        @Valid @RequestBody NotificationUpdateRequest request,
         @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId) {
 
-        return ResponseEntity.ok(notificationService.readNotification(notificationId, requestUserId));
+        return ResponseEntity.ok(notificationService.readNotification(notificationId, requestUserId, request));
     }
 
     @PatchMapping("/read-all")

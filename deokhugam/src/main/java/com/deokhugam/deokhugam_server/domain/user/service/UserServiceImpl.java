@@ -1,6 +1,7 @@
 package com.deokhugam.deokhugam_server.domain.user.service;
 
 import static com.deokhugam.deokhugam_server.global.exception.ErrorCode.*;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
 
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserLoginRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserRegisterRequest;
@@ -8,6 +9,7 @@ import com.deokhugam.deokhugam_server.domain.user.dto.request.UserUpdateRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.response.PowerUserDto;
 import com.deokhugam.deokhugam_server.domain.user.entity.PowerUser;
 import com.deokhugam.deokhugam_server.domain.user.repository.PowerUserRepository;
+import com.deokhugam.deokhugam_server.global.exception.ErrorCode;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.type.Period;
 import com.deokhugam.deokhugam_server.domain.user.dto.response.UserDto;
@@ -65,16 +67,24 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public UserDto find(UUID userId) {
-    return userRepository.findById(userId)
-        .map(userMapper::toDto)
-        .orElseThrow(() -> new DeokhugamException(USER_NOT_FOUND));
+  public UserDto find(UUID targetUserId, UUID requestUserId) {
+    User user = userRepository.findById(targetUserId)
+      .orElseThrow(() -> new DeokhugamException(USER_NOT_FOUND));
+
+    return userMapper.toDto(user);
   }
 
   @Override
   public CursorPageResponse<PowerUserDto> findPowerUsers(Period period, String direction,
       String cursor, String after, int limit) {
-    Integer cursorRank = (cursor != null && !cursor.isBlank()) ? Integer.parseInt(cursor) : null;
+    Integer cursorRank = null;
+    if (cursor != null && !cursor.isBlank()) {
+      try {
+        cursorRank = Integer.parseInt(cursor);
+      } catch (NumberFormatException e) {
+        throw new DeokhugamException(ErrorCode.INVALID_INPUT_VALUE);
+      }
+    }
     LocalDateTime afterLdt = parseLocalDateTime(after);
 
     List<PowerUser> powerUsers = powerUserRepository.findPowerUsersByRequirements(
@@ -99,8 +109,9 @@ public class UserServiceImpl implements UserService {
 
   @Override
   @Transactional
-  public void update(UUID userId, UserUpdateRequest request) {
-    User user = userRepository.findById(userId).orElseThrow(() ->
+  public UserDto update(UUID requestUserId, UUID targetUserId, UserUpdateRequest request) {
+    validateOwner(requestUserId, targetUserId);
+    User user = userRepository.findById(targetUserId).orElseThrow(() ->
         new DeokhugamException(USER_NOT_FOUND));
     if (!user.getNickname().equals(request.nickname())) {
       if (userRepository.existsByNickname(request.nickname())) {
@@ -108,23 +119,32 @@ public class UserServiceImpl implements UserService {
       }
       user.updateNickname(request.nickname());
     }
+    return userMapper.toDto(user);
   }
 
   @Override
   @Transactional
-  public void deleteSoft(UUID userId) {
-    User user = userRepository.findById(userId)
-        .orElseThrow(() -> new DeokhugamException(USER_NOT_FOUND));
+  public void deleteSoft(UUID requestUserId, UUID targetUserId) {
+    validateOwner(requestUserId, targetUserId);
+
+    User user = userRepository.findById(targetUserId)
+      .orElseThrow(() -> new DeokhugamException(USER_NOT_FOUND));
+
     user.delete();
 
   }
 
   @Override
-  public void deleteHard(UUID userId) {
-    userRepository.findById(userId)
-        .orElseThrow(() -> new DeokhugamException(USER_NOT_FOUND));
-    userRepository.deleteById(userId);
+  @Transactional
+  public void deleteHard(UUID requestUserId, UUID targetUserId) {
+    validateOwner(requestUserId, targetUserId);
+
+    userRepository.findById(targetUserId)
+      .orElseThrow(() -> new DeokhugamException(USER_NOT_FOUND));
+
+    userRepository.deleteById(targetUserId);
   }
+
   private LocalDateTime parseLocalDateTime(String after) {
     if (after == null || after.isBlank())
       return null;
@@ -136,6 +156,11 @@ public class UserServiceImpl implements UserService {
       return LocalDateTime.parse(after);
     } catch (Exception e) {
       return LocalDate.parse(after.substring(0, 10)).atStartOfDay();
+    }
+  }
+  private void validateOwner(UUID requestUserId, UUID targetUserId) {
+    if (!requestUserId.equals(targetUserId)) {
+      throw new DeokhugamException(HANDLE_ACCESS_DENIED);
     }
   }
 

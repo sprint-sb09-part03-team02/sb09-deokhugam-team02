@@ -39,17 +39,23 @@ public class PowerUser extends BaseEntity {
   @Enumerated(EnumType.STRING)
   private Period periodType;
 
+  @Column(name = "score", nullable = false)
   private Double score;
 
+  @Column(name = "review_score_sum")
   private Double reviewScoreSum;
 
+  @Column(name = "rank_order", nullable = false)
   private Integer rankOrder;
 
+  @Column(name = "calculated_date", nullable = false)
   private LocalDate calculatedDate;
 
-  private Integer likeCount;
+  @Column(name = "like_count")
+  private Long likeCount;
 
-  private Integer commentCount;
+  @Column(name = "comment_count")
+  private Long commentCount;
 
   public void assignRankOrder(int rank) {
     this.rankOrder = rank;
