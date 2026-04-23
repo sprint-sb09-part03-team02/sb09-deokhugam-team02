@@ -180,13 +180,14 @@ class UserControllerTest {
     given(userService.findPowerUsers(any(Period.class), anyString(), any(), any(), anyInt()))
       .willReturn(pageResponse);
 
+    // when
     var resultActions = mockMvc.perform(get("/api/users/power")
       .param("period", "WEEKLY")
       .param("direction", "DESC")
       .param("limit", "10")
       .accept(MediaType.APPLICATION_JSON));
 
-    // when & then
+    // then
     resultActions
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.content[0].userId").value(commonResponse.id().toString()))
@@ -195,6 +196,7 @@ class UserControllerTest {
       .andExpect(jsonPath("$.nextCursor").value("next-cursor-id"))
       .andExpect(jsonPath("$.hasNext").value(true))
       .andExpect(jsonPath("$.size").value(1));
+    verify(userService, times(1)).findPowerUsers(eq(Period.WEEKLY), eq("DESC"), any(), any(), eq(10));
   }
 
   @Test
