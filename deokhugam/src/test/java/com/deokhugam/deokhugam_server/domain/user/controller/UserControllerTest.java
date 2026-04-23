@@ -2,6 +2,7 @@ package com.deokhugam.deokhugam_server.domain.user.controller;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -98,14 +99,21 @@ class UserControllerTest {
   @DisplayName("사용자 정보 조회 성공")
   void findById_Success() throws Exception {
     // given
-    given(userService.find(any(UUID.class), any(UUID.class))).willReturn(commonResponse);
+    UUID targetUserId = commonResponse.id();
+    given(userService.find(any(), eq(targetUserId))).willReturn(commonResponse);
 
-    // when & then
-    mockMvc.perform(get("/api/users/{userId}", commonResponse.id())
-        .header("Deokhugam-Request-User-ID", commonResponse.id()))
+    // when
+    var resultActions = mockMvc.perform(get("/api/users/{userId}", targetUserId)
+      .header("Deokhugam-Request-User-ID", targetUserId)
+      .accept(MediaType.APPLICATION_JSON));
+
+    // Then
+    resultActions
       .andExpect(status().isOk())
-      .andExpect(jsonPath("$.id").value(commonResponse.id().toString()))
-      .andExpect(jsonPath("$.email").value(TEST_EMAIL));
+      .andExpect(jsonPath("$.id").value(targetUserId.toString()))
+      .andExpect(jsonPath("$.email").value(TEST_EMAIL))
+      .andExpect(jsonPath("$.nickname").value(TEST_NICKNAME))
+      .andExpect(jsonPath("$.createdAt").exists());
   }
 
   @Test
