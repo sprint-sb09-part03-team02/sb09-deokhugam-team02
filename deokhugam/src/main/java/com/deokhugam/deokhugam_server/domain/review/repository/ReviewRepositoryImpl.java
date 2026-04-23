@@ -10,9 +10,11 @@ import com.deokhugam.deokhugam_server.domain.review.dto.response.ReviewRankQuery
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.time.LocalDateTime;
@@ -28,6 +30,17 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
   public List<ReviewDto> searchReviews(ReviewSearchRequest request) {
     int pageSize = request.getLimit();
 
+    List<OrderSpecifier<?>> orders = new ArrayList<>();
+    boolean isAsc = "ASC".equalsIgnoreCase(request.getDirection());
+
+    if ("rating".equals(request.getOrderBy())) {
+      orders.add(isAsc ? review.rating.asc() : review.rating.desc());
+      orders.add(isAsc ? review.createdAt.asc() : review.createdAt.desc()); // 보조 정렬
+    } else {
+      orders.add(isAsc ? review.createdAt.asc() : review.createdAt.desc()); // 기본 정렬
+    }
+    orders.add(review.id.desc());
+
     return queryFactory
         .select(Projections.constructor(ReviewDto.class,
             review.id,
@@ -40,25 +53,25 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
             review.rating,
             review.likeCount,
             review.commentCount,
-            reviewLike.id.isNotNull(), // 한 번의 쿼리로 좋아요 여부 확인 (N+1 해결)
+            reviewLike.id.isNotNull(), // 좋아요 여부
             review.createdAt,
             review.updatedAt
         ))
         .from(review)
         .leftJoin(review.book)
         .leftJoin(review.user)
-        .leftJoin(reviewLike).on(reviewLike.review.eq(review).and(reviewLike.user.id.eq(request.getRequestUserId())))
+        .leftJoin(reviewLike).on(
+            reviewLike.review.eq(review),
+            eqRequestUserId(request.getRequestUserId())
+        )
         .where(
-            ltCursorAfter(request.getAfter(), request.getCursor()),
+            getCursorCondition(request.getAfter(), request.getCursor(), request.getDirection()),
             eqUserId(request.getUserId()),
             eqBookId(request.getBookId()),
             containsKeyword(request.getKeyword()),
             review.isDeleted.isFalse()
         )
-        .orderBy(
-            getOrderSpecifier(request.getOrderBy(), request.getDirection()),
-            review.id.desc()
-        )
+        .orderBy(orders.toArray(new OrderSpecifier[0]))
         .limit(pageSize + 1)
         .fetch();
   }
@@ -73,17 +86,31 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
         ))
         .from(review)
         .leftJoin(reviewLike).on(reviewLike.review.eq(review))
-        .leftJoin(comment).on(comment.reviewId.eq(review.id))
+        .leftJoin(comment).on(comment.review.eq(review))
         .where(review.createdAt.between(start.atStartOfDay(), end.atTime(LocalTime.MAX)))
         .groupBy(review.id)
         .fetch();
   }
 
-  private BooleanExpression ltCursorAfter(LocalDateTime after, String cursor) {
+  private BooleanExpression getCursorCondition(LocalDateTime after, String cursor, String direction) {
     if (after == null || cursor == null) return null;
-    return review.createdAt.lt(after)
-        .or(review.createdAt.eq(after)
-            .and(review.id.lt(UUID.fromString(cursor))));
+    UUID uuidCursor = UUID.fromString(cursor);
+    boolean isAsc = "ASC".equalsIgnoreCase(direction);
+
+    if (isAsc) {
+      return review.createdAt.gt(after)
+          .or(review.createdAt.eq(after).and(review.id.gt(uuidCursor)));
+    } else {
+      return review.createdAt.lt(after)
+          .or(review.createdAt.eq(after).and(review.id.lt(uuidCursor)));
+    }
+  }
+
+  private BooleanExpression eqRequestUserId(UUID requestUserId) {
+    if (requestUserId == null) {
+      return Expressions.asBoolean(true).isFalse();
+    }
+    return reviewLike.user.id.eq(requestUserId);
   }
 
   private BooleanExpression eqUserId(UUID userId) {
@@ -95,16 +122,9 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
   }
 
   private BooleanExpression containsKeyword(String keyword) {
-    return StringUtils.hasText(keyword)
-        ? review.content.contains(keyword)
-        : null;
-  }
-
-  private OrderSpecifier<?> getOrderSpecifier(String orderBy, String direction) {
-    boolean isAsc = "ASC".equalsIgnoreCase(direction);
-    if ("rating".equals(orderBy)) {
-      return isAsc ? review.rating.asc() : review.rating.desc();
-    }
-    return isAsc ? review.createdAt.asc() : review.createdAt.desc();
+    if (!StringUtils.hasText(keyword)) return null;
+    return review.content.contains(keyword)
+        .or(review.user.nickname.contains(keyword))
+        .or(review.book.title.contains(keyword));
   }
 }

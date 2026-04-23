@@ -5,6 +5,7 @@ import com.deokhugam.deokhugam_server.domain.review.dto.request.ReviewSearchRequ
 import com.deokhugam.deokhugam_server.domain.review.dto.request.ReviewUpdateRequest;
 import com.deokhugam.deokhugam_server.domain.review.dto.response.PopularReviewDto;
 import com.deokhugam.deokhugam_server.domain.review.dto.response.ReviewDto;
+import com.deokhugam.deokhugam_server.domain.review.dto.response.ReviewLikeDto;
 import com.deokhugam.deokhugam_server.domain.review.service.ReviewService;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.type.Period;
@@ -54,6 +55,18 @@ public class ReviewController {
     return ResponseEntity.ok(response);
   }
 
+  // --- 추가됨: 리뷰 좋아요 API ---
+  @Operation(summary = "리뷰 좋아요", description = "리뷰에 좋아요를 추가하거나 취소합니다.")
+  @PostMapping("/{reviewId}/like")
+  public ResponseEntity<ReviewLikeDto> likeReview(
+      @PathVariable UUID reviewId,
+      @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId) {
+
+    ReviewLikeDto response = reviewService.likeReview(reviewId, requestUserId);
+    return ResponseEntity.ok(response);
+  }
+  // ----------------------------
+
   @Operation(summary = "리뷰 수정", description = "본인이 작성한 리뷰를 수정합니다.")
   @PatchMapping("/{reviewId}")
   public ResponseEntity<ReviewDto> updateReview(
@@ -75,7 +88,6 @@ public class ReviewController {
     return ResponseEntity.noContent().build();
   }
 
-  // 물리 삭제 엔드포인트 추가 (명세서 규격 반영)
   @Operation(summary = "리뷰 물리 삭제", description = "본인이 작성한 리뷰를 물리적으로 삭제합니다.")
   @DeleteMapping("/{reviewId}/hard")
   public ResponseEntity<Void> hardDeleteReview(
@@ -83,14 +95,14 @@ public class ReviewController {
       @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId) {
 
     reviewService.hardDeleteReview(reviewId, requestUserId);
-    return ResponseEntity.noContent().build(); // 204 No Content
+    return ResponseEntity.noContent().build();
   }
 
   @Operation(summary = "인기 리뷰 목록 조회", description = "기간별 인기 리뷰 목록을 조회합니다.")
   @GetMapping("/popular")
   public ResponseEntity<CursorPageResponse<PopularReviewDto>> searchPopularReview(
       @RequestParam(defaultValue = "DAILY") Period period,
-      @RequestParam(defaultValue = "ASC") String direction,
+      @RequestParam(defaultValue = "DESC") String direction, // 수정됨: 인기 순위이므로 DESC가 기본
       @RequestParam(required = false) String cursor,
       @RequestParam(required = false) String after,
       @RequestParam(defaultValue = "50") int limit
