@@ -36,41 +36,40 @@ public class CommentControllerTest {
   private final UUID commentId = UUID.randomUUID();
 
   @Test
-  @DisplayName("성공: 댓글 등록 시 바디의 status는 201이다")
+  @DisplayName("성공: 댓글 등록 시 HTTP 201을 반환하고 DTO를 직접 반환한다")
   void createComment_Success() throws Exception {
     CommentCreateRequest request = new CommentCreateRequest(reviewId, userId, "댓글 내용");
     CommentDto response = CommentDto.builder().content("댓글 내용").build();
     given(commentService.createComment(any())).willReturn(response);
 
     mockMvc.perform(post(BASE_URL)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isOk()) // HTTP 상태는 200 OK
-        .andExpect(jsonPath("$.status").value(201)) // 바디 안의 상태 코드를 검증
-        .andExpect(jsonPath("$.data.content").value("댓글 내용"));
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(request)))
+      .andExpect(status().isCreated())
+      .andExpect(jsonPath("$.content").value("댓글 내용"));
   }
 
   @Test
-  @DisplayName("성공: 댓글 수정 시 200 상태코드를 반환한다")
+  @DisplayName("성공: 댓글 수정 시 HTTP 200 상태코드를 반환한다")
   void updateComment_Success() throws Exception {
     CommentUpdateRequest request = new CommentUpdateRequest("수정 내용");
+    CommentDto response = CommentDto.builder().content("수정 내용").build();
+    given(commentService.updateComment(any(), any(), any())).willReturn(response);
 
     mockMvc.perform(patch(BASE_URL + "/{commentId}", commentId)
-            .header(USER_HEADER, userId.toString())
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.status").value(200));
+        .header(USER_HEADER, userId.toString())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(request)))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.content").value("수정 내용"));
   }
 
   @Test
-  @DisplayName("성공: 댓글 삭제 시 바디의 status는 204이다")
+  @DisplayName("성공: 댓글 삭제 시 HTTP 204를 반환한다")
   void deleteComment_Success() throws Exception {
     mockMvc.perform(delete(BASE_URL + "/{commentId}", commentId)
-            .header(USER_HEADER, userId.toString()))
-        .andExpect(status().isOk()) // HTTP 상태는 200
-        .andExpect(jsonPath("$.status").value(204)) // 바디 안의 204 확인
-        .andExpect(jsonPath("$.message").value("No Content"));
+        .header(USER_HEADER, userId.toString()))
+      .andExpect(status().isNoContent());
   }
 
   @Test
@@ -80,7 +79,7 @@ public class CommentControllerTest {
     given(commentService.getComment(commentId)).willReturn(response);
 
     mockMvc.perform(get(BASE_URL + "/{commentId}", commentId))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data.content").value("조회 내용"));
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.content").value("조회 내용"));
   }
 }
