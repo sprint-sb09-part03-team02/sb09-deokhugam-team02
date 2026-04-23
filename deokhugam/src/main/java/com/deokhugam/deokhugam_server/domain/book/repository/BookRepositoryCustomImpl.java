@@ -37,62 +37,62 @@ public class BookRepositoryCustomImpl implements BookRepositoryCustom {
     NumberExpression<Double> ratingExpression = review.rating.avg().coalesce(0.0);
 
     return queryFactory
-            .select(Projections.constructor(
-                    BookSearchQueryDto.class,
-                    book.id,
-                    book.title,
-                    book.author,
-                    book.description,
-                    book.publisher,
-                    book.publishedDate,
-                    book.isbn,
-                    book.thumbnailUrl,
-                    reviewCountExpression,
-                    ratingExpression,
-                    book.createdAt,
-                    book.updatedAt
-            ))
-            .from(book)
-            .leftJoin(review).on(
-                    review.book.eq(book),
-                    review.isDeleted.isFalse()
-            )
-            .where(
-                    book.isDeleted.isFalse(),
-                    containsKeyword(request.keyword()),
-                    buildWhereCursorCondition(request)
-            )
-            .groupBy(
-                    book.id,
-                    book.title,
-                    book.author,
-                    book.description,
-                    book.publisher,
-                    book.publishedDate,
-                    book.isbn,
-                    book.thumbnailUrl,
-                    book.createdAt,
-                    book.updatedAt
-            )
-            .having(buildHavingCursorCondition(request, reviewCountExpression, ratingExpression))
-            .orderBy(
-                    buildPrimaryOrderSpecifier(request, reviewCountExpression, ratingExpression),
-                    buildCreatedAtOrderSpecifier(request.direction())
-            )
-            .limit(request.limit() + 1L)
-            .fetch();
+      .select(Projections.constructor(
+        BookSearchQueryDto.class,
+        book.id,
+        book.title,
+        book.author,
+        book.description,
+        book.publisher,
+        book.publishedDate,
+        book.isbn,
+        book.thumbnailUrl,
+        reviewCountExpression,
+        ratingExpression,
+        book.createdAt,
+        book.updatedAt
+      ))
+      .from(book)
+      .leftJoin(review).on(
+        review.book.eq(book),
+        review.isDeleted.isFalse()
+      )
+      .where(
+        book.isDeleted.isFalse(),
+        containsKeyword(request.keyword()),
+        buildWhereCursorCondition(request)
+      )
+      .groupBy(
+        book.id,
+        book.title,
+        book.author,
+        book.description,
+        book.publisher,
+        book.publishedDate,
+        book.isbn,
+        book.thumbnailUrl,
+        book.createdAt,
+        book.updatedAt
+      )
+      .having(buildHavingCursorCondition(request, reviewCountExpression, ratingExpression))
+      .orderBy(
+        buildPrimaryOrderSpecifier(request, reviewCountExpression, ratingExpression),
+        buildCreatedAtOrderSpecifier(request.direction())
+      )
+      .limit(request.limit() + 1L)
+      .fetch();
   }
 
   @Override
   public long countBooks(BookSearchRequest request) {
     Long count = queryFactory
-            .select(book.count())
-            .from(book)
-            .where(
-                    book.isDeleted.isFalse(),
-                    containsKeyword(request.keyword())
-            )
-            .fetchOne();
+      .select(book.count())
+      .from(book)
+      .where(
+        book.isDeleted.isFalse(),
+        containsKeyword(request.keyword())
+      )
+      .fetchOne();
 
     return count == null ? 0L : count;
   }
@@ -103,96 +103,96 @@ public class BookRepositoryCustomImpl implements BookRepositoryCustom {
     NumberExpression<Double> ratingExpression = review.rating.avg().coalesce(0.0);
 
     return queryFactory
-            .select(Projections.constructor(
-                    BookSearchQueryDto.class,
-                    book.id,
-                    book.title,
-                    book.author,
-                    book.description,
-                    book.publisher,
-                    book.publishedDate,
-                    book.isbn,
-                    book.thumbnailUrl,
-                    reviewCountExpression,
-                    ratingExpression,
-                    book.createdAt,
-                    book.updatedAt
-            ))
-            .from(book)
-            .leftJoin(review).on(
-                    review.book.eq(book),
-                    review.isDeleted.isFalse()
-            )
-            .where(
-                    book.id.eq(bookId),
-                    book.isDeleted.isFalse()
-            )
-            .groupBy(
-                    book.id,
-                    book.title,
-                    book.author,
-                    book.description,
-                    book.publisher,
-                    book.publishedDate,
-                    book.isbn,
-                    book.thumbnailUrl,
-                    book.createdAt,
-                    book.updatedAt
-            )
-            .fetchOne();
+      .select(Projections.constructor(
+        BookSearchQueryDto.class,
+        book.id,
+        book.title,
+        book.author,
+        book.description,
+        book.publisher,
+        book.publishedDate,
+        book.isbn,
+        book.thumbnailUrl,
+        reviewCountExpression,
+        ratingExpression,
+        book.createdAt,
+        book.updatedAt
+      ))
+      .from(book)
+      .leftJoin(review).on(
+        review.book.eq(book),
+        review.isDeleted.isFalse()
+      )
+      .where(
+        book.id.eq(bookId),
+        book.isDeleted.isFalse()
+      )
+      .groupBy(
+        book.id,
+        book.title,
+        book.author,
+        book.description,
+        book.publisher,
+        book.publishedDate,
+        book.isbn,
+        book.thumbnailUrl,
+        book.createdAt,
+        book.updatedAt
+      )
+      .fetchOne();
   }
 
   @Override
   public List<BookRankQueryDto> findBookStatisticsForRanking(LocalDate startDate, LocalDate endDate) {
     return queryFactory
-            .select(Projections.constructor(
-                    BookRankQueryDto.class,
-                    review.book.id,
-                    review.id.countDistinct(),
-                    review.rating.avg().coalesce(0.0)
-            ))
-            .from(review)
-            .where(
-                    review.isDeleted.isFalse(),
-                    review.book.isDeleted.isFalse(),
-                    review.createdAt.between(
-                            startDate.atStartOfDay(),
-                            endDate.atTime(LocalTime.MAX)
-                    )
-            )
-            .groupBy(review.book.id)
-            .fetch();
+      .select(Projections.constructor(
+        BookRankQueryDto.class,
+        review.book.id,
+        review.id.countDistinct(),
+        review.rating.avg().coalesce(0.0)
+      ))
+      .from(review)
+      .where(
+        review.isDeleted.isFalse(),
+        review.book.isDeleted.isFalse(),
+        review.createdAt.between(
+          startDate.atStartOfDay(),
+          endDate.atTime(LocalTime.MAX)
+        )
+      )
+      .groupBy(review.book.id)
+      .fetch();
   }
 
   @Override
   public List<PopularBook> findPopularBooksWithPaging(
-          Period period,
-          String direction,
-          String cursor,
-          String after,
-          int limit
+    Period period,
+    String direction,
+    String cursor,
+    String after,
+    int limit
   ) {
     QPopularBook popularBookSub = new QPopularBook("popularBookSub");
 
     return queryFactory
-            .selectFrom(popularBook)
-            .join(popularBook.book, book).fetchJoin()
-            .where(
-                    popularBook.periodType.eq(period),
-                    popularBook.calculatedDate.eq(
-                            JPAExpressions
-                                    .select(popularBookSub.calculatedDate.max())
-                                    .from(popularBookSub)
-                                    .where(popularBookSub.periodType.eq(period))
-                    ),
-                    buildPopularBookCursorCondition(direction, cursor, after)
-            )
-            .orderBy(
-                    buildPopularBookRankOrderSpecifier(direction),
-                    buildPopularBookIdOrderSpecifier(direction)
-            )
-            .limit(limit + 1L)
-            .fetch();
+      .selectFrom(popularBook)
+      .join(popularBook.book, book).fetchJoin()
+      .where(
+        popularBook.periodType.eq(period),
+        popularBook.calculatedDate.eq(
+          JPAExpressions
+            .select(popularBookSub.calculatedDate.max())
+            .from(popularBookSub)
+            .where(popularBookSub.periodType.eq(period))
+        ),
+        buildPopularBookCursorCondition(direction, cursor, after)
+      )
+      .orderBy(
+        buildPopularBookRankOrderSpecifier(direction),
+        buildPopularBookIdOrderSpecifier(direction)
+      )
+      .limit(limit + 1L)
+      .fetch();
   }
 
   private BooleanExpression containsKeyword(String keyword) {
@@ -204,8 +204,8 @@ public class BookRepositoryCustomImpl implements BookRepositoryCustom {
     String normalizedIsbnKeyword = normalizedKeyword.replace("-", "");
 
     return book.title.containsIgnoreCase(normalizedKeyword)
-            .or(book.author.containsIgnoreCase(normalizedKeyword))
-            .or(book.isbn.containsIgnoreCase(normalizedIsbnKeyword));
+      .or(book.author.containsIgnoreCase(normalizedKeyword))
+      .or(book.isbn.containsIgnoreCase(normalizedIsbnKeyword));
   }
 
   private BooleanExpression buildWhereCursorCondition(BookSearchRequest request) {
@@ -218,18 +218,18 @@ public class BookRepositoryCustomImpl implements BookRepositoryCustom {
     return switch (orderBy) {
       case "title" -> compareTitleCursor(request.cursor(), request.after(), request.direction());
       case "publisheddate" -> comparePublishedDateCursor(
-              request.cursor(),
-              request.after(),
-              request.direction()
+        request.cursor(),
+        request.after(),
+        request.direction()
       );
       default -> null;
     };
   }
 
   private BooleanExpression buildHavingCursorCondition(
-          BookSearchRequest request,
-          NumberExpression<Long> reviewCountExpression,
-          NumberExpression<Double> ratingExpression
+    BookSearchRequest request,
+    NumberExpression<Long> reviewCountExpression,
+    NumberExpression<Double> ratingExpression
   ) {
     if (!StringUtils.hasText(request.cursor()) || request.after() == null) {
       return null;
@@ -239,89 +239,89 @@ public class BookRepositoryCustomImpl implements BookRepositoryCustom {
 
     return switch (orderBy) {
       case "rating" -> compareRatingCursor(
-              request.cursor(),
-              request.after(),
-              request.direction(),
-              ratingExpression
+        request.cursor(),
+        request.after(),
+        request.direction(),
+        ratingExpression
       );
       case "reviewcount" -> compareReviewCountCursor(
-              request.cursor(),
-              request.after(),
-              request.direction(),
-              reviewCountExpression
+        request.cursor(),
+        request.after(),
+        request.direction(),
+        reviewCountExpression
       );
       default -> null;
     };
   }
 
   private BooleanExpression compareTitleCursor(
-          String cursor,
-          LocalDateTime after,
-          String direction
+    String cursor,
+    LocalDateTime after,
+    String direction
   ) {
     if (isAsc(direction)) {
       return book.title.gt(cursor)
-              .or(book.title.eq(cursor).and(book.createdAt.gt(after)));
+        .or(book.title.eq(cursor).and(book.createdAt.gt(after)));
     }
 
     return book.title.lt(cursor)
-            .or(book.title.eq(cursor).and(book.createdAt.lt(after)));
+      .or(book.title.eq(cursor).and(book.createdAt.lt(after)));
   }
 
   private BooleanExpression comparePublishedDateCursor(
-          String cursor,
-          LocalDateTime after,
-          String direction
+    String cursor,
+    LocalDateTime after,
+    String direction
   ) {
     LocalDate publishedDateCursor = LocalDate.parse(cursor);
 
     if (isAsc(direction)) {
       return book.publishedDate.gt(publishedDateCursor)
-              .or(book.publishedDate.eq(publishedDateCursor).and(book.createdAt.gt(after)));
+        .or(book.publishedDate.eq(publishedDateCursor).and(book.createdAt.gt(after)));
     }
 
     return book.publishedDate.lt(publishedDateCursor)
-            .or(book.publishedDate.eq(publishedDateCursor).and(book.createdAt.lt(after)));
+      .or(book.publishedDate.eq(publishedDateCursor).and(book.createdAt.lt(after)));
   }
 
   private BooleanExpression compareRatingCursor(
-          String cursor,
-          LocalDateTime after,
-          String direction,
-          NumberExpression<Double> ratingExpression
+    String cursor,
+    LocalDateTime after,
+    String direction,
+    NumberExpression<Double> ratingExpression
   ) {
     double ratingCursor = Double.parseDouble(cursor);
 
     if (isAsc(direction)) {
       return ratingExpression.gt(ratingCursor)
-              .or(ratingExpression.eq(ratingCursor).and(book.createdAt.gt(after)));
+        .or(ratingExpression.eq(ratingCursor).and(book.createdAt.gt(after)));
     }
 
     return ratingExpression.lt(ratingCursor)
-            .or(ratingExpression.eq(ratingCursor).and(book.createdAt.lt(after)));
+      .or(ratingExpression.eq(ratingCursor).and(book.createdAt.lt(after)));
   }
 
   private BooleanExpression compareReviewCountCursor(
-          String cursor,
-          LocalDateTime after,
-          String direction,
-          NumberExpression<Long> reviewCountExpression
+    String cursor,
+    LocalDateTime after,
+    String direction,
+    NumberExpression<Long> reviewCountExpression
   ) {
     long reviewCountCursor = Long.parseLong(cursor);
 
     if (isAsc(direction)) {
       return reviewCountExpression.gt(reviewCountCursor)
-              .or(reviewCountExpression.eq(reviewCountCursor).and(book.createdAt.gt(after)));
+        .or(reviewCountExpression.eq(reviewCountCursor).and(book.createdAt.gt(after)));
     }
 
     return reviewCountExpression.lt(reviewCountCursor)
-            .or(reviewCountExpression.eq(reviewCountCursor).and(book.createdAt.lt(after)));
+      .or(reviewCountExpression.eq(reviewCountCursor).and(book.createdAt.lt(after)));
   }
 
   private BooleanExpression buildPopularBookCursorCondition(
-          String direction,
-          String cursor,
-          String after
+    String direction,
+    String cursor,
+    String after
   ) {
     if (!StringUtils.hasText(cursor) || !StringUtils.hasText(after)) {
       return null;
@@ -332,17 +332,17 @@ public class BookRepositoryCustomImpl implements BookRepositoryCustom {
 
     if (isAsc(direction)) {
       return popularBook.rankOrder.gt(rankCursor)
-              .or(popularBook.rankOrder.eq(rankCursor).and(popularBook.id.gt(afterId)));
+        .or(popularBook.rankOrder.eq(rankCursor).and(popularBook.id.gt(afterId)));
     }
 
     return popularBook.rankOrder.lt(rankCursor)
-            .or(popularBook.rankOrder.eq(rankCursor).and(popularBook.id.lt(afterId)));
+      .or(popularBook.rankOrder.eq(rankCursor).and(popularBook.id.lt(afterId)));
   }
 
   private OrderSpecifier<?> buildPrimaryOrderSpecifier(
-          BookSearchRequest request,
-          NumberExpression<Long> reviewCountExpression,
-          NumberExpression<Double> ratingExpression
+    BookSearchRequest request,
+    NumberExpression<Long> reviewCountExpression,
+    NumberExpression<Double> ratingExpression
   ) {
     Order order = isAsc(request.direction()) ? Order.ASC : Order.DESC;
     String orderBy = normalizeOrderBy(request.orderBy());

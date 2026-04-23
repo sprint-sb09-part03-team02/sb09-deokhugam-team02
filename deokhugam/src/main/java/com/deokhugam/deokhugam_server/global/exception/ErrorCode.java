@@ -29,6 +29,13 @@ public enum ErrorCode {
   BOOK_NOT_FOUND(404, "B201", "도서 정보 없음"),
   DUPLICATE_ISBN(409, "B202", "ISBN 중복"),
 
+  // ====================  추가된 부분 (OCR / ISBN 조회 관련) ====================
+  INVALID_FILE(400, "B203", "파일이 비어있거나 잘못되었습니다."),
+  INVALID_FILE_TYPE(400, "B204", "지원하지 않는 파일 형식입니다."),
+  ISBN_EXTRACTION_FAILED(400, "B205", "OCR을 통해 ISBN을 추출하지 못했습니다."),
+  BOOK_INFO_NOT_FOUND(404, "B206", "ISBN으로 조회된 도서 정보가 없습니다."),
+  // ============================================================================
+
   // [REVIEW] 리뷰 관리
   // 명세서 /api/reviews 대응
   REVIEW_NOT_FOUND(404, "R301", "리뷰 정보 없음"),
@@ -57,8 +64,7 @@ public enum ErrorCode {
 
   // [STORAGE] 파일 저장소
   S3_UPLOAD_FAILED(500, "S701", "파일 업로드에 실패했습니다."),
-  S3_DELETE_FAILED(500, "S702", "파일 삭제에 실패했습니다.")
-  ;
+  S3_DELETE_FAILED(500, "S702", "파일 삭제에 실패했습니다.");
 
   private final int status;
   private final String code;

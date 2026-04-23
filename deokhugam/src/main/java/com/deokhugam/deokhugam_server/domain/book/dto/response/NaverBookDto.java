@@ -1,21 +1,14 @@
 package com.deokhugam.deokhugam_server.domain.book.dto.response;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.UUID;
 
-public record BookSearchQueryDto(
-  UUID id,
+public record NaverBookDto(
   String title,
   String author,
   String description,
   String publisher,
   LocalDate publishedDate,
   String isbn,
-  String thumbnailUrl,
-  long reviewCount,
-  double rating,
-  LocalDateTime createdAt,
-  LocalDateTime updatedAt
+  String thumbnailImage
 ) {
 }
