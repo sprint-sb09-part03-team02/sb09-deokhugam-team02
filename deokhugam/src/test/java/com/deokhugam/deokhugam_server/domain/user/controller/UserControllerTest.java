@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willDoNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -117,7 +118,15 @@ class UserControllerTest {
   }
 
   @Test
-  void delete() {
+  @DisplayName("사용자 논리 삭제 성공: 204 No Content를 반환한다")
+  void delete_Success() throws Exception {
+    // given
+    willDoNothing().given(userService).deleteSoft(any(UUID.class), any(UUID.class));
+
+    // when & then
+    mockMvc.perform(delete("/api/users/{userId}", commonResponse.email())
+        .header("Deokhugam-Request-User-ID", commonResponse.id()))
+      .andExpect(status().isNoContent());
   }
 
   @Test
