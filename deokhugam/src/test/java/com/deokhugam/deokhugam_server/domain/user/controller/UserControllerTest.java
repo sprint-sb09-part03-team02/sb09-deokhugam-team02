@@ -79,6 +79,8 @@ class UserControllerTest {
     // given
     UUID userId = UUID.randomUUID();
     UserLoginRequest request = new UserLoginRequest("test@example.com", "password123!");
+    UserDto response = new UserDto(userId, "nickname", "test@example.com", LocalDateTime.now());
+    given(userService.login(any(UserLoginRequest.class))).willReturn(response);
 
     // when & then
     mockMvc.perform(post("/api/users/login")
