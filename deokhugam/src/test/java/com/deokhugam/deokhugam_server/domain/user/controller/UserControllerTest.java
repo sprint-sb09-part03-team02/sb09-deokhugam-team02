@@ -137,7 +137,20 @@ class UserControllerTest {
   }
 
   @Test
-  void update() {
+  @DisplayName("사용자 정보 수정 성공: 닉네임 수정 시 200 OK를 반환한다")
+  void update_Success() throws Exception {
+    // given
+    String newNickname = "newNickname";
+    UserUpdateRequest updateRequest = new UserUpdateRequest(newNickname);
+    UserDto updatedResponse = new UserDto(commonResponse.id(), newNickname, TEST_EMAIL, LocalDateTime.now());
+
+    // when & then
+    mockMvc.perform(patch("/api/users/{userId}", commonResponse.id())
+        .header("Deokhugam-Request-User-ID", commonResponse.id())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(updateRequest)))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.nickname").value(newNickname));
   }
 
   @Test
