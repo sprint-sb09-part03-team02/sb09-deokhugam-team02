@@ -140,19 +140,28 @@ class UserControllerTest {
   @DisplayName("사용자 정보 수정 성공")
   void update_Success() throws Exception {
     // given
+    UUID targetUserId = commonResponse.id();
     String newNickname = "newNickname";
+
     UserUpdateRequest updateRequest = new UserUpdateRequest(newNickname);
-    UserDto updatedResponse = new UserDto(commonResponse.id(), TEST_EMAIL, newNickname, LocalDateTime.now());
-    given(userService.update(any(UUID.class), any(UUID.class), any(UserUpdateRequest.class)))
+    UserDto updatedResponse = new UserDto(targetUserId, TEST_EMAIL, newNickname, LocalDateTime.now());
+
+    given(userService.update(eq(targetUserId), eq(targetUserId), any(UserUpdateRequest.class)))
       .willReturn(updatedResponse);
 
-    // when & then
-    mockMvc.perform(patch("/api/users/{userId}", commonResponse.id())
-        .header("Deokhugam-Request-User-ID", commonResponse.id())
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(updateRequest)))
+    // when
+    var resultActions = mockMvc.perform(patch("/api/users/{userId}", targetUserId)
+      .header("Deokhugam-Request-User-ID", targetUserId)
+      .contentType(MediaType.APPLICATION_JSON)
+      .content(objectMapper.writeValueAsString(updateRequest)));
+
+    // Then
+    resultActions
       .andExpect(status().isOk())
-      .andExpect(jsonPath("$.nickname").value(newNickname));
+      .andExpect(jsonPath("$.id").value(targetUserId.toString()))
+      .andExpect(jsonPath("$.nickname").value(newNickname))
+      .andExpect(jsonPath("$.email").value(TEST_EMAIL));
+    verify(userService).update(eq(targetUserId), eq(targetUserId), any(UserUpdateRequest.class));
   }
 
   @Test
