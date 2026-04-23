@@ -103,7 +103,9 @@ class UserControllerTest {
     // when & then
     mockMvc.perform(get("/api/users/{userId}", commonResponse.id())
         .header("Deokhugam-Request-User-ID", commonResponse.id()))
-      .andExpect(status().isCreated());
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.id").value(commonResponse.id().toString()))
+      .andExpect(jsonPath("$.email").value(TEST_EMAIL));
   }
 
   @Test
