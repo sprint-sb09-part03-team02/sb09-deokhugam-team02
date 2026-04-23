@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "유저 관리", description = "유저 관련 API")
 @RestController
-@RequestMapping("api/users")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
   private final UserService userService;
@@ -45,22 +45,28 @@ public class UserController {
 
   @Operation(summary = "사용자 정보 조회", description = "사용자 ID로 상세 정보를 조회합니다.")
   @GetMapping("/{userId}")
-  public ResponseEntity<UserDto> findById(@PathVariable UUID userId) {
-    UserDto user = userService.find(userId);
+  public ResponseEntity<UserDto> findById(
+    @RequestHeader(value = "Deokhugam-Request-User-ID", required = false) UUID requestUserId,
+    @PathVariable UUID userId) {
+    UserDto user = userService.find(requestUserId,userId);
     return ResponseEntity.status(HttpStatus.OK).body(user);
   }
 
   @Operation(summary = "사용자 논리 삭제", description = "사용자를 논리적으로 삭제합니다.")
   @DeleteMapping("/{userId}")
-  public ResponseEntity<Void> delete(@PathVariable UUID userId) {
-    userService.deleteSoft(userId);
+  public ResponseEntity<Void> delete(
+    @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId,
+    @PathVariable UUID userId) {
+    userService.deleteSoft(requestUserId, userId);
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 
   @Operation(summary = "사용자 정보 수정", description = "사용자의 닉네임을 수정합니다.")
   @PatchMapping("/{userId}")
-  public ResponseEntity<UserDto> update(@PathVariable UUID userId, @Valid @RequestBody UserUpdateRequest request) {
-    UserDto user =  userService.update(userId, request);
+  public ResponseEntity<UserDto> update(
+    @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId,
+    @PathVariable UUID userId, @Valid @RequestBody UserUpdateRequest request) {
+    UserDto user =  userService.update(requestUserId, userId, request);
     return ResponseEntity.status(HttpStatus.OK).body(user);
   }
 
@@ -81,8 +87,10 @@ public class UserController {
 
   @Operation(summary = "사용자 물리 삭제", description = "사용자를 물리적으로 삭제합니다.")
   @DeleteMapping("/{userId}/hard")
-  public ResponseEntity<Void> deleteHard(@PathVariable UUID userId) {
-    userService.deleteHard(userId);
+  public ResponseEntity<Void> deleteHard(
+    @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId,
+    @PathVariable UUID userId) {
+    userService.deleteHard(requestUserId, userId);
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 }

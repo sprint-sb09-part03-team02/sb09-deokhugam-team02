@@ -59,6 +59,7 @@ class UserServiceTest {
 
   private User user;
   private UUID userId;
+  private UUID requestUserId;
 
   private static final String TEST_EMAIL = "test@example.com";
   private static final String TEST_NICKNAME = "tester";
@@ -68,6 +69,7 @@ class UserServiceTest {
   @BeforeEach
   void setUp() {
     userId = UUID.randomUUID();
+    requestUserId = userId;
     user = User.builder()
         .id(userId)
         .email(TEST_EMAIL)
@@ -161,13 +163,28 @@ class UserServiceTest {
     given(userRepository.existsByNickname(newNickname)).willReturn(false);
 
     // when
-    userService.update(userId, request);
+    userService.update(requestUserId, userId, request);
 
     // then
     assertThat(user.getNickname()).isEqualTo(newNickname);
 
     verify(userRepository).findById(userId);
     verify(userRepository).existsByNickname(newNickname);
+  }
+  @Test
+  @DisplayName("사용자 정보 수정 실패 - 권한 없음")
+  void update_Fail_Forbidden() {
+    UUID otherUserId = UUID.randomUUID(); // 요청자 ≠ 대상
+
+    UserUpdateRequest request = new UserUpdateRequest("newNickname");
+
+    assertThatThrownBy(() ->
+      userService.update(otherUserId, userId, request)
+    )
+      .isInstanceOf(DeokhugamException.class)
+      .hasMessage(ErrorCode.HANDLE_ACCESS_DENIED.getMessage());
+
+    verify(userRepository, never()).findById(any());
   }
 
   @Test
@@ -180,7 +197,7 @@ class UserServiceTest {
     );
 
     // when
-    UserDto result = userService.find(userId);
+    UserDto result = userService.find(requestUserId, userId);
 
     // then
     assertThat(result.id()).isEqualTo(userId);
@@ -199,7 +216,7 @@ class UserServiceTest {
     given(userRepository.findById(nonExistentId)).willReturn(Optional.empty());
 
     // when & then
-    assertThatThrownBy(() -> userService.find(nonExistentId))
+    assertThatThrownBy(() -> userService.find(nonExistentId, nonExistentId))
         .isInstanceOf(DeokhugamException.class)
         .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
     verify(userMapper, never()).toDto(any());
@@ -212,7 +229,7 @@ class UserServiceTest {
     given(userRepository.findById(userId)).willReturn(Optional.of(user));
 
     // when
-    userService.deleteSoft(userId);
+    userService.deleteSoft(requestUserId, userId);
 
     // then
     assertThat(user.isDeleted()).isTrue();
@@ -226,7 +243,7 @@ class UserServiceTest {
     given(userRepository.findById(userId)).willReturn(Optional.of(user));
 
     // when
-    userService.deleteHard(userId);
+    userService.deleteHard(requestUserId, userId);
 
     // then
     verify(userRepository).findById(userId);
@@ -241,7 +258,7 @@ class UserServiceTest {
     given(userRepository.findById(nonExistentId)).willReturn(Optional.empty());
 
     // when & then
-    assertThatThrownBy(() -> userService.deleteHard(nonExistentId))
+    assertThatThrownBy(() -> userService.deleteHard(nonExistentId, nonExistentId))
         .isInstanceOf(DeokhugamException.class)
         .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
     verify(userRepository, never()).deleteById(any());

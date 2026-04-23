@@ -1,6 +1,7 @@
 package com.deokhugam.deokhugam_server.domain.user.service;
 
 import static com.deokhugam.deokhugam_server.global.exception.ErrorCode.*;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
 
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserLoginRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserRegisterRequest;
@@ -66,10 +67,11 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public UserDto find(UUID userId) {
-    return userRepository.findById(userId)
-        .map(userMapper::toDto)
-        .orElseThrow(() -> new DeokhugamException(USER_NOT_FOUND));
+  public UserDto find(UUID targetUserId, UUID requestUserId) {
+    User user = userRepository.findById(targetUserId)
+      .orElseThrow(() -> new DeokhugamException(USER_NOT_FOUND));
+
+    return userMapper.toDto(user);
   }
 
   @Override
@@ -107,8 +109,9 @@ public class UserServiceImpl implements UserService {
 
   @Override
   @Transactional
-  public UserDto update(UUID userId, UserUpdateRequest request) {
-    User user = userRepository.findById(userId).orElseThrow(() ->
+  public UserDto update(UUID requestUserId, UUID targetUserId, UserUpdateRequest request) {
+    validateOwner(requestUserId, targetUserId);
+    User user = userRepository.findById(targetUserId).orElseThrow(() ->
         new DeokhugamException(USER_NOT_FOUND));
     if (!user.getNickname().equals(request.nickname())) {
       if (userRepository.existsByNickname(request.nickname())) {
@@ -121,19 +124,27 @@ public class UserServiceImpl implements UserService {
 
   @Override
   @Transactional
-  public void deleteSoft(UUID userId) {
-    User user = userRepository.findById(userId)
-        .orElseThrow(() -> new DeokhugamException(USER_NOT_FOUND));
+  public void deleteSoft(UUID requestUserId, UUID targetUserId) {
+    validateOwner(requestUserId, targetUserId);
+
+    User user = userRepository.findById(targetUserId)
+      .orElseThrow(() -> new DeokhugamException(USER_NOT_FOUND));
+
     user.delete();
 
   }
 
   @Override
-  public void deleteHard(UUID userId) {
-    userRepository.findById(userId)
-        .orElseThrow(() -> new DeokhugamException(USER_NOT_FOUND));
-    userRepository.deleteById(userId);
+  @Transactional
+  public void deleteHard(UUID requestUserId, UUID targetUserId) {
+    validateOwner(requestUserId, targetUserId);
+
+    userRepository.findById(targetUserId)
+      .orElseThrow(() -> new DeokhugamException(USER_NOT_FOUND));
+
+    userRepository.deleteById(targetUserId);
   }
+
   private LocalDateTime parseLocalDateTime(String after) {
     if (after == null || after.isBlank())
       return null;
@@ -145,6 +156,11 @@ public class UserServiceImpl implements UserService {
       return LocalDateTime.parse(after);
     } catch (Exception e) {
       return LocalDate.parse(after.substring(0, 10)).atStartOfDay();
+    }
+  }
+  private void validateOwner(UUID requestUserId, UUID targetUserId) {
+    if (!requestUserId.equals(targetUserId)) {
+      throw new DeokhugamException(HANDLE_ACCESS_DENIED);
     }
   }
 
