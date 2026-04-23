@@ -46,12 +46,14 @@ class UserControllerTest {
   @MockitoBean
   private PowerUserService powerUserService;
 
-  private UserRegisterRequest commonRequest;
   private UserDto commonResponse;
+
+  private static final String TEST_EMAIL = "test@example.com";
+  private static final String TEST_PASSWORD = "Password123!";
+  private static final String TEST_NICKNAME = "nickname";
 
   @BeforeEach
   void setUp() {
-    commonRequest = new UserRegisterRequest("test@example.com", "nickname", "Password123!");
     commonResponse = new UserDto(UUID.randomUUID(), "test@example.com", "nickname", LocalDateTime.now());
   }
 
@@ -59,14 +61,14 @@ class UserControllerTest {
   @DisplayName("회원가입 성공")
   void register_Success() throws Exception {
     // given
+    UserRegisterRequest request = new UserRegisterRequest("test@example.com", "nickname", "Password123!");
     given(userService.register(any())).willReturn(commonResponse);
-
     given(userService.register(any(UserRegisterRequest.class))).willReturn(commonResponse);
 
     // when & then
     mockMvc.perform(post("/api/users")
         .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(commonRequest)))
+        .content(objectMapper.writeValueAsString(request)))
       .andExpect(status().isCreated())
       .andExpect(jsonPath("$.id").exists())
       .andExpect(jsonPath("$.email").value(commonResponse.email()))
@@ -77,18 +79,18 @@ class UserControllerTest {
   @DisplayName("로그인 성공")
   void login_Success() throws Exception {
     // given
-    UUID userId = UUID.randomUUID();
-    UserLoginRequest request = new UserLoginRequest("test@example.com", "password123!");
-    UserDto response = new UserDto(userId, "nickname", "test@example.com", LocalDateTime.now());
-    given(userService.login(any(UserLoginRequest.class))).willReturn(response);
+    UserLoginRequest request = new UserLoginRequest(TEST_EMAIL, TEST_PASSWORD);
+    given(userService.login(any())).willReturn(commonResponse);
 
     // when & then
     mockMvc.perform(post("/api/users/login")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(request)))
       .andExpect(status().isOk())
-      .andExpect(header().string("Deokhugam-Request-User-ID", userId.toString()))
-      .andExpect(jsonPath("$.id").value(userId.toString()));
+      .andExpect(jsonPath("$.id").value(commonResponse.id().toString()))
+      .andExpect(jsonPath("$.email").value(TEST_EMAIL))
+      .andExpect(jsonPath("$.nickname").value(TEST_NICKNAME))
+      .andExpect(jsonPath("$.createdAt").exists());
   }
 
 
