@@ -4,7 +4,6 @@ import com.deokhugam.deokhugam_server.domain.user.dto.request.UserLoginRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserRegisterRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserUpdateRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.response.PowerUserDto;
-import com.deokhugam.deokhugam_server.domain.user.service.PowerUserService;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.type.Period;
 import com.deokhugam.deokhugam_server.domain.user.dto.response.UserDto;
@@ -24,7 +23,6 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class UserController {
   private final UserService userService;
-  private final PowerUserService powerUserService;
 
   @Operation(summary = "회원가입", description = "새로운 사용자를 등록합니다.")
   @PostMapping
