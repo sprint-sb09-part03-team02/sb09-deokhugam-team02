@@ -1,7 +1,6 @@
 package com.deokhugam.deokhugam_server.domain.user.service;
 
 import static com.deokhugam.deokhugam_server.global.exception.ErrorCode.*;
-import static org.springframework.http.HttpStatus.FORBIDDEN;
 
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserLoginRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserRegisterRequest;
@@ -67,7 +66,7 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public UserDto find(UUID targetUserId, UUID requestUserId) {
+  public UserDto find(UUID requestUserId, UUID targetUserId) {
     User user = userRepository.findById(targetUserId)
       .orElseThrow(() -> new DeokhugamException(USER_NOT_FOUND));
 
