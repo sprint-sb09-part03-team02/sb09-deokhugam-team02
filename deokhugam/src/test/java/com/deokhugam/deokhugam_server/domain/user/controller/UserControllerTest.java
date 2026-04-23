@@ -95,7 +95,15 @@ class UserControllerTest {
 
 
   @Test
-  void findById() {
+  @DisplayName("사용자 정보 조회 성공")
+  void findById_Success() throws Exception {
+    // given
+    given(userService.find(any(UUID.class), any(UUID.class))).willReturn(commonResponse);
+
+    // when & then
+    mockMvc.perform(get("/api/users/{userId}", commonResponse.id())
+        .header("Deokhugam-Request-User-ID", commonResponse.id()))
+      .andExpect(status().isCreated());
   }
 
   @Test
