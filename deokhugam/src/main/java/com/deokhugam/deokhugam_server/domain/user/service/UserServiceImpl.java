@@ -1,6 +1,7 @@
 package com.deokhugam.deokhugam_server.domain.user.service;
 
 import static com.deokhugam.deokhugam_server.global.exception.ErrorCode.*;
+import static com.deokhugam.deokhugam_server.global.util.DateTimeUtils.parseLocalDateTime;
 
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserLoginRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserRegisterRequest;
@@ -16,10 +17,7 @@ import com.deokhugam.deokhugam_server.domain.user.entity.User;
 import com.deokhugam.deokhugam_server.domain.user.mapper.UserMapper;
 import com.deokhugam.deokhugam_server.domain.user.repository.UserRepository;
 import com.deokhugam.deokhugam_server.global.exception.DeokhugamException;
-import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -143,20 +141,6 @@ public class UserServiceImpl implements UserService {
     }
 
     userRepository.deleteById(targetUserId);
-  }
-
-  private LocalDateTime parseLocalDateTime(String after) {
-    if (after == null || after.isBlank())
-      return null;
-    try {
-      ZoneId kstZone = ZoneId.of("Asia/Seoul");
-      if (after.endsWith("Z")) {
-        return LocalDateTime.ofInstant(Instant.parse(after), kstZone);
-      }
-      return LocalDateTime.parse(after);
-    } catch (Exception e) {
-      return LocalDate.parse(after.substring(0, 10)).atStartOfDay();
-    }
   }
   private void validateOwner(UUID requestUserId, UUID targetUserId) {
     if (!requestUserId.equals(targetUserId)) {
