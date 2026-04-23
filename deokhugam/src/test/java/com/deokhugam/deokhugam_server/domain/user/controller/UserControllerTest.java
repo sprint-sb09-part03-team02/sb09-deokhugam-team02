@@ -2,6 +2,8 @@ package com.deokhugam.deokhugam_server.domain.user.controller;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
@@ -24,6 +26,7 @@ import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.type.Period;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -165,7 +168,25 @@ class UserControllerTest {
   }
 
   @Test
-  void searchPowerUser() {
+  @DisplayName("파워 유저 목록 조회 성공")
+  void searchPowerUser_Success() throws Exception {
+    // given
+    PowerUserDto powerUser = new PowerUserDto(
+      commonResponse.id(), TEST_NICKNAME, Period.WEEKLY, LocalDateTime.now(),    // createdAt
+      1, 100.0, 80.0, 10, 5  );
+    CursorPageResponse<PowerUserDto> pageResponse = new CursorPageResponse<>(
+      List.of(powerUser),"next-cursor-id", LocalDateTime.now().plusDays(1), // nextAfter
+      1,100L, true);
+    given(userService.findPowerUsers(any(Period.class), anyString(), any(), any(), anyInt()))
+      .willReturn(pageResponse);
+
+    // when & then
+    mockMvc.perform(get("/api/users/power")
+        .param("period", "WEEKLY")
+        .param("limit", "10"))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.content[0].nickname").value(TEST_NICKNAME))
+      .andExpect(jsonPath("$.nextCursor").value("next-cursor"));
   }
 
   @Test
