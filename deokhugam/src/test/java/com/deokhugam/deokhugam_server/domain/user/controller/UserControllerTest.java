@@ -5,6 +5,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -118,16 +120,20 @@ class UserControllerTest {
   }
 
   @Test
-  @DisplayName("사용자 논리 삭제 성공: 204 No Content를 반환한다")
+  @DisplayName("사용자 논리 삭제 성공")
   void delete_Success() throws Exception {
     // given
-    willDoNothing().given(userService).deleteSoft(any(UUID.class), any(UUID.class));
+    UUID targetUserId = commonResponse.id();
+    UUID requestUserId = commonResponse.id();
+    willDoNothing().given(userService).deleteSoft(eq(requestUserId), eq(targetUserId));
 
-    // when & then
-    mockMvc.perform(delete("/api/users/{userId}", commonResponse.id())
-        .header("Deokhugam-Request-User-ID", commonResponse.id()))
-      .andExpect(status().isNoContent());
-//리팩톨링
+    // when
+    var resultActions = mockMvc.perform(delete("/api/users/{userId}", targetUserId)
+      .header("Deokhugam-Request-User-ID", requestUserId));
+
+    // Then
+    resultActions.andExpect(status().isNoContent());
+    verify(userService, times(1)).deleteSoft(eq(requestUserId), eq(targetUserId));
   }
 
   @Test
