@@ -1,5 +1,7 @@
 package com.deokhugam.deokhugam_server.domain.book.service;
 
+import static com.deokhugam.deokhugam_server.global.util.DateTimeUtils.parseLocalDateTime;
+
 import com.deokhugam.deokhugam_server.domain.book.dto.request.BookCreateRequest;
 import com.deokhugam.deokhugam_server.domain.book.dto.request.BookSearchRequest;
 import com.deokhugam.deokhugam_server.domain.book.dto.request.BookUpdateRequest;
@@ -15,10 +17,7 @@ import com.deokhugam.deokhugam_server.global.exception.DeokhugamException;
 import com.deokhugam.deokhugam_server.global.exception.ErrorCode;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.type.Period;
-import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -170,10 +169,6 @@ public class BookServiceImpl implements BookService {
         );
     }
 
-    private BookDto toBookDto(Book book) {
-        return bookMapper.toDto(book, 0, 0.0);
-    }
-
     private void validateDuplicateIsbn(String isbn) {
         if (bookRepository.existsByIsbn(isbn)) {
             throw new DeokhugamException(ErrorCode.DUPLICATE_ISBN);
@@ -235,20 +230,6 @@ public class BookServiceImpl implements BookService {
             default -> item.title();
         };
     }
-    private LocalDateTime parseLocalDateTime(String after) {
-        if (after == null || after.isBlank())
-            return null;
-        try {
-            ZoneId kstZone = ZoneId.of("Asia/Seoul");
-            if (after.endsWith("Z")) {
-                return LocalDateTime.ofInstant(Instant.parse(after), kstZone);
-            }
-            return LocalDateTime.parse(after);
-        } catch (Exception e) {
-            return LocalDate.parse(after.substring(0, 10)).atStartOfDay();
-        }
-    }
-
     private String normalizeOrderBy(String orderBy) {
         if (orderBy == null || orderBy.isBlank()) {
             return "title";

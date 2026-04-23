@@ -1,7 +1,7 @@
 package com.deokhugam.deokhugam_server.domain.user.service;
 
 import static com.deokhugam.deokhugam_server.global.exception.ErrorCode.*;
-import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static com.deokhugam.deokhugam_server.global.util.DateTimeUtils.parseLocalDateTime;
 
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserLoginRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserRegisterRequest;
@@ -17,10 +17,7 @@ import com.deokhugam.deokhugam_server.domain.user.entity.User;
 import com.deokhugam.deokhugam_server.domain.user.mapper.UserMapper;
 import com.deokhugam.deokhugam_server.domain.user.repository.UserRepository;
 import com.deokhugam.deokhugam_server.global.exception.DeokhugamException;
-import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -67,7 +64,7 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public UserDto find(UUID targetUserId, UUID requestUserId) {
+  public UserDto find(UUID requestUserId, UUID targetUserId) {
     User user = userRepository.findById(targetUserId)
       .orElseThrow(() -> new DeokhugamException(USER_NOT_FOUND));
 
@@ -139,24 +136,11 @@ public class UserServiceImpl implements UserService {
   public void deleteHard(UUID requestUserId, UUID targetUserId) {
     validateOwner(requestUserId, targetUserId);
 
-    userRepository.findById(targetUserId)
-      .orElseThrow(() -> new DeokhugamException(USER_NOT_FOUND));
+    if (!userRepository.existsById(targetUserId)) {
+      throw new DeokhugamException(USER_NOT_FOUND);
+    }
 
     userRepository.deleteById(targetUserId);
-  }
-
-  private LocalDateTime parseLocalDateTime(String after) {
-    if (after == null || after.isBlank())
-      return null;
-    try {
-      ZoneId kstZone = ZoneId.of("Asia/Seoul");
-      if (after.endsWith("Z")) {
-        return LocalDateTime.ofInstant(Instant.parse(after), kstZone);
-      }
-      return LocalDateTime.parse(after);
-    } catch (Exception e) {
-      return LocalDate.parse(after.substring(0, 10)).atStartOfDay();
-    }
   }
   private void validateOwner(UUID requestUserId, UUID targetUserId) {
     if (!requestUserId.equals(targetUserId)) {

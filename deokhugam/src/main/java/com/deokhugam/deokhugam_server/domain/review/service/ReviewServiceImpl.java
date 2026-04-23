@@ -1,5 +1,7 @@
 package com.deokhugam.deokhugam_server.domain.review.service;
 
+import static com.deokhugam.deokhugam_server.global.util.DateTimeUtils.parseLocalDateTime;
+
 import com.deokhugam.deokhugam_server.domain.book.entity.Book;
 import com.deokhugam.deokhugam_server.domain.book.repository.BookRepository;
 import com.deokhugam.deokhugam_server.domain.review.dto.request.ReviewCreateRequest;
@@ -22,10 +24,7 @@ import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.exception.DeokhugamException;
 import com.deokhugam.deokhugam_server.global.exception.ErrorCode;
 import com.deokhugam.deokhugam_server.global.type.Period;
-import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -194,17 +193,5 @@ public class ReviewServiceImpl implements ReviewService {
         content.stream().map(reviewMapper::toPopularDto).toList(),
         nextCursor, nextAfter, content.size(), totalElements, hasNext
     );
-  }
-  private LocalDateTime parseLocalDateTime(String after) {
-    if (after == null || after.isBlank())
-      return null;
-    try {
-      if (after.endsWith("Z")) {
-        return LocalDateTime.ofInstant(Instant.parse(after), ZoneOffset.UTC);
-      }
-      return LocalDateTime.parse(after);
-    } catch (Exception e) {
-      return LocalDate.parse(after.substring(0, 10)).atStartOfDay();
-    }
   }
 }
