@@ -138,8 +138,9 @@ public class UserServiceImpl implements UserService {
   public void deleteHard(UUID requestUserId, UUID targetUserId) {
     validateOwner(requestUserId, targetUserId);
 
-    userRepository.findById(targetUserId)
-      .orElseThrow(() -> new DeokhugamException(USER_NOT_FOUND));
+    if (!userRepository.existsById(targetUserId)) {
+      throw new DeokhugamException(USER_NOT_FOUND);
+    }
 
     userRepository.deleteById(targetUserId);
   }
