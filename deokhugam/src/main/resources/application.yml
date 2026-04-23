@@ -2,7 +2,7 @@ spring:
   application:
     name: deokhugam
   profiles:
-    active: local   # 기본값 로컬, ECS는 환경변수 dev로 오버라이드
+    active: ${SPRING_PROFILES_ACTIVE:local-h2}   # 기본값은 즉시 실행 가능한 H2 로컬 프로필
 
 logging:
   pattern:

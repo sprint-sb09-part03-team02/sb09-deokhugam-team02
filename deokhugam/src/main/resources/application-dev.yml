@@ -18,10 +18,6 @@ spring:
       hibernate:
         format_sql: false
         dialect: org.hibernate.dialect.PostgreSQLDialect
-  security:
-    user:
-      name: admin
-      password:  ${SPRING_SECURITY_USER_PASSWORD:admin}
 
 cloud:
   aws:
@@ -50,5 +46,5 @@ springdoc:
 
 logging:
   level:
-    com.codeit.deokhugam: INFO
+    com.deokhugam: INFO
     org.hibernate.SQL: OFF
