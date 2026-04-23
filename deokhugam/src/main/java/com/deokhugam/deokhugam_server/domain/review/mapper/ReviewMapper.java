@@ -11,7 +11,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface ReviewMapper {
 
   // 1. Review -> ReviewDto
@@ -27,12 +27,24 @@ public interface ReviewMapper {
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "book", source = "book")
   @Mapping(target = "user", source = "user")
+  @Mapping(target = "content", source = "request.content")
+  @Mapping(target = "rating", source = "request.rating")
+  @Mapping(target = "likeCount", ignore = true)
+  @Mapping(target = "commentCount", ignore = true)
+  @Mapping(target = "likes", ignore = true)
+  @Mapping(target = "comments", ignore = true)
   Review toEntity(ReviewCreateRequest request, Book book, User user);
 
-
+  // 3. PopularReview -> PopularReviewDto
+  @Mapping(target = "bookId", source = "popularReview.review.book.id")
   @Mapping(target = "bookTitle", source = "popularReview.review.book.title")
   @Mapping(target = "bookThumbnailUrl", source = "popularReview.review.book.thumbnailUrl")
+  @Mapping(target = "userId", source = "popularReview.review.user.id")
   @Mapping(target = "userNickname", source = "popularReview.review.user.nickname")
+  @Mapping(target = "reviewId", source = "popularReview.review.id")
+  @Mapping(target = "reviewContent", source = "popularReview.review.content")
+  @Mapping(target = "reviewRating", source = "popularReview.review.rating")
+  @Mapping(target = "period", source = "popularReview.periodType") // period -> periodType
+  @Mapping(target = "rank", source = "popularReview.rankOrder")    // rank -> rankOrder
   PopularReviewDto toPopularDto(PopularReview popularReview);
-
-  }
+}

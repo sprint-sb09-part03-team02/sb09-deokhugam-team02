@@ -21,7 +21,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -46,7 +45,7 @@ public class CommentServiceImpl implements CommentService {
         .orElseThrow(() -> new DeokhugamException(ErrorCode.USER_NOT_FOUND));
 
     Comment comment = Comment.builder()
-        .reviewId(request.reviewId())
+        .review(review)
         .userId(request.userId())
         .content(request.content())
         .build();
@@ -55,7 +54,7 @@ public class CommentServiceImpl implements CommentService {
     review.increaseCommentCount();
 
     eventPublisher.publishEvent(new CommentCreatedEvent(
-        savedComment.getReviewId(),
+        savedComment.getReview().getId(),
         savedComment.getId(),
         savedComment.getUserId()
     ));
@@ -87,7 +86,7 @@ public class CommentServiceImpl implements CommentService {
       throw new DeokhugamException(ErrorCode.NOT_COMMENT_OWNER);
     }
 
-    Review review = reviewRepository.findById(comment.getReviewId())
+    Review review = reviewRepository.findById(comment.getReview().getId())
         .orElseThrow(() -> new DeokhugamException(ErrorCode.REVIEW_NOT_FOUND));
 
     comment.delete();
@@ -103,7 +102,6 @@ public class CommentServiceImpl implements CommentService {
 
   @Override
   public CursorPageResponse<CommentDto> getCommentsByReviewId(CommentSearchRequest request) {
-    // 리포지토리에서 이미 CommentDto 리스트를 반환함
     List<CommentDto> items = commentRepository.searchComments(request);
     long totalElements = commentRepository.countComments(request.getReviewId());
 
@@ -111,7 +109,7 @@ public class CommentServiceImpl implements CommentService {
         items,
         request.getLimit(),
         totalElements,
-        dto -> dto, // 이미 DTO이므로 추가 매핑 불필요 (N+1 해결)
+        dto -> dto,
         dto -> dto.id().toString(),
         CommentDto::createdAt
     );
@@ -137,7 +135,7 @@ public class CommentServiceImpl implements CommentService {
       throw new DeokhugamException(ErrorCode.NOT_COMMENT_OWNER);
     }
 
-    Review review = reviewRepository.findById(comment.getReviewId())
+    Review review = reviewRepository.findById(comment.getReview().getId())
         .orElseThrow(() -> new DeokhugamException(ErrorCode.REVIEW_NOT_FOUND));
 
     commentRepository.delete(comment);
