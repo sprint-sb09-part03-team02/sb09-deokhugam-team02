@@ -4,6 +4,7 @@ import com.deokhugam.deokhugam_server.domain.book.dto.request.BookCreateRequest;
 import com.deokhugam.deokhugam_server.domain.book.dto.request.BookSearchRequest;
 import com.deokhugam.deokhugam_server.domain.book.dto.request.BookUpdateRequest;
 import com.deokhugam.deokhugam_server.domain.book.dto.response.BookDto;
+import com.deokhugam.deokhugam_server.domain.book.dto.response.NaverBookDto;
 import com.deokhugam.deokhugam_server.domain.book.dto.response.PopularBookDto;
 import com.deokhugam.deokhugam_server.domain.book.service.BookService;
 import com.deokhugam.deokhugam_server.global.response.ApiResponse;
@@ -33,8 +34,8 @@ public class BookController {
 
   @PostMapping(consumes = "multipart/form-data")
   public ApiResponse<BookDto> createBook(
-          @Valid @ModelAttribute BookCreateRequest request,
-          @RequestParam(required = false) MultipartFile thumbnailImage
+    @Valid @ModelAttribute BookCreateRequest request,
+    @RequestParam(required = false) MultipartFile thumbnailImage
   ) {
     BookDto response = bookService.createBook(request, thumbnailImage);
     return ApiResponse.success(response, HttpStatus.CREATED);
@@ -42,9 +43,17 @@ public class BookController {
 
   @GetMapping
   public ApiResponse<CursorPageResponse<BookDto>> getBooks(
-          @Valid @ModelAttribute BookSearchRequest request
+    @Valid @ModelAttribute BookSearchRequest request
   ) {
     CursorPageResponse<BookDto> response = bookService.getBooks(request);
+    return ApiResponse.success(response);
+  }
+
+  @PostMapping(value = "/isbn/ocr", consumes = "multipart/form-data")
+  public ApiResponse<String> extractIsbn(
+    @RequestParam("image") MultipartFile image
+  ) {
+    String response = bookService.extractIsbn(image);
     return ApiResponse.success(response);
   }
 
@@ -54,39 +63,47 @@ public class BookController {
     return ApiResponse.success(response);
   }
 
-  @PatchMapping(value = "/{bookId}", consumes = "multipart/form-data")
-  public ApiResponse<BookDto> updateBook(
-          @PathVariable UUID bookId,
-          @Valid @ModelAttribute BookUpdateRequest request,
-          @RequestParam(required = false) MultipartFile thumbnailImage
-  ) {
-    BookDto response = bookService.updateBook(bookId, request, thumbnailImage);
-    return ApiResponse.success(response);
-  }
-
   @DeleteMapping("/{bookId}")
   public ApiResponse<Void> deleteBook(@PathVariable UUID bookId) {
     bookService.deleteBook(bookId);
     return ApiResponse.success(null, HttpStatus.NO_CONTENT);
   }
 
-  @DeleteMapping("/{bookId}/hard")
-  public ApiResponse<Void> hardDeleteBook(@PathVariable UUID bookId) {
-    bookService.hardDeleteBook(bookId);
-    return ApiResponse.success(null, HttpStatus.NO_CONTENT);
+  @PatchMapping(value = "/{bookId}", consumes = "multipart/form-data")
+  public ApiResponse<BookDto> updateBook(
+    @PathVariable UUID bookId,
+    @Valid @ModelAttribute BookUpdateRequest request,
+    @RequestParam(required = false) MultipartFile thumbnailImage
+  ) {
+    BookDto response = bookService.updateBook(bookId, request, thumbnailImage);
+    return ApiResponse.success(response);
   }
 
   @GetMapping("/popular")
   public ApiResponse<CursorPageResponse<PopularBookDto>> searchPopularBooks(
-          @RequestParam(defaultValue = "DAILY") Period period,
-          @RequestParam(defaultValue = "ASC") String direction,
-          @RequestParam(required = false) String cursor,
-          @RequestParam(required = false) String after,
-          @RequestParam(defaultValue = "50") int limit
+    @RequestParam(defaultValue = "DAILY") Period period,
+    @RequestParam(defaultValue = "ASC") String direction,
+    @RequestParam(required = false) String cursor,
+    @RequestParam(required = false) String after,
+    @RequestParam(defaultValue = "50") int limit
   ) {
     CursorPageResponse<PopularBookDto> popularBooks = bookService.searchPopularBooks(
-            period, direction, cursor, after, limit
+      period, direction, cursor, after, limit
     );
     return ApiResponse.success(popularBooks);
+  }
+
+  @GetMapping("/info")
+  public ApiResponse<NaverBookDto> getBookInfo(
+    @RequestParam String isbn
+  ) {
+    NaverBookDto response = bookService.getBookInfo(isbn);
+    return ApiResponse.success(response);
+  }
+
+  @DeleteMapping("/{bookId}/hard")
+  public ApiResponse<Void> hardDeleteBook(@PathVariable UUID bookId) {
+    bookService.hardDeleteBook(bookId);
+    return ApiResponse.success(null, HttpStatus.NO_CONTENT);
   }
 }

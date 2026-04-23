@@ -7,9 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface BookRepository extends JpaRepository<Book, UUID>, BookRepositoryCustom {
 
-    Optional<Book> findByIdAndIsDeletedFalse(UUID id);
+  Optional<Book> findByIdAndIsDeletedFalse(UUID id);
 
-    Optional<Book> findByIsbnAndIsDeletedFalse(String isbn);
+  Optional<Book> findByIsbnAndIsDeletedFalse(String isbn);
 
-    boolean existsByIsbn(String isbn);
+  boolean existsByIsbn(String isbn);
 }
