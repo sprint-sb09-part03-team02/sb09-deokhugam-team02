@@ -180,13 +180,21 @@ class UserControllerTest {
     given(userService.findPowerUsers(any(Period.class), anyString(), any(), any(), anyInt()))
       .willReturn(pageResponse);
 
+    var resultActions = mockMvc.perform(get("/api/users/power")
+      .param("period", "WEEKLY")
+      .param("direction", "DESC")
+      .param("limit", "10")
+      .accept(MediaType.APPLICATION_JSON));
+
     // when & then
-    mockMvc.perform(get("/api/users/power")
-        .param("period", "WEEKLY")
-        .param("limit", "10"))
+    resultActions
       .andExpect(status().isOk())
+      .andExpect(jsonPath("$.content[0].userId").value(commonResponse.id().toString()))
       .andExpect(jsonPath("$.content[0].nickname").value(TEST_NICKNAME))
-      .andExpect(jsonPath("$.nextCursor").value("next-cursor"));
+      .andExpect(jsonPath("$.content[0].rank").value(1))
+      .andExpect(jsonPath("$.nextCursor").value("next-cursor-id"))
+      .andExpect(jsonPath("$.hasNext").value(true))
+      .andExpect(jsonPath("$.size").value(1));
   }
 
   @Test
