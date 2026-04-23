@@ -203,10 +203,11 @@ class UserControllerTest {
   @DisplayName("사용자 물리 삭제 성공")
   void deleteHard_Success() throws Exception {
     // given
+    willDoNothing().given(userService).deleteHard(any(UUID.class), any(UUID.class));
 
     // when & then
     mockMvc.perform(delete("/api/users/{userId}/hard", commonResponse.id())
         .header("Deokhugam-Request-User-ID", commonResponse.id()))
-      .andExpect(status().isOk());
+      .andExpect(status().isNoContent());
   }
 }
