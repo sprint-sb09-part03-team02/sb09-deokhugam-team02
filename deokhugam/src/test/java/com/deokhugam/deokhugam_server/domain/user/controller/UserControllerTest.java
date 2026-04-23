@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -73,8 +74,21 @@ class UserControllerTest {
   }
 
   @Test
-  void login() {
+  @DisplayName("로그인 성공")
+  void login_Success() throws Exception {
+    // given
+    UUID userId = UUID.randomUUID();
+    UserLoginRequest request = new UserLoginRequest("test@example.com", "password123!");
+
+    // when & then
+    mockMvc.perform(post("/api/users/login")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(request)))
+      .andExpect(status().isOk())
+      .andExpect(header().string("Deokhugam-Request-User-ID", userId.toString()))
+      .andExpect(jsonPath("$.id").value(userId.toString()));
   }
+
 
   @Test
   void findById() {
