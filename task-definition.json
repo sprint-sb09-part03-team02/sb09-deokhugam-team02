@@ -2,12 +2,12 @@
   "family": "deokhugam-task",
   "executionRoleArn": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/ecsTaskExecutionRole",
   "taskRoleArn": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/ecsTaskRole",
-  "networkMode": "awsvpc",
+  "networkMode": "bridge",
   "requiresCompatibilities": [
-    "FARGATE"
+    "EC2"
   ],
-  "cpu": "512",
-  "memory": "1024",
+  "cpu": "256",
+  "memory": "512",
   "runtimePlatform": {
     "cpuArchitecture": "X86_64",
     "operatingSystemFamily": "LINUX"
@@ -15,7 +15,7 @@
   "containerDefinitions": [
     {
       "name": "deokhugam-server",
-      "image": "public.ecr.aws/nginx/nginx:latest",
+      "image": "IMAGE_URI",
       "essential": true,
       "portMappings": [
         {
@@ -28,20 +28,12 @@
       ],
       "environment": [
         {
-          "name": "DB_USERNAME",
-          "value": "deokhugam"
-        },
-        {
           "name": "AWS_REGION",
           "value": "ap-northeast-2"
         },
         {
           "name": "AWS_S3_BUCKET",
           "value": "deokhugam-storage"
-        },
-        {
-          "name": "DB_URL",
-          "value": "jdbc:postgresql://deokhugam-db.cr0uug8my8f7.ap-northeast-2.rds.amazonaws.com:5432/deokhugam"
         },
         {
           "name": "SPRING_PROFILES_ACTIVE",
@@ -54,8 +46,20 @@
           "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:${AWS_ACCOUNT_ID}:secret:deokhugam/prod:JWT_SECRET::"
         },
         {
-          "name": "DB_PASSWORD",
-          "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:${AWS_ACCOUNT_ID}:secret:deokhugam/prod:DB_PASSWORD::"
+          "name": "JWT_EXPIRATION",
+          "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:${AWS_ACCOUNT_ID}:secret:deokhugam/prod:JWT_EXPIRATION::"
+        },
+        {
+          "name": "SPRING_DATASOURCE_URL",
+          "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:${AWS_ACCOUNT_ID}:secret:deokhugam/prod:SPRING_DATASOURCE_URL::"
+        },
+        {
+          "name": "SPRING_DATASOURCE_USERNAME",
+          "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:${AWS_ACCOUNT_ID}:secret:deokhugam/prod:SPRING_DATASOURCE_USERNAME::"
+        },
+        {
+          "name": "SPRING_DATASOURCE_PASSWORD",
+          "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:${AWS_ACCOUNT_ID}:secret:deokhugam/prod:SPRING_DATASOURCE_PASSWORD::"
         },
         {
           "name": "NAVER_CLIENT_ID",
@@ -74,18 +78,7 @@
           "awslogs-region": "ap-northeast-2",
           "awslogs-stream-prefix": "ecs"
         }
-      },
-      "healthCheck": {
-        "command": [
-          "CMD-SHELL",
-          "curl -f http://localhost:8080/actuator/health || exit 1"
-        ],
-        "interval": 30,
-        "timeout": 5,
-        "retries": 3,
-        "startPeriod": 120
       }
     }
   ]
 }
-

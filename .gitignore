@@ -17,6 +17,7 @@ build/
 application.properties
 application-*.properties
 application-local.yml
+application-local-h2.yml
 application-test.yml
 ### Logs ###
 *.log
