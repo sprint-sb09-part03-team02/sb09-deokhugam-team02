@@ -36,6 +36,7 @@ dependencies {
 	// DB
 	runtimeOnly 'org.postgresql:postgresql'
 	implementation 'org.flywaydb:flyway-core'
+	implementation 'org.flywaydb:flyway-database-postgresql'
 
 	// AWS S3
 	implementation 'software.amazon.awssdk:s3:2.28.0'
