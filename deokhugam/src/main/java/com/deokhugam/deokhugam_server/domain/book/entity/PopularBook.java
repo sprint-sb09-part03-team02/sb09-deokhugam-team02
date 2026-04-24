@@ -12,6 +12,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.util.UUID;
 import lombok.AccessLevel;
@@ -21,6 +22,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
+@Table(name = "popular_books")
 @Getter
 @Builder
 @AllArgsConstructor
@@ -75,4 +77,3 @@ public class PopularBook extends BaseEntity {
     this.calculatedDate = calculatedDate;
   }
 }
-

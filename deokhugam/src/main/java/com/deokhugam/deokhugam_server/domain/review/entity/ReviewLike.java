@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "review_like")
+@Table(name = "review_likes")
 public class ReviewLike extends BaseEntity {
 
   @Id
