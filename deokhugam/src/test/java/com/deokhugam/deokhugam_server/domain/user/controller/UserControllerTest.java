@@ -1,6 +1,5 @@
 package com.deokhugam.deokhugam_server.domain.user.controller;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -10,8 +9,6 @@ import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -20,10 +17,15 @@ import com.deokhugam.deokhugam_server.domain.user.dto.request.UserRegisterReques
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserUpdateRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.response.PowerUserDto;
 import com.deokhugam.deokhugam_server.domain.user.dto.response.UserDto;
+import com.deokhugam.deokhugam_server.domain.user.mapper.UserMapper;
+import com.deokhugam.deokhugam_server.domain.user.repository.PowerUserRepository;
+import com.deokhugam.deokhugam_server.domain.user.repository.UserRepository;
+import com.deokhugam.deokhugam_server.domain.user.repository.UserRepositoryCustom;
 import com.deokhugam.deokhugam_server.domain.user.service.PowerUserService;
 import com.deokhugam.deokhugam_server.domain.user.service.UserService;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.type.Period;
+import com.deokhugam.deokhugam_server.global.util.JwtProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -52,6 +55,24 @@ class UserControllerTest {
 
   @MockitoBean
   private PowerUserService powerUserService;
+//
+//  @MockitoBean
+//  private UserRepository userRepository;
+//
+//  @MockitoBean
+//  private PowerUserRepository powerUserRepository;
+//
+//  @MockitoBean
+//  private UserMapper userMapper;
+//
+//  @MockitoBean
+//  private PasswordEncoder passwordEncoder;
+//
+//  @MockitoBean
+//  private UserRepositoryCustom userRepositoryCustom;
+
+  @MockitoBean
+  private JwtProvider jwtProvider;
 
   private UserDto commonResponse;
 

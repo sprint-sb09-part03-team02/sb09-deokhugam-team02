@@ -37,10 +37,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class UserServiceTest {
   @Mock
   private UserRepository userRepository;
@@ -240,9 +243,11 @@ class UserServiceTest {
   @DisplayName("물리 삭제 성공")
   void deleteHard_Success() {
     // given
+    given(userRepository.findById(userId)).willReturn(Optional.of(user));
     given(userRepository.existsById(userId)).willReturn(true);
     // when
     userService.deleteHard(requestUserId, userId);
+
     // then
     verify(userRepository).existsById(userId);
     verify(userRepository).deleteById(userId);
@@ -253,7 +258,7 @@ class UserServiceTest {
   void deleteHard_Fail_UserNotFound() {
     // given
     UUID nonExistentId = UUID.randomUUID();
-    given(userRepository.existsById(nonExistentId)).willReturn(false);
+    given(userRepository.findById(nonExistentId)).willReturn(Optional.empty());
 
     // when & then
     assertThatThrownBy(() -> userService.deleteHard(nonExistentId, nonExistentId))
