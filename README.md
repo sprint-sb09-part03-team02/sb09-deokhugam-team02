@@ -35,8 +35,6 @@ cd deokhugam
 ./gradlew bootRun --args='--spring.profiles.active=dev'
 ```
 
-**📌 주의:** 환경변수 설정 필수 (자세히: [`deokhugam/docs/AWS_DEPLOYMENT_ENV_VARS.md`](deokhugam/docs/AWS_DEPLOYMENT_ENV_VARS.md))
-
 ## 🧪 테스트 및 커버리지
 
 ```bash
@@ -46,10 +44,3 @@ cd deokhugam
 
 - 커버리지 리포트: `deokhugam/build/reports/jacoco/test/html/index.html`
 - 최소 커버리지 기준: **80%**
-
-## 📚 환경 설정 및 배포
-
-- **[환경 구성 검토 보고서](deokhugam/docs/ENVIRONMENT_CONFIGURATION_REVIEW.md)** — 프로필 분리, 보안 설정
-- **[AWS 배포 환경변수 명세](deokhugam/docs/AWS_DEPLOYMENT_ENV_VARS.md)** — ECS Task Definition, IAM 정책
-- **[로컬/AWS DB 전략](deokhugam/docs/LOCAL_AWS_DB_STRATEGY.md)** — H2 vs PostgreSQL, 마이그레이션 전략
-- **[환경 설정 최종 요약](ENVIRONMENT_SETUP_SUMMARY.md)** — 빠른 시작 가이드
