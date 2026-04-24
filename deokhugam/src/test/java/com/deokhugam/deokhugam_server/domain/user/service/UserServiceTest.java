@@ -243,11 +243,9 @@ class UserServiceTest {
   @DisplayName("물리 삭제 성공")
   void deleteHard_Success() {
     // given
-    given(userRepository.findById(userId)).willReturn(Optional.of(user));
     given(userRepository.existsById(userId)).willReturn(true);
     // when
     userService.deleteHard(requestUserId, userId);
-
     // then
     verify(userRepository).existsById(userId);
     verify(userRepository).deleteById(userId);
@@ -258,7 +256,7 @@ class UserServiceTest {
   void deleteHard_Fail_UserNotFound() {
     // given
     UUID nonExistentId = UUID.randomUUID();
-    given(userRepository.findById(nonExistentId)).willReturn(Optional.empty());
+    given(userRepository.existsById(nonExistentId)).willReturn(false);
 
     // when & then
     assertThatThrownBy(() -> userService.deleteHard(nonExistentId, nonExistentId))
