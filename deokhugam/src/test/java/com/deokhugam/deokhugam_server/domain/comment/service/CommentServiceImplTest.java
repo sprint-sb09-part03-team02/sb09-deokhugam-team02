@@ -64,9 +64,13 @@ class CommentServiceImplTest {
     review = Review.builder().content("리뷰 내용").build();
     ReflectionTestUtils.setField(review, "id", reviewId);
 
-    comment = Comment.builder().reviewId(reviewId).userId(userId).content("댓글 내용").build();
+    comment = Comment.builder()
+      .review(review)
+      .userId(userId)
+      .content("댓글 내용")
+      .build();
     ReflectionTestUtils.setField(comment, "id", commentId);
-    ReflectionTestUtils.setField(comment, "createdAt", now); // 정밀도 보정 완료
+    ReflectionTestUtils.setField(comment, "createdAt", now);
   }
 
   @Nested
@@ -75,7 +79,6 @@ class CommentServiceImplTest {
     @Test
     @DisplayName("성공: 댓글 생성 시 리뷰의 댓글 수가 증가하고 이벤트가 발행된다")
     void createComment_Success() {
-      // given
       CommentCreateRequest request = new CommentCreateRequest(reviewId, userId, "새 댓글");
       int initialCount = review.getCommentCount();
 
@@ -84,12 +87,10 @@ class CommentServiceImplTest {
       given(commentRepository.save(any(Comment.class))).willReturn(comment);
       given(commentMapper.toDto(any(), anyString())).willReturn(mock(CommentDto.class));
 
-      // when
       commentService.createComment(request);
 
-      // then
-      assertThat(review.getCommentCount()).isEqualTo(initialCount + 1); // 댓글 수 증가 확인
-      verify(eventPublisher).publishEvent(any(CommentCreatedEvent.class)); // 이벤트 발행 확인
+      assertThat(review.getCommentCount()).isEqualTo(initialCount + 1);
+      verify(eventPublisher).publishEvent(any(CommentCreatedEvent.class));
       verify(commentRepository).save(any(Comment.class));
     }
 
@@ -99,8 +100,8 @@ class CommentServiceImplTest {
       given(reviewRepository.findById(reviewId)).willReturn(Optional.empty());
 
       assertThatThrownBy(() -> commentService.createComment(new CommentCreateRequest(reviewId, userId, "내용")))
-          .isInstanceOf(DeokhugamException.class)
-          .hasMessageContaining(ErrorCode.REVIEW_NOT_FOUND.getMessage());
+        .isInstanceOf(DeokhugamException.class)
+        .hasMessageContaining(ErrorCode.REVIEW_NOT_FOUND.getMessage());
     }
   }
 
@@ -110,15 +111,12 @@ class CommentServiceImplTest {
     @Test
     @DisplayName("성공: 작성자가 수정을 요청하면 내용이 변경된다")
     void updateComment_Success() {
-      // given
       CommentUpdateRequest request = new CommentUpdateRequest("수정된 내용");
       given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
       given(userRepository.findById(userId)).willReturn(Optional.of(user));
 
-      // when
       commentService.updateComment(commentId, userId, request);
 
-      // then
       assertThat(comment.getContent()).isEqualTo("수정된 내용");
     }
 
@@ -129,8 +127,8 @@ class CommentServiceImplTest {
       given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
 
       assertThatThrownBy(() -> commentService.updateComment(commentId, otherUserId, new CommentUpdateRequest("내용")))
-          .isInstanceOf(DeokhugamException.class)
-          .hasMessageContaining(ErrorCode.NOT_COMMENT_OWNER.getMessage());
+        .isInstanceOf(DeokhugamException.class)
+        .hasMessageContaining(ErrorCode.NOT_COMMENT_OWNER.getMessage());
     }
 
     @Test
@@ -151,30 +149,24 @@ class CommentServiceImplTest {
     @Test
     @DisplayName("성공: 논리 삭제 시 리뷰의 댓글 수가 감소한다")
     void deleteComment_Success() {
-      // given
-      review.increaseCommentCount(); // 테스트 전 카운트 1로 설정
+      review.increaseCommentCount();
       given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
       given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
 
-      // when
       commentService.deleteComment(commentId, userId);
 
-      // then
       assertThat(review.getCommentCount()).isZero();
     }
 
     @Test
     @DisplayName("성공: 물리 삭제 시 리포지토리의 delete가 호출된다")
     void permanentDeleteComment_Success() {
-      // given
       review.increaseCommentCount();
       given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
       given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
 
-      // when
       commentService.permanentDeleteComment(commentId, userId);
 
-      // then
       verify(commentRepository).delete(comment);
       assertThat(review.getCommentCount()).isZero();
     }
@@ -183,7 +175,6 @@ class CommentServiceImplTest {
   @Test
   @DisplayName("성공: 리뷰 ID로 댓글 목록을 조회한다 (페이징)")
   void getCommentsByReviewId_Success() {
-    // given
     CommentSearchRequest request = new CommentSearchRequest();
     request.setReviewId(reviewId);
     request.setLimit(10);
@@ -192,10 +183,8 @@ class CommentServiceImplTest {
     given(commentRepository.searchComments(any())).willReturn(List.of(dto));
     given(commentRepository.countComments(reviewId)).willReturn(1L);
 
-    // when
     CursorPageResponse<CommentDto> response = commentService.getCommentsByReviewId(request);
 
-    // then
     assertThat(response.content()).hasSize(1);
     verify(commentRepository).searchComments(request);
   }

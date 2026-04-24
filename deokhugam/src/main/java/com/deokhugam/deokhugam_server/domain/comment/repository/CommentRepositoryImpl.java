@@ -26,15 +26,14 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom {
     return queryFactory
         .select(Projections.constructor(CommentDto.class,
             comment.id,
-            comment.reviewId,
+            comment.review.id,
             comment.userId,
-            user.nickname, // User와 조인하여 닉네임을 직접 가져옴 (N+1 해결)
+            user.nickname,
             comment.content,
             comment.createdAt,
             comment.updatedAt
         ))
         .from(comment)
-        // Comment 엔티티의 userId(UUID) 필드를 기반으로 User 테이블과 조인
         .leftJoin(user).on(comment.userId.eq(user.id))
         .where(
             eqReviewId(request.getReviewId()),
@@ -63,7 +62,7 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom {
   }
 
   private BooleanExpression eqReviewId(UUID reviewId) {
-    return reviewId != null ? comment.reviewId.eq(reviewId) : null;
+    return reviewId != null ? comment.review.id.eq(reviewId) : null;
   }
 
   private BooleanExpression eqUserId(UUID userId) {
