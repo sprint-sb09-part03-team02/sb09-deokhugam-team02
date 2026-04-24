@@ -1,6 +1,21 @@
 spring:
   application:
     name: deokhugam
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: never
+
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local-h2}   # 기본값은 즉시 실행 가능한 H2 로컬 프로필
 

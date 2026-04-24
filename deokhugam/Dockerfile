@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM gradle:8-jdk17-alpine AS builder
+FROM gradle:8-jdk17-jammy AS builder
 
 WORKDIR /app
 
@@ -15,12 +15,12 @@ COPY src ./src
 RUN gradle bootJar --no-daemon -x test
 
 # Stage 2: Run
-FROM eclipse-temurin:17-jre-alpine AS runner
+FROM eclipse-temurin:17-jre-jammy AS runner
 
 WORKDIR /app
 
 # 보안: non-root 사용자 생성
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+RUN groupadd -r appgroup && useradd -r -g appgroup appuser
 
 # 빌드된 JAR 복사 (와일드카드로 버전 무관하게 처리)
 COPY --from=builder /app/build/libs/*.jar app.jar
@@ -43,6 +43,5 @@ ENTRYPOINT ["java", \
     "-XX:+UseContainerSupport", \
     "-XX:MaxRAMPercentage=75.0", \
     "-Djava.security.egd=file:/dev/./urandom", \
-    "-Dspring.profiles.active=${SPRING_PROFILES_ACTIVE}", \
     "-jar", \
     "app.jar"]
