@@ -11,6 +11,25 @@
 
 ## 🚀 실행 방법
 
+### 기본: 로컬 H2 환경 (별도 설정 불필요) ⭐ 권장
+
+```bash
+cd deokhugam
+./gradlew bootRun
+```
+
+### 로컬 PostgreSQL 환경
+
+1. `application-local.yml.example`을 참고하여 `application-local.yml` 생성
+2. 본인의 PostgreSQL 정보 입력
+3. 실행:
+```bash
+cd deokhugam
+./gradlew bootRun --args='--spring.profiles.active=local'
+```
+
+### AWS 배포 환경
+
 ```bash
 cd deokhugam
 ./gradlew bootRun --args='--spring.profiles.active=dev'
@@ -25,4 +44,3 @@ cd deokhugam
 
 - 커버리지 리포트: `deokhugam/build/reports/jacoco/test/html/index.html`
 - 최소 커버리지 기준: **80%**
-
