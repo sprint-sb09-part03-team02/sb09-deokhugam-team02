@@ -157,11 +157,23 @@ public class BookServiceImpl implements BookService {
     book.delete();
   }
 
+  private Integer parseCursorRank(String cursor) {
+    if (cursor == null || cursor.isBlank()) {
+      return null;
+    }
+
+    try {
+      return Integer.parseInt(cursor);
+    } catch (NumberFormatException e) {
+      throw new DeokhugamException(ErrorCode.INVALID_INPUT_VALUE);
+    }
+  }
+
   @Override
   public CursorPageResponse<PopularBookDto> searchPopularBooks(
     Period period, String direction, String cursor, String after, int limit
   ) {
-    Integer cursorRank = (cursor != null && !cursor.isBlank()) ? Integer.parseInt(cursor) : null;
+    Integer cursorRank = parseCursorRank(cursor);
     LocalDateTime afterLdt = parseLocalDateTime(after);
 
     List<PopularBook> popularBooks = popularBookRepository.findPopularBooksWithPaging(
