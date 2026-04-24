@@ -15,7 +15,7 @@
   "containerDefinitions": [
     {
       "name": "deokhugam-server",
-      "image": "297904677990.dkr.ecr.ap-northeast-2.amazonaws.com/deokhugam-api:latest",
+      "image": "IMAGE_URI",
       "essential": true,
       "portMappings": [
         {
