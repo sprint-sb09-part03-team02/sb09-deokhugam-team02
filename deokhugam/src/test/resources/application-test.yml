@@ -8,6 +8,8 @@ spring:
     hibernate:
       ddl-auto: create-drop
     database-platform: org.hibernate.dialect.H2Dialect
+  flyway:
+    enabled: false
   # 외부 서비스 비활성화
   autoconfigure:
     exclude:

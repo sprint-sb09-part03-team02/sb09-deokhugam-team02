@@ -16,7 +16,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
-    name = "review",
+    name = "reviews",
     uniqueConstraints = {
         @UniqueConstraint(
             name = "uk_book_user_is_deleted", // 수정: 논리 삭제 충돌 해결을 위해 is_deleted 추가
