@@ -55,21 +55,6 @@ class UserControllerTest {
 
   @MockitoBean
   private PowerUserService powerUserService;
-//
-//  @MockitoBean
-//  private UserRepository userRepository;
-//
-//  @MockitoBean
-//  private PowerUserRepository powerUserRepository;
-//
-//  @MockitoBean
-//  private UserMapper userMapper;
-//
-//  @MockitoBean
-//  private PasswordEncoder passwordEncoder;
-//
-//  @MockitoBean
-//  private UserRepositoryCustom userRepositoryCustom;
 
   @MockitoBean
   private JwtProvider jwtProvider;
