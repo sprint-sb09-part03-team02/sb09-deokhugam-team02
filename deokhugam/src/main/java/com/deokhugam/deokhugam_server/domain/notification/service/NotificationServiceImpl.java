@@ -7,6 +7,7 @@ import com.deokhugam.deokhugam_server.domain.notification.entity.Notification;
 import com.deokhugam.deokhugam_server.domain.notification.entity.NotificationType;
 import com.deokhugam.deokhugam_server.domain.notification.mapper.NotificationMapper;
 import com.deokhugam.deokhugam_server.domain.notification.repository.NotificationRepository;
+import com.deokhugam.deokhugam_server.domain.user.repository.UserRepository;
 import com.deokhugam.deokhugam_server.global.exception.DeokhugamException;
 import com.deokhugam.deokhugam_server.global.exception.ErrorCode;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
@@ -25,6 +26,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final NotificationMapper notificationMapper;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -50,12 +52,14 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional
     public void readAllNotifications(UUID userId) {
+        validateUserExists(userId);
         List<Notification> unread = notificationRepository.findUnreadByUserId(userId);
         unread.forEach(Notification::markAsRead);
     }
 
     @Override
     public CursorPageResponse<NotificationDto> getNotifications(NotificationSearchRequest request) {
+        validateUserExists(request.getUserId());
         List<Notification> notifications = notificationRepository.searchNotifications(request);
         long totalElements = notificationRepository.countByUserId(request.getUserId());
 
@@ -75,5 +79,10 @@ public class NotificationServiceImpl implements NotificationService {
         LocalDateTime threshold = LocalDateTime.now().minusDays(7);
         List<Notification> expired = notificationRepository.findExpiredReadNotifications(threshold);
         expired.forEach(Notification::delete);
+    }
+
+    private void validateUserExists(UUID userId) {
+        userRepository.findByIdAndIsDeletedFalse(userId)
+            .orElseThrow(() -> new DeokhugamException(ErrorCode.USER_NOT_FOUND));
     }
 }

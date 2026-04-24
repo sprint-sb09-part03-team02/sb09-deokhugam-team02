@@ -26,10 +26,8 @@ public class NotificationController {
 
     @GetMapping
     public ResponseEntity<CursorPageResponse<NotificationDto>> getNotifications(
-        @Valid NotificationSearchRequest request,
-        @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId) {
+        @Valid NotificationSearchRequest request) {
 
-        request.assignUserId(requestUserId);
         return ResponseEntity.ok(notificationService.getNotifications(request));
     }
 

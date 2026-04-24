@@ -6,6 +6,7 @@ import com.deokhugam.deokhugam_server.domain.user.dto.request.UserUpdateRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.response.PowerUserDto;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.type.Period;
+import com.deokhugam.deokhugam_server.global.util.JwtProvider;
 import com.deokhugam.deokhugam_server.domain.user.dto.response.UserDto;
 import com.deokhugam.deokhugam_server.domain.user.service.UserService;
 import com.deokhugam.deokhugam_server.global.util.JwtProvider;

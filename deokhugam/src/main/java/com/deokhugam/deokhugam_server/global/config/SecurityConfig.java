@@ -29,6 +29,9 @@ public class SecurityConfig {
             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
         .authorizeHttpRequests(auth -> auth
+            // ECS/ALB health check endpoint
+            .requestMatchers("/actuator/health").permitAll()
+
             // 1. 회원가입, 로그인만 허용 (비인증 접근 가능)
             .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/users").permitAll()
             .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/users/login").permitAll()

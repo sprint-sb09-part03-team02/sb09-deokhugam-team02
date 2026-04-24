@@ -8,10 +8,12 @@ spring:
     hibernate:
       ddl-auto: create-drop
     database-platform: org.hibernate.dialect.H2Dialect
+  flyway:
+    enabled: false
   # 외부 서비스 비활성화
-  data:
-    redis:
-      host: localhost  # TestContainers or embedded 사용
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
 
 cloud:
   aws:
@@ -32,5 +34,6 @@ naver:
     url: https://openapi.naver.com/v1/search/book.json
 
 jwt:
-  secret: test-secret-key-for-test-environment-must-be-long-enough
-  expiration: 86400000
+  # 테스트 환경 기본값 (필요시 환경변수로 오버라이드)
+  secret: ${JWT_SECRET:test-secret-key-for-test-environment-must-be-long-enough}
+  expiration: ${JWT_EXPIRATION:86400000}
