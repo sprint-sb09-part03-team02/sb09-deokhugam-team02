@@ -92,6 +92,24 @@ jacoco {
 	toolVersion = "0.8.12"
 }
 
+def jacocoExcludes = [
+		'**/DeokhugamApplication*',
+		'**/DeokhugamServerApplication*',
+		'**/Q*.class',
+		'**/*Config*',
+		'**/*Request*',
+		'**/*Response*',
+		'**/*Mapper*',
+		'**/*Exception*',
+		'**/*Enum*'
+]
+
+def jacocoClassDirectories = {
+	files(sourceSets.main.output.classesDirs.collect {
+		fileTree(dir: it, exclude: jacocoExcludes)
+	})
+}
+
 jacocoTestReport {
 	dependsOn test
 	reports {
@@ -99,26 +117,18 @@ jacocoTestReport {
 		html.required = true
 	}
 	afterEvaluate {
-		classDirectories.setFrom(files(classDirectories.files.collect {
-			fileTree(dir: it, exclude: [
-					'**/DeokhugamApplication*',
-					'**/Q*.class',        // QueryDSL Q클래스 제외
-					'**/*Config*',
-					'**/*Request*',
-					'**/*Response*',
-					'**/*Mapper*',
-					'**/*Exception*',
-					'**/*Enum*'
-			])
-		}))
+		classDirectories.setFrom(jacocoClassDirectories())
 	}
 }
 
 jacocoTestCoverageVerification {
+	afterEvaluate {
+		classDirectories.setFrom(jacocoClassDirectories())
+	}
 	violationRules {
 		rule {
 			limit {
-				minimum = 0.08  // TODO: 테스트 작성 완료 후 0.80으로 복구
+				minimum = 0.80
 			}
 		}
 	}
