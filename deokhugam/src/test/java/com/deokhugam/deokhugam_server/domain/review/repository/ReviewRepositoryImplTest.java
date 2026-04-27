@@ -21,11 +21,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.junit.jupiter.api.Disabled;
 
-@Disabled("H2 DB에서 PostgreSQL uuid-ossp 확장 기능 미지원으로 인한 임시 비활성화")
 @DataJpaTest
+@ActiveProfiles("test")
 @Import(QueryDslConfig.class)
 public class ReviewRepositoryImplTest {
 
@@ -75,7 +76,7 @@ public class ReviewRepositoryImplTest {
     ReviewSearchRequest request = new ReviewSearchRequest();
     request.setKeyword("자바");
     request.setLimit(10);
-    request.setRequestUserId(user.getId()); // 💡 이 줄이 없으면 eq(null) 에러 터짐!
+    request.setRequestUserId(user.getId());
 
     List<ReviewDto> result = reviewRepository.searchReviews(request);
 
@@ -89,7 +90,7 @@ public class ReviewRepositoryImplTest {
     ReviewSearchRequest request = new ReviewSearchRequest();
     request.setKeyword("테스터");
     request.setLimit(10);
-    request.setRequestUserId(user.getId()); // 💡 여기도 반드시 넣어줘야 함
+    request.setRequestUserId(user.getId());
 
     List<ReviewDto> result = reviewRepository.searchReviews(request);
 
