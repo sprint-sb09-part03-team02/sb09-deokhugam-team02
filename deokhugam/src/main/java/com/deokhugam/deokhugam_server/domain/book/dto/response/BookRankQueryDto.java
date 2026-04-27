@@ -4,9 +4,9 @@ import java.util.UUID;
 
 public record BookRankQueryDto(
 
-    UUID bookId,
-    Long reviewCount,
-    Double avgRating
+  UUID bookId,
+  Long reviewCount,
+  Double avgRating
 
 ) {
   public Double calculateScore() {

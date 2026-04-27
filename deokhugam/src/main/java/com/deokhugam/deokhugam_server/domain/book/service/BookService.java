@@ -4,6 +4,7 @@ import com.deokhugam.deokhugam_server.domain.book.dto.request.BookCreateRequest;
 import com.deokhugam.deokhugam_server.domain.book.dto.request.BookSearchRequest;
 import com.deokhugam.deokhugam_server.domain.book.dto.request.BookUpdateRequest;
 import com.deokhugam.deokhugam_server.domain.book.dto.response.BookDto;
+import com.deokhugam.deokhugam_server.domain.book.dto.response.NaverBookDto;
 import com.deokhugam.deokhugam_server.domain.book.dto.response.PopularBookDto;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.type.Period;
@@ -12,19 +13,23 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface BookService {
 
-    BookDto createBook(BookCreateRequest request, MultipartFile thumbnailImage);
+  BookDto createBook(BookCreateRequest request, MultipartFile thumbnailImage);
 
-    CursorPageResponse<BookDto> getBooks(BookSearchRequest request);
+  CursorPageResponse<BookDto> getBooks(BookSearchRequest request);
 
-    BookDto getBook(UUID bookId);
+  String extractIsbn(MultipartFile image);
 
-    BookDto updateBook(UUID bookId, BookUpdateRequest request, MultipartFile thumbnailImage);
+  BookDto getBook(UUID bookId);
 
-    void deleteBook(UUID bookId);
+  BookDto updateBook(UUID bookId, BookUpdateRequest request, MultipartFile thumbnailImage);
 
-    void hardDeleteBook(UUID bookId);
+  void deleteBook(UUID bookId);
 
-    CursorPageResponse<PopularBookDto> searchPopularBooks(
-            Period period, String direction, String cursor, String after, int limit
-    );
+  CursorPageResponse<PopularBookDto> searchPopularBooks(
+    Period period, String direction, String cursor, String after, int limit
+  );
+
+  NaverBookDto getBookInfo(String isbn);
+
+  void hardDeleteBook(UUID bookId);
 }
