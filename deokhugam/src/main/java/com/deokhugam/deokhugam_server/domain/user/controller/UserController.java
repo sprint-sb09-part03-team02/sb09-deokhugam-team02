@@ -9,7 +9,6 @@ import com.deokhugam.deokhugam_server.global.type.Period;
 import com.deokhugam.deokhugam_server.global.util.JwtProvider;
 import com.deokhugam.deokhugam_server.domain.user.dto.response.UserDto;
 import com.deokhugam.deokhugam_server.domain.user.service.UserService;
-import com.deokhugam.deokhugam_server.global.util.JwtProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
