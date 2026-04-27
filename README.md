@@ -44,3 +44,14 @@ cd deokhugam
 
 - 커버리지 리포트: `deokhugam/build/reports/jacoco/test/html/index.html`
 - 최소 커버리지 기준: **80%**
+
+## ✅ 배포 후 확인
+
+- 헬스 체크: `GET /actuator/health`
+- Actuator 메트릭: `GET /actuator/metrics`
+- Batch 메트릭:
+  - `deokhugam.batch.job.completed`
+  - `deokhugam.batch.job.duration`
+  - `deokhugam.batch.job.last.duration.seconds`
+  - `deokhugam.batch.job.last.success`
+- Postman 테스트 시나리오: `deokhugam/docs/POSTMAN_TEST_SCENARIOS.md`
