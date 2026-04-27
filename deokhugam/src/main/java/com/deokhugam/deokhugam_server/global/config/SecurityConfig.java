@@ -76,6 +76,7 @@ public class SecurityConfig {
   @Bean
   public StrictHttpFirewall httpFirewall() {
     StrictHttpFirewall firewall = new StrictHttpFirewall();
+    firewall.getEncodedUrlBlocklist().remove("//");
     firewall.getDecodedUrlBlocklist().remove("//");
     return firewall;
   }
