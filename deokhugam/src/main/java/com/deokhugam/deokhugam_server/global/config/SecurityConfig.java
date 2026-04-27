@@ -32,9 +32,26 @@ public class SecurityConfig {
             // ECS/ALB health check endpoint
             .requestMatchers("/actuator/health").permitAll()
 
+            // 정적 프론트엔드와 SPA 화면 라우트는 브라우저 접근을 허용
+            .requestMatchers(
+                "/",
+                "/index.html",
+                "/api.json",
+                "/assets/**",
+                "/images/**",
+                "/favicon.ico",
+                "/login",
+                "/signup",
+                "/books/**",
+                "/reviews/**"
+            ).permitAll()
+
             // 1. 회원가입, 로그인만 허용 (비인증 접근 가능)
             .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/users").permitAll()
             .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/users/login").permitAll()
+            .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/books/popular").permitAll()
+            .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/reviews/popular").permitAll()
+            .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/users/power").permitAll()
 
             // 2. 스웨거(Swagger) 관련 경로들 - 문자열로 간단하게!
             .requestMatchers(
