@@ -1,6 +1,5 @@
 package com.deokhugam.deokhugam_server.global.scheduler;
 
-import com.deokhugam.deokhugam_server.global.type.Period;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -10,25 +9,24 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
-@Slf4j
-public class RankingScheduler {
+public class NotificationCleanupScheduler {
 
   private final JobLauncher jobLauncher;
 
-  @Qualifier("rankingJob")
-  private final Job rankingJob;
+  @Qualifier("notificationCleanupJob")
+  private final Job notificationCleanupJob;
 
   @Scheduled(cron = "0 0 3 * * *")
-  public void runDailyRanking() {
+  public void runNotificationCleanup() {
     try {
-      jobLauncher.run(rankingJob, new JobParametersBuilder()
-          .addString("period", Period.DAILY.name())
+      jobLauncher.run(notificationCleanupJob, new JobParametersBuilder()
           .addLong("requestedAt", System.currentTimeMillis())
           .toJobParameters());
     } catch (Exception e) {
-      log.error("[Batch] Daily ranking job launch failed", e);
+      log.error("[Batch] Notification cleanup job launch failed", e);
     }
   }
 }
