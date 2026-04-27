@@ -5,10 +5,11 @@ import com.deokhugam.deokhugam_server.domain.book.dto.response.BookSearchQueryDt
 import com.deokhugam.deokhugam_server.domain.book.dto.response.PopularBookDto;
 import com.deokhugam.deokhugam_server.domain.book.entity.Book;
 import com.deokhugam.deokhugam_server.domain.book.entity.PopularBook;
+import com.deokhugam.deokhugam_server.global.mapper.StaticImagePathMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = StaticImagePathMapper.class)
 public interface BookMapper {
 
   @Mapping(target = "id", source = "book.id")
@@ -18,13 +19,14 @@ public interface BookMapper {
   @Mapping(target = "publisher", source = "book.publisher")
   @Mapping(target = "publishedDate", source = "book.publishedDate")
   @Mapping(target = "isbn", source = "book.isbn")
-  @Mapping(target = "thumbnailUrl", source = "book.thumbnailUrl")
+  @Mapping(target = "thumbnailUrl", source = "book.thumbnailUrl", qualifiedByName = "normalizeStaticImagePath")
   @Mapping(target = "reviewCount", source = "reviewCount")
   @Mapping(target = "rating", source = "rating")
   @Mapping(target = "createdAt", source = "book.createdAt")
   @Mapping(target = "updatedAt", source = "book.updatedAt")
   BookDto toDto(Book book, int reviewCount, double rating);
 
+  @Mapping(target = "thumbnailUrl", source = "queryDto.thumbnailUrl", qualifiedByName = "normalizeStaticImagePath")
   @Mapping(target = "reviewCount", expression = "java((int) queryDto.reviewCount())")
   BookDto toDto(BookSearchQueryDto queryDto);
 
@@ -32,7 +34,7 @@ public interface BookMapper {
   @Mapping(target = "bookId", source = "popularBook.book.id")
   @Mapping(target = "title", source = "popularBook.book.title")
   @Mapping(target = "author", source = "popularBook.book.author")
-  @Mapping(target = "thumbnailUrl", source = "popularBook.book.thumbnailUrl")
+  @Mapping(target = "thumbnailUrl", source = "popularBook.book.thumbnailUrl", qualifiedByName = "normalizeStaticImagePath")
   @Mapping(target = "period", source = "popularBook.periodType")
   @Mapping(target = "rank", source = "popularBook.rankOrder")
   @Mapping(target = "score", source = "popularBook.score")
