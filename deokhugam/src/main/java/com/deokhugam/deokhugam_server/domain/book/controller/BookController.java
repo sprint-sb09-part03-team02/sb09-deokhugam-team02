@@ -4,6 +4,7 @@ import com.deokhugam.deokhugam_server.domain.book.dto.request.BookCreateRequest;
 import com.deokhugam.deokhugam_server.domain.book.dto.request.BookSearchRequest;
 import com.deokhugam.deokhugam_server.domain.book.dto.request.BookUpdateRequest;
 import com.deokhugam.deokhugam_server.domain.book.dto.response.BookDto;
+import com.deokhugam.deokhugam_server.domain.book.dto.response.NaverBookDto;
 import com.deokhugam.deokhugam_server.domain.book.dto.response.PopularBookDto;
 import com.deokhugam.deokhugam_server.domain.book.service.BookService;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
@@ -85,7 +86,7 @@ public class BookController {
           @RequestParam(defaultValue = "50") int limit
   ) {
     CursorPageResponse<PopularBookDto> popularBooks = bookService.searchPopularBooks(
-            period, direction, cursor, after, limit
+      period, direction, cursor, after, limit
     );
     return ResponseEntity.ok(popularBooks);
   }

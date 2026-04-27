@@ -11,19 +11,19 @@ import java.util.UUID;
 
 public interface BookRepositoryCustom {
 
-    List<BookSearchQueryDto> searchBooks(BookSearchRequest request);
+  List<BookSearchQueryDto> searchBooks(BookSearchRequest request);
 
-    long countBooks(BookSearchRequest request);
+  long countBooks(BookSearchRequest request);
 
-    BookSearchQueryDto findBookDetail(UUID bookId);
+  BookSearchQueryDto findBookDetail(UUID bookId);
 
-    List<BookRankQueryDto> findBookStatisticsForRanking(LocalDate startDate, LocalDate endDate);
+  List<BookRankQueryDto> findBookStatisticsForRanking(LocalDate startDate, LocalDate endDate);
 
-    List<PopularBook> findPopularBooksWithPaging(
-            Period period,
-            String direction,
-            String cursor,
-            String after,
-            int limit
-    );
+  List<PopularBook> findPopularBooksWithPaging(
+    Period period,
+    String direction,
+    String cursor,
+    String after,
+    int limit
+  );
 }
