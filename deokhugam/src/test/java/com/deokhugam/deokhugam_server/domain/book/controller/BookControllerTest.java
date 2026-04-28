@@ -85,7 +85,11 @@ class BookControllerTest {
       .andExpect(jsonPath("$.id").value(bookId.toString()))
       .andExpect(jsonPath("$.title").value("클린 코드"))
       .andExpect(jsonPath("$.author").value("로버트 마틴"))
-      .andExpect(jsonPath("$.isbn").value("9788912345678"));
+      .andExpect(jsonPath("$.description").value("설명"))
+      .andExpect(jsonPath("$.publisher").value("인사이트"))
+      .andExpect(jsonPath("$.publishedDate").value("2024-01-01"))
+      .andExpect(jsonPath("$.isbn").value("9788912345678"))
+      .andExpect(jsonPath("$.thumbnailImage").value("https://image.test/thumbnail.png"));
   }
 
   @Test
@@ -128,6 +132,11 @@ class BookControllerTest {
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.content[0].id").value(bookId.toString()))
       .andExpect(jsonPath("$.content[0].title").value("책 제목"))
+      .andExpect(jsonPath("$.content[0].author").value("저자"))
+      .andExpect(jsonPath("$.content[0].isbn").value("1234567890"))
+      .andExpect(jsonPath("$.content[0].reviewCount").value(1))
+      .andExpect(jsonPath("$.content[0].rating").value(4.0))
+      .andExpect(jsonPath("$.size").value(1))
       .andExpect(jsonPath("$.totalElements").value(1))
       .andExpect(jsonPath("$.hasNext").value(false));
   }
@@ -137,7 +146,7 @@ class BookControllerTest {
   void extractIsbn_success() throws Exception {
     MockMultipartFile image = new MockMultipartFile(
       "image",
-      "book-978-89-1234-567-8.png",
+      "book.png",
       "image/png",
       "dummy-image".getBytes()
     );
@@ -148,6 +157,33 @@ class BookControllerTest {
         .file(image))
       .andExpect(status().isOk())
       .andExpect(content().string("9788912345678"));
+  }
+
+  @Test
+  @DisplayName("도서 정보 조회 성공")
+  void getBookInfo_success() throws Exception {
+    NaverBookDto response = new NaverBookDto(
+      "클린 코드",
+      "로버트 마틴",
+      "설명",
+      "인사이트",
+      LocalDate.of(2024, 1, 1),
+      "9788912345678",
+      "https://image.test/book.png"
+    );
+
+    when(bookService.getBookInfo("9788912345678")).thenReturn(response);
+
+    mockMvc.perform(get("/api/books/info")
+        .param("isbn", "9788912345678"))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.title").value("클린 코드"))
+      .andExpect(jsonPath("$.author").value("로버트 마틴"))
+      .andExpect(jsonPath("$.description").value("설명"))
+      .andExpect(jsonPath("$.publisher").value("인사이트"))
+      .andExpect(jsonPath("$.publishedDate").value("2024-01-01"))
+      .andExpect(jsonPath("$.isbn").value("9788912345678"))
+      .andExpect(jsonPath("$.thumbnailImage").value("https://image.test/book.png"));
   }
 
   @Test
@@ -177,6 +213,8 @@ class BookControllerTest {
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.id").value(bookId.toString()))
       .andExpect(jsonPath("$.title").value("책 제목"))
+      .andExpect(jsonPath("$.author").value("저자"))
+      .andExpect(jsonPath("$.isbn").value("1234567890"))
       .andExpect(jsonPath("$.reviewCount").value(3))
       .andExpect(jsonPath("$.rating").value(4.5));
   }
@@ -225,7 +263,11 @@ class BookControllerTest {
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.id").value(bookId.toString()))
       .andExpect(jsonPath("$.title").value("수정된 제목"))
-      .andExpect(jsonPath("$.author").value("수정된 저자"));
+      .andExpect(jsonPath("$.author").value("수정된 저자"))
+      .andExpect(jsonPath("$.description").value("수정된 설명"))
+      .andExpect(jsonPath("$.publisher").value("수정된 출판사"))
+      .andExpect(jsonPath("$.publishedDate").value("2025-01-01"))
+      .andExpect(jsonPath("$.isbn").value("1234567890"));
   }
 
   @Test
@@ -236,6 +278,17 @@ class BookControllerTest {
     doNothing().when(bookService).deleteBook(bookId);
 
     mockMvc.perform(delete("/api/books/{bookId}", bookId))
+      .andExpect(status().isNoContent());
+  }
+
+  @Test
+  @DisplayName("도서 물리 삭제 성공")
+  void hardDeleteBook_success() throws Exception {
+    UUID bookId = UUID.randomUUID();
+
+    doNothing().when(bookService).hardDeleteBook(bookId);
+
+    mockMvc.perform(delete("/api/books/{bookId}/hard", bookId))
       .andExpect(status().isNoContent());
   }
 
@@ -285,41 +338,10 @@ class BookControllerTest {
       .andExpect(jsonPath("$.content[0].id").value(popularBookId.toString()))
       .andExpect(jsonPath("$.content[0].bookId").value(bookId.toString()))
       .andExpect(jsonPath("$.content[0].title").value("인기 도서"))
-      .andExpect(jsonPath("$.content[0].rank").value(1));
-  }
-
-  @Test
-  @DisplayName("도서 정보 조회 성공")
-  void getBookInfo_success() throws Exception {
-    NaverBookDto response = new NaverBookDto(
-      "클린 코드",
-      "로버트 마틴",
-      "설명",
-      "인사이트",
-      LocalDate.of(2024, 1, 1),
-      "9788912345678",
-      "https://image.test/book.png"
-    );
-
-    when(bookService.getBookInfo("9788912345678")).thenReturn(response);
-
-    mockMvc.perform(get("/api/books/info")
-        .param("isbn", "9788912345678"))
-      .andExpect(status().isOk())
-      .andExpect(jsonPath("$.title").value("클린 코드"))
-      .andExpect(jsonPath("$.author").value("로버트 마틴"))
-      .andExpect(jsonPath("$.isbn").value("9788912345678"))
-      .andExpect(jsonPath("$.thumbnailImage").value("https://image.test/book.png"));
-  }
-
-  @Test
-  @DisplayName("도서 물리 삭제 성공")
-  void hardDeleteBook_success() throws Exception {
-    UUID bookId = UUID.randomUUID();
-
-    doNothing().when(bookService).hardDeleteBook(bookId);
-
-    mockMvc.perform(delete("/api/books/{bookId}/hard", bookId))
-      .andExpect(status().isNoContent());
+      .andExpect(jsonPath("$.content[0].author").value("인기 저자"))
+      .andExpect(jsonPath("$.content[0].rank").value(1))
+      .andExpect(jsonPath("$.content[0].score").value(9.5))
+      .andExpect(jsonPath("$.content[0].reviewCount").value(20))
+      .andExpect(jsonPath("$.content[0].rating").value(4.8));
   }
 }
