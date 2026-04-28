@@ -70,13 +70,6 @@ ocr-space:
     key: YOUR_OCR_SPACE_API_KEY
     url: https://api.ocr.space/parse/image
 
-# ⚠️ JWT Secret 주의:
-# - 최소 32자 이상의 랜덤 문자열 사용
-# - 생성 방법: openssl rand -base64 48
-jwt:
-  secret: YOUR_JWT_SECRET_KEY_MINIMUM_32_CHARACTERS
-  expiration: 86400000   # 24시간 (ms)
-
 springdoc:
   swagger-ui:
     enabled: true

@@ -39,10 +39,6 @@ ocr-space:
     key: ${OCR_SPACE_API_KEY}
     url: https://api.ocr.space/parse/image
 
-jwt:
-  secret: ${JWT_SECRET}
-  expiration: ${JWT_EXPIRATION:86400000}
-
 springdoc:
   swagger-ui:
     enabled: false
