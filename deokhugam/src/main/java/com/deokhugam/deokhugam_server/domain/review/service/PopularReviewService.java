@@ -6,6 +6,8 @@ import com.deokhugam.deokhugam_server.domain.book.repository.BookRepository;
 import com.deokhugam.deokhugam_server.domain.review.dto.response.PopularReviewDto;
 import com.deokhugam.deokhugam_server.domain.review.dto.response.ReviewRankQueryDto;
 import com.deokhugam.deokhugam_server.domain.review.entity.PopularReview;
+import com.deokhugam.deokhugam_server.domain.review.entity.Review;
+
 import com.deokhugam.deokhugam_server.domain.review.event.ReviewRankedEvent;
 import com.deokhugam.deokhugam_server.domain.review.mapper.ReviewMapper;
 import com.deokhugam.deokhugam_server.domain.review.repository.PopularReviewRepository;
@@ -15,6 +17,9 @@ import com.deokhugam.deokhugam_server.global.type.Period;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -34,14 +39,21 @@ public class PopularReviewService {
 
   @Transactional
   public void calculateAndSaveReviewRanks(Period periodType) {
-    LocalDate endDate = LocalDate.now().minusDays(1);
+    LocalDate endDate = (periodType == Period.ALL_TIME) ? LocalDate.now() : LocalDate.now().minusDays(1);
     LocalDate startDate = getStartDate(periodType, endDate);
 
     List<ReviewRankQueryDto> statistics = reviewRepository.findReviewStatistics(startDate, endDate);
 
+    Map<UUID, Review> reviewMap = reviewRepository
+      .findAllById(
+        statistics.stream().map(ReviewRankQueryDto::reviewId).toList()
+      )
+      .stream()
+      .collect(Collectors.toMap(Review::getId, r -> r));
+
     List<PopularReview> rankings = statistics.stream()
         .map(stat -> PopularReview.builder()
-            .review(reviewRepository.getReferenceById(stat.reviewId()))
+            .review(reviewMap.get(stat.reviewId()))
             .periodType(periodType)
             .score(stat.calculateScore())
             .likeCount(stat.likeCount())
@@ -54,13 +66,16 @@ public class PopularReviewService {
     for (int i = 0; i < rankings.size(); i++) {
       rankings.get(i).assignRankOrder(i + 1);
     }
+    if (!existingRankings.isEmpty()) {
+    popularReviewRepository.deleteAllInBatch(existingRankings);
+}
+    popularReviewRepository.saveAll(rankings);
 
     List<PopularReview> existingRankings =
         popularReviewRepository.findAllByPeriodTypeAndCalculatedDate(periodType, endDate);
     if (!existingRankings.isEmpty()) {
       popularReviewRepository.deleteAllInBatch(existingRankings);
     }
-    popularReviewRepository.saveAll(rankings);
 
     rankings.stream()
         .filter(r -> r.getRankOrder() <= 10)
