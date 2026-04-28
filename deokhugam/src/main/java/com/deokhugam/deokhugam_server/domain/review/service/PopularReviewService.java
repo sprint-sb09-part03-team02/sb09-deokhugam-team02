@@ -66,6 +66,9 @@ public class PopularReviewService {
     for (int i = 0; i < rankings.size(); i++) {
       rankings.get(i).assignRankOrder(i + 1);
     }
+    if (!existingRankings.isEmpty()) {
+    popularReviewRepository.deleteAllInBatch(existingRankings);
+}
     popularReviewRepository.saveAll(rankings);
 
     List<PopularReview> existingRankings =
