@@ -2,6 +2,7 @@ package com.deokhugam.deokhugam_server.domain.user.service;
 
 import com.deokhugam.deokhugam_server.domain.review.repository.PopularReviewRepository;
 import com.deokhugam.deokhugam_server.domain.user.dto.response.UserRankQueryDto;
+import com.deokhugam.deokhugam_server.domain.user.dto.response.UserScoreDto;
 import com.deokhugam.deokhugam_server.domain.user.entity.PowerUser;
 import com.deokhugam.deokhugam_server.domain.user.repository.PowerUserRepository;
 import com.deokhugam.deokhugam_server.domain.user.repository.UserRepository;
@@ -10,6 +11,9 @@ import com.deokhugam.deokhugam_server.global.util.PeriodUtil;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,24 +35,21 @@ public class PowerUserService {
     List<UserRankQueryDto> statistics = userRepository.findUserActivityStatistics(startDate,
         endDate);
 
-    List<PowerUser> rankings = statistics.stream()
-        .map(stat -> {
-          Double scoreSum = popularReviewRepository.sumScoreByUserIdAndPeriod(
-              stat.userId(), periodType, endDate).orElse(0.0);
+    Map<UUID, Double> userScoreMap = popularReviewRepository.sumAllUserScoresByPeriod(periodType, endDate)
+      .stream()
+      .collect(Collectors.toMap(UserScoreDto::userId, UserScoreDto::totalScore));
 
-          return PowerUser.builder()
-              .user(userRepository.getReferenceById(stat.userId()))
-              .periodType(periodType)
-              .reviewScoreSum(scoreSum)
-              .likeCount(stat.givenLikeCount())
-              .commentCount(stat.writtenCommentCount())
-              .score((scoreSum * 0.5) + (stat.givenLikeCount() * 0.2) + (stat.writtenCommentCount()
-                  * 0.3))
-              .calculatedDate(endDate)
-              .build();
-        })
-        .sorted(Comparator.comparing(PowerUser::getScore).reversed())
-        .toList();
+    List<PowerUser> rankings = statistics.stream()
+      .map(stat -> {
+        Double scoreSum = userScoreMap.getOrDefault(stat.userId(), 0.0);
+
+        return PowerUser.builder()
+          .user(userRepository.getReferenceById(stat.userId()))
+          .score((scoreSum * 0.5) + (stat.givenLikeCount() * 0.2) + (stat.writtenCommentCount() * 0.3))
+          .build();
+      })
+      .sorted(Comparator.comparing(PowerUser::getScore).reversed())
+      .toList();
 
     for (int i = 0; i < rankings.size(); i++) {
       rankings.get(i).assignRankOrder(i + 1);

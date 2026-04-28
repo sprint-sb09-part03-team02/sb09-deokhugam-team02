@@ -1,6 +1,7 @@
 package com.deokhugam.deokhugam_server.domain.review.repository;
 
 import com.deokhugam.deokhugam_server.domain.review.entity.PopularReview;
+import com.deokhugam.deokhugam_server.domain.user.dto.response.UserScoreDto;
 import com.deokhugam.deokhugam_server.global.type.Period;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -24,6 +25,12 @@ public interface PopularReviewRepository extends JpaRepository<PopularReview, UU
       @Param("period") Period period,
       @Param("date") LocalDate date
   );
+
+  @Query("SELECT new com.deokhugam.deokhugam_server.domain.user.dto.response.UserScoreDto(pr.review.user.id, SUM(pr.score)) " +
+    "FROM PopularReview pr " +
+    "WHERE pr.periodType = :periodType AND pr.calculatedDate = :date " +
+    "GROUP BY pr.review.user.id")
+  List<UserScoreDto> sumAllUserScoresByPeriod(@Param("periodType") Period periodType, @Param("date") LocalDate date);
 
   List<PopularReview> findAllByPeriodTypeAndCalculatedDate(Period periodType,
       LocalDate calculatedDate);
