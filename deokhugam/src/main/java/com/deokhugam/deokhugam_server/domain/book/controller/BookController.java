@@ -49,6 +49,18 @@ public class BookController {
     return ResponseEntity.ok(response);
   }
 
+  @PostMapping(value = "/isbn/ocr", consumes = "multipart/form-data")
+  public ResponseEntity<String> extractIsbn(@RequestParam MultipartFile image) {
+    String isbn = bookService.extractIsbn(image);
+    return ResponseEntity.ok(isbn);
+  }
+
+  @GetMapping("/info")
+  public ResponseEntity<NaverBookDto> getBookInfo(@RequestParam String isbn) {
+    NaverBookDto response = bookService.getBookInfo(isbn);
+    return ResponseEntity.ok(response);
+  }
+
   @GetMapping("/{bookId}")
   public ResponseEntity<BookDto> getBook(@PathVariable UUID bookId) {
     BookDto response = bookService.getBook(bookId);

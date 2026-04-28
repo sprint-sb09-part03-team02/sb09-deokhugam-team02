@@ -9,6 +9,8 @@ import com.deokhugam.deokhugam_server.domain.book.dto.response.NaverBookDto;
 import com.deokhugam.deokhugam_server.domain.book.dto.response.PopularBookDto;
 import com.deokhugam.deokhugam_server.domain.book.entity.Book;
 import com.deokhugam.deokhugam_server.domain.book.entity.PopularBook;
+import com.deokhugam.deokhugam_server.domain.book.client.NaverBookClient;
+import com.deokhugam.deokhugam_server.domain.book.client.OcrSpaceClient;
 import com.deokhugam.deokhugam_server.domain.book.mapper.BookMapper;
 import com.deokhugam.deokhugam_server.domain.book.repository.BookRepository;
 import com.deokhugam.deokhugam_server.domain.book.repository.PopularBookRepository;
@@ -47,6 +49,8 @@ public class BookServiceImpl implements BookService {
   private final BookRepository bookRepository;
   private final BookMapper bookMapper;
   private final PopularBookRepository popularBookRepository;
+  private final OcrSpaceClient ocrSpaceClient;
+  private final NaverBookClient naverBookClient;
 
   @Override
   @Transactional
@@ -107,12 +111,8 @@ public class BookServiceImpl implements BookService {
   public String extractIsbn(MultipartFile image) {
     validateImageFile(image);
 
-    String originalFilename = image.getOriginalFilename();
-    if (originalFilename == null || originalFilename.isBlank()) {
-      throw new DeokhugamException(ErrorCode.ISBN_EXTRACTION_FAILED);
-    }
-
-    String extractedIsbn = extractIsbnFromText(originalFilename);
+    String ocrText = ocrSpaceClient.parseText(image);
+    String extractedIsbn = extractIsbnFromText(ocrText);
     if (extractedIsbn == null) {
       throw new DeokhugamException(ErrorCode.ISBN_EXTRACTION_FAILED);
     }
@@ -204,19 +204,7 @@ public class BookServiceImpl implements BookService {
   @Override
   public NaverBookDto getBookInfo(String isbn) {
     String normalizedIsbn = normalizeIsbn(isbn);
-
-    Book book = bookRepository.findByIsbnAndIsDeletedFalse(normalizedIsbn)
-      .orElseThrow(() -> new DeokhugamException(ErrorCode.BOOK_INFO_NOT_FOUND));
-
-    return new NaverBookDto(
-      book.getTitle(),
-      book.getAuthor(),
-      book.getDescription(),
-      book.getPublisher(),
-      book.getPublishedDate(),
-      book.getIsbn(),
-      book.getThumbnailUrl()
-    );
+    return naverBookClient.searchByIsbn(normalizedIsbn);
   }
 
   @Override

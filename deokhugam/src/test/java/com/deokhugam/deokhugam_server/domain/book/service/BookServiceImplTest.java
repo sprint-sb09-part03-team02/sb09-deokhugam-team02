@@ -22,6 +22,8 @@ import com.deokhugam.deokhugam_server.domain.book.dto.response.NaverBookDto;
 import com.deokhugam.deokhugam_server.domain.book.dto.response.PopularBookDto;
 import com.deokhugam.deokhugam_server.domain.book.entity.Book;
 import com.deokhugam.deokhugam_server.domain.book.entity.PopularBook;
+import com.deokhugam.deokhugam_server.domain.book.client.NaverBookClient;
+import com.deokhugam.deokhugam_server.domain.book.client.OcrSpaceClient;
 import com.deokhugam.deokhugam_server.domain.book.mapper.BookMapper;
 import com.deokhugam.deokhugam_server.domain.book.repository.BookRepository;
 import com.deokhugam.deokhugam_server.domain.book.repository.PopularBookRepository;
@@ -54,6 +56,12 @@ class BookServiceImplTest {
 
   @Mock
   private BookMapper bookMapper;
+
+  @Mock
+  private OcrSpaceClient ocrSpaceClient;
+
+  @Mock
+  private NaverBookClient naverBookClient;
 
   @InjectMocks
   private BookServiceImpl bookService;
@@ -403,14 +411,16 @@ class BookServiceImplTest {
   }
 
   @Test
-  @DisplayName("ISBN 추출 성공 - 파일명에서 ISBN 13 추출")
+  @DisplayName("ISBN 추출 성공 - OCR 결과에서 ISBN 13 추출")
   void extractIsbn_success_isbn13() {
     MockMultipartFile image = new MockMultipartFile(
       "image",
-      "book-978-89-1234-567-8.png",
+      "book.png",
       "image/png",
       "dummy".getBytes()
     );
+
+    when(ocrSpaceClient.parseText(image)).thenReturn("ISBN 978-89-1234-567-8");
 
     String result = bookService.extractIsbn(image);
 
@@ -418,14 +428,16 @@ class BookServiceImplTest {
   }
 
   @Test
-  @DisplayName("ISBN 추출 성공 - 파일명에서 ISBN 10 추출")
+  @DisplayName("ISBN 추출 성공 - OCR 결과에서 ISBN 10 추출")
   void extractIsbn_success_isbn10() {
     MockMultipartFile image = new MockMultipartFile(
       "image",
-      "book-89-1234-567X.jpg",
+      "book.jpg",
       "image/jpeg",
       "dummy".getBytes()
     );
+
+    when(ocrSpaceClient.parseText(image)).thenReturn("ISBN 89-1234-567X");
 
     String result = bookService.extractIsbn(image);
 
@@ -467,25 +479,8 @@ class BookServiceImplTest {
   }
 
   @Test
-  @DisplayName("ISBN 추출 실패 - 파일명 없음")
-  void extractIsbn_fail_blankFilename() {
-    MockMultipartFile image = new MockMultipartFile(
-      "image",
-      "",
-      "image/png",
-      "dummy".getBytes()
-    );
-
-    DeokhugamException exception = assertThrows(DeokhugamException.class, () ->
-      bookService.extractIsbn(image)
-    );
-
-    assertEquals(ErrorCode.ISBN_EXTRACTION_FAILED, exception.getErrorCode());
-  }
-
-  @Test
-  @DisplayName("ISBN 추출 실패 - 파일명에 ISBN 없음")
-  void extractIsbn_fail_noIsbnInFilename() {
+  @DisplayName("ISBN 추출 실패 - OCR 결과에 ISBN 없음")
+  void extractIsbn_fail_noIsbnInOcrText() {
     MockMultipartFile image = new MockMultipartFile(
       "image",
       "random-book-cover.png",
@@ -493,6 +488,8 @@ class BookServiceImplTest {
       "dummy".getBytes()
     );
 
+    when(ocrSpaceClient.parseText(image)).thenReturn("no isbn text");
+
     DeokhugamException exception = assertThrows(DeokhugamException.class, () ->
       bookService.extractIsbn(image)
     );
@@ -501,21 +498,21 @@ class BookServiceImplTest {
   }
 
   @Test
-  @DisplayName("도서 정보 조회 성공 - 내부 DB 조회")
+  @DisplayName("도서 정보 조회 성공 - 네이버 API 조회")
   void getBookInfo_success() {
     String isbn = "978-89-1234-567-8";
     String normalizedIsbn = "9788912345678";
+    NaverBookDto expected = new NaverBookDto(
+      "클린 코드",
+      "로버트 마틴",
+      "설명",
+      "인사이트",
+      LocalDate.of(2024, 1, 1),
+      normalizedIsbn,
+      "https://image.test/book.png"
+    );
 
-    Book book = mock(Book.class);
-
-    when(bookRepository.findByIsbnAndIsDeletedFalse(normalizedIsbn)).thenReturn(Optional.of(book));
-    when(book.getTitle()).thenReturn("클린 코드");
-    when(book.getAuthor()).thenReturn("로버트 마틴");
-    when(book.getDescription()).thenReturn("설명");
-    when(book.getPublisher()).thenReturn("인사이트");
-    when(book.getPublishedDate()).thenReturn(LocalDate.of(2024, 1, 1));
-    when(book.getIsbn()).thenReturn(normalizedIsbn);
-    when(book.getThumbnailUrl()).thenReturn("https://image.test/book.png");
+    when(naverBookClient.searchByIsbn(normalizedIsbn)).thenReturn(expected);
 
     NaverBookDto result = bookService.getBookInfo(isbn);
 
@@ -527,12 +524,13 @@ class BookServiceImplTest {
   }
 
   @Test
-  @DisplayName("도서 정보 조회 실패 - 존재하지 않는 ISBN")
+  @DisplayName("도서 정보 조회 실패 - 네이버 API 조회 결과 없음")
   void getBookInfo_fail_notFound() {
     String isbn = "978-89-1234-567-8";
     String normalizedIsbn = "9788912345678";
 
-    when(bookRepository.findByIsbnAndIsDeletedFalse(normalizedIsbn)).thenReturn(Optional.empty());
+    when(naverBookClient.searchByIsbn(normalizedIsbn))
+      .thenThrow(new DeokhugamException(ErrorCode.BOOK_INFO_NOT_FOUND));
 
     DeokhugamException exception = assertThrows(DeokhugamException.class, () ->
       bookService.getBookInfo(isbn)
