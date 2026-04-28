@@ -89,7 +89,7 @@ class BookControllerTest {
       .andExpect(jsonPath("$.publisher").value("인사이트"))
       .andExpect(jsonPath("$.publishedDate").value("2024-01-01"))
       .andExpect(jsonPath("$.isbn").value("9788912345678"))
-      .andExpect(jsonPath("$.thumbnailImage").value("https://image.test/thumbnail.png"));
+      .andExpect(jsonPath("$.thumbnailUrl").value("https://image.test/thumbnail.png"));
   }
 
   @Test
