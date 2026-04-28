@@ -3,6 +3,7 @@ package com.deokhugam.deokhugam_server.domain.user.batch;
 import com.deokhugam.deokhugam_server.domain.user.service.PowerUserService;
 import com.deokhugam.deokhugam_server.global.type.Period;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -10,6 +11,9 @@ import org.springframework.stereotype.Component;
 public class PowerUserBatch {
   private final PowerUserService powerUserService;
 
+  public void executeDaily() {
+    execute(Period.DAILY);
+  }
   public void execute(Period period) {
     powerUserService.calculateAndSavePowerUserRanks(period);
   }
