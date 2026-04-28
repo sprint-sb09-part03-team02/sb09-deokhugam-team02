@@ -50,13 +50,13 @@ public class CommentRepositoryImplTest {
       .password("1234")
       .build();
     ReflectionTestUtils.setField(user, "createdAt", now);
-    ReflectionTestUtils.setField(user, "updatedAt", now); // 추가됨
+    ReflectionTestUtils.setField(user, "updatedAt", now);
     em.persist(user);
 
     // 2. 책 생성
     Book book = new Book("제목" + suffix, "저자", "ISBN-" + suffix, "출판사", "설명", "url", LocalDate.now());
     ReflectionTestUtils.setField(book, "createdAt", now);
-    ReflectionTestUtils.setField(book, "updatedAt", now); // 추가됨
+    ReflectionTestUtils.setField(book, "updatedAt", now);
     em.persist(book);
 
     // 3. 리뷰 생성
@@ -67,7 +67,7 @@ public class CommentRepositoryImplTest {
       .rating(5)
       .build();
     ReflectionTestUtils.setField(review, "createdAt", now);
-    ReflectionTestUtils.setField(review, "updatedAt", now); // 추가됨
+    ReflectionTestUtils.setField(review, "updatedAt", now);
     em.persist(review);
     em.flush();
 
@@ -78,7 +78,7 @@ public class CommentRepositoryImplTest {
       .content("옛날댓글")
       .build();
     ReflectionTestUtils.setField(commentOld, "createdAt", now);
-    ReflectionTestUtils.setField(commentOld, "updatedAt", now); // 추가됨
+    ReflectionTestUtils.setField(commentOld, "updatedAt", now);
     em.persist(commentOld);
 
     // 5. 최신 댓글 생성
@@ -94,7 +94,7 @@ public class CommentRepositoryImplTest {
 
     em.flush();
 
-    // 6. 시간 업데이트 (Native Query)
+    // 6. 시간 업데이트
     em.createNativeQuery("UPDATE comments SET created_at = ?1 WHERE content = ?2")
       .setParameter(1, FIXED_OLD)
       .setParameter(2, "옛날댓글")
@@ -114,7 +114,7 @@ public class CommentRepositoryImplTest {
     // given
     CommentSearchRequest request = new CommentSearchRequest();
     request.setReviewId(review.getId());
-    request.setAfter(FIXED_NOW); // 최신댓글 시간 기준
+    request.setAfter(FIXED_NOW);
     request.setCursor(commentNewId.toString());
     request.setDirection("DESC");
     request.setLimit(10);
@@ -157,7 +157,6 @@ public class CommentRepositoryImplTest {
 
     // then
     assertThat(result).hasSize(2);
-    // 💡 "민주" 대신 user.getNickname()을 사용하세요!
     assertThat(result.stream().anyMatch(c -> c.userNickname().equals(user.getNickname()))).isTrue();
   }
 
