@@ -45,7 +45,12 @@ public class PowerUserService {
 
         return PowerUser.builder()
           .user(userRepository.getReferenceById(stat.userId()))
-          .score((scoreSum * 0.5) + (stat.givenLikeCount() * 0.2) + (stat.writtenCommentCount() * 0.3))
+          .periodType(periodType)
+          .reviewScoreSum(scoreSum)
+          .likeCount(stat.givenLikeCount())
+          .commentCount(stat.writtenCommentCount())
+          .score((scoreSum * 0.5) + (stat.givenLikeCount() * 0.2) + (stat.writtenCommentCount() * 0.3)) // 최종 점수
+          .calculatedDate(endDate)
           .build();
       })
       .sorted(Comparator.comparing(PowerUser::getScore).reversed())
