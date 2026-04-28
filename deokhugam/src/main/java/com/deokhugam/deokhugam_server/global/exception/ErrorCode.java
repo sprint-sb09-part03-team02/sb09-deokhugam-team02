@@ -64,7 +64,8 @@ public enum ErrorCode {
 
   // [STORAGE] 파일 저장소
   S3_UPLOAD_FAILED(500, "S701", "파일 업로드에 실패했습니다."),
-  S3_DELETE_FAILED(500, "S702", "파일 삭제에 실패했습니다.");
+  S3_DELETE_FAILED(500, "S702", "파일 삭제에 실패했습니다."),
+  S3_LOG_UPLOAD_FAILED(500, "S703", "로그 파일 업로드에 실패했습니다.");
 
   private final int status;
   private final String code;
