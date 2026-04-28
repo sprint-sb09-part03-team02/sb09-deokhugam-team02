@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 public class PopularBookBatch {
   private final PopularBookService popularBookService;
 
-  @Scheduled(cron = "0 0 3 * * *")
   public void executeDaily() {
     execute(Period.DAILY);
   }
