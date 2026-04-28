@@ -66,16 +66,14 @@ public class PopularReviewService {
     for (int i = 0; i < rankings.size(); i++) {
       rankings.get(i).assignRankOrder(i + 1);
     }
-    if (!existingRankings.isEmpty()) {
-    popularReviewRepository.deleteAllInBatch(existingRankings);
-}
-    popularReviewRepository.saveAll(rankings);
 
     List<PopularReview> existingRankings =
         popularReviewRepository.findAllByPeriodTypeAndCalculatedDate(periodType, endDate);
     if (!existingRankings.isEmpty()) {
       popularReviewRepository.deleteAllInBatch(existingRankings);
     }
+
+    popularReviewRepository.saveAll(rankings);
 
     rankings.stream()
         .filter(r -> r.getRankOrder() <= 10)

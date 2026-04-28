@@ -56,7 +56,7 @@ public class ReviewRankedEventTest {
         .user(User.builder().id(UUID.randomUUID()).build())
         .content("인기리뷰")
         .build();
-    given(reviewRepository.getReferenceById(reviewId)).willReturn(mockReview);
+    given(reviewRepository.findAllById(any())).willReturn(List.of(mockReview));
 
     // [When]
     popularReviewService.calculateAndSaveReviewRanks(Period.DAILY);
