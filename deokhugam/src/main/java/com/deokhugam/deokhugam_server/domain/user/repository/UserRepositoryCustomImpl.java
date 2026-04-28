@@ -7,6 +7,7 @@ import static com.deokhugam.deokhugam_server.domain.user.entity.QUser.user;
 
 import com.deokhugam.deokhugam_server.domain.user.dto.response.UserRankQueryDto;
 import com.querydsl.core.types.Projections;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -24,28 +25,30 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
     LocalDateTime startDt = start.atStartOfDay();
     LocalDateTime endDt = end.atTime(LocalTime.MAX);
 
+    var reviewsCount = JPAExpressions
+      .select(review.id.count())
+      .from(review)
+      .where(review.user.id.eq(user.id).and(review.createdAt.between(startDt, endDt)));
+
+    var likesCount = JPAExpressions
+      .select(reviewLike.id.count())
+      .from(reviewLike)
+      .where(reviewLike.user.id.eq(user.id).and(reviewLike.createdAt.between(startDt, endDt)));
+
+    var commentsCount = JPAExpressions
+      .select(comment.id.count())
+      .from(comment)
+      .where(comment.userId.eq(user.id).and(comment.createdAt.between(startDt, endDt)));
+
     return queryFactory
       .select(Projections.constructor(UserRankQueryDto.class,
         user.id,
-        review.id.countDistinct(),
-        reviewLike.id.countDistinct(),
-        comment.id.countDistinct()
+        reviewsCount,
+        likesCount,
+        commentsCount
       ))
       .from(user)
-      .leftJoin(review).on(
-        review.user.id.eq(user.id),
-        review.createdAt.between(startDt, endDt)
-      )
-      .leftJoin(reviewLike).on(
-        reviewLike.user.id.eq(user.id),
-        reviewLike.createdAt.between(startDt, endDt)
-      )
-      .leftJoin(comment).on(
-        comment.userId.eq(user.id),
-        comment.createdAt.between(startDt, endDt)
-      )
       .where(user.isDeleted.isFalse())
-      .groupBy(user.id)
       .fetch();
   }
 }
