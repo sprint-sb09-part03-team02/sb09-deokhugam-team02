@@ -39,8 +39,8 @@ class NotificationRepositoryImplTest {
     userId = UUID.randomUUID();
     otherUserId = UUID.randomUUID();
 
-    Notification oldNotification = createNotification(userId, "이전 알림", FIXED_OLD);
     Notification newestNotification = createNotification(userId, "최신 알림", FIXED_NOW);
+    createNotification(userId, "이전 알림", FIXED_OLD);
     createNotification(otherUserId, "다른 사용자 알림", FIXED_NOW);
 
     Notification readNotification = createNotification(userId, "읽은 알림", FIXED_NOW.minusHours(1));
@@ -51,6 +51,13 @@ class NotificationRepositoryImplTest {
 
     em.flush();
     newestNotificationId = newestNotification.getId();
+
+    updateCreatedAt("최신 알림", FIXED_NOW);
+    updateCreatedAt("읽은 알림", FIXED_NOW.minusHours(1));
+    updateCreatedAt("삭제된 알림", FIXED_NOW.minusHours(2));
+    updateCreatedAt("이전 알림", FIXED_OLD);
+    updateCreatedAt("다른 사용자 알림", FIXED_NOW);
+
     em.clear();
   }
 
@@ -139,5 +146,12 @@ class NotificationRepositoryImplTest {
     ReflectionTestUtils.setField(notification, "updatedAt", createdAt);
     em.persist(notification);
     return notification;
+  }
+
+  private void updateCreatedAt(String content, LocalDateTime createdAt) {
+    em.createNativeQuery("UPDATE notifications SET created_at = ?1 WHERE content = ?2")
+        .setParameter(1, createdAt)
+        .setParameter(2, content)
+        .executeUpdate();
   }
 }
