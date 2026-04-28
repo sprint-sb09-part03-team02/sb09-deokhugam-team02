@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -80,13 +81,11 @@ class BookControllerTest {
         .param("publisher", "인사이트")
         .param("description", "설명")
         .param("publishedDate", "2024-01-01"))
-      .andExpect(status().isOk())
-      .andExpect(jsonPath("$.success").value(true))
-      .andExpect(jsonPath("$.status").value(201))
-      .andExpect(jsonPath("$.data.id").value(bookId.toString()))
-      .andExpect(jsonPath("$.data.title").value("클린 코드"))
-      .andExpect(jsonPath("$.data.author").value("로버트 마틴"))
-      .andExpect(jsonPath("$.data.isbn").value("9788912345678"));
+      .andExpect(status().isCreated())
+      .andExpect(jsonPath("$.id").value(bookId.toString()))
+      .andExpect(jsonPath("$.title").value("클린 코드"))
+      .andExpect(jsonPath("$.author").value("로버트 마틴"))
+      .andExpect(jsonPath("$.isbn").value("9788912345678"));
   }
 
   @Test
@@ -127,12 +126,10 @@ class BookControllerTest {
         .param("direction", "DESC")
         .param("limit", "10"))
       .andExpect(status().isOk())
-      .andExpect(jsonPath("$.success").value(true))
-      .andExpect(jsonPath("$.status").value(200))
-      .andExpect(jsonPath("$.data.content[0].id").value(bookId.toString()))
-      .andExpect(jsonPath("$.data.content[0].title").value("책 제목"))
-      .andExpect(jsonPath("$.data.totalElements").value(1))
-      .andExpect(jsonPath("$.data.hasNext").value(false));
+      .andExpect(jsonPath("$.content[0].id").value(bookId.toString()))
+      .andExpect(jsonPath("$.content[0].title").value("책 제목"))
+      .andExpect(jsonPath("$.totalElements").value(1))
+      .andExpect(jsonPath("$.hasNext").value(false));
   }
 
   @Test
@@ -150,9 +147,7 @@ class BookControllerTest {
     mockMvc.perform(multipart("/api/books/isbn/ocr")
         .file(image))
       .andExpect(status().isOk())
-      .andExpect(jsonPath("$.success").value(true))
-      .andExpect(jsonPath("$.status").value(200))
-      .andExpect(jsonPath("$.data").value("9788912345678"));
+      .andExpect(content().string("9788912345678"));
   }
 
   @Test
@@ -180,11 +175,10 @@ class BookControllerTest {
 
     mockMvc.perform(get("/api/books/{bookId}", bookId))
       .andExpect(status().isOk())
-      .andExpect(jsonPath("$.success").value(true))
-      .andExpect(jsonPath("$.data.id").value(bookId.toString()))
-      .andExpect(jsonPath("$.data.title").value("책 제목"))
-      .andExpect(jsonPath("$.data.reviewCount").value(3))
-      .andExpect(jsonPath("$.data.rating").value(4.5));
+      .andExpect(jsonPath("$.id").value(bookId.toString()))
+      .andExpect(jsonPath("$.title").value("책 제목"))
+      .andExpect(jsonPath("$.reviewCount").value(3))
+      .andExpect(jsonPath("$.rating").value(4.5));
   }
 
   @Test
@@ -229,11 +223,9 @@ class BookControllerTest {
           return request;
         }))
       .andExpect(status().isOk())
-      .andExpect(jsonPath("$.success").value(true))
-      .andExpect(jsonPath("$.status").value(200))
-      .andExpect(jsonPath("$.data.id").value(bookId.toString()))
-      .andExpect(jsonPath("$.data.title").value("수정된 제목"))
-      .andExpect(jsonPath("$.data.author").value("수정된 저자"));
+      .andExpect(jsonPath("$.id").value(bookId.toString()))
+      .andExpect(jsonPath("$.title").value("수정된 제목"))
+      .andExpect(jsonPath("$.author").value("수정된 저자"));
   }
 
   @Test
@@ -244,10 +236,7 @@ class BookControllerTest {
     doNothing().when(bookService).deleteBook(bookId);
 
     mockMvc.perform(delete("/api/books/{bookId}", bookId))
-      .andExpect(status().isOk())
-      .andExpect(jsonPath("$.success").value(true))
-      .andExpect(jsonPath("$.status").value(204))
-      .andExpect(jsonPath("$.data").doesNotExist());
+      .andExpect(status().isNoContent());
   }
 
   @Test
@@ -293,11 +282,10 @@ class BookControllerTest {
         .param("direction", "DESC")
         .param("limit", "10"))
       .andExpect(status().isOk())
-      .andExpect(jsonPath("$.success").value(true))
-      .andExpect(jsonPath("$.data.content[0].id").value(popularBookId.toString()))
-      .andExpect(jsonPath("$.data.content[0].bookId").value(bookId.toString()))
-      .andExpect(jsonPath("$.data.content[0].title").value("인기 도서"))
-      .andExpect(jsonPath("$.data.content[0].rank").value(1));
+      .andExpect(jsonPath("$.content[0].id").value(popularBookId.toString()))
+      .andExpect(jsonPath("$.content[0].bookId").value(bookId.toString()))
+      .andExpect(jsonPath("$.content[0].title").value("인기 도서"))
+      .andExpect(jsonPath("$.content[0].rank").value(1));
   }
 
   @Test
@@ -318,12 +306,10 @@ class BookControllerTest {
     mockMvc.perform(get("/api/books/info")
         .param("isbn", "9788912345678"))
       .andExpect(status().isOk())
-      .andExpect(jsonPath("$.success").value(true))
-      .andExpect(jsonPath("$.status").value(200))
-      .andExpect(jsonPath("$.data.title").value("클린 코드"))
-      .andExpect(jsonPath("$.data.author").value("로버트 마틴"))
-      .andExpect(jsonPath("$.data.isbn").value("9788912345678"))
-      .andExpect(jsonPath("$.data.thumbnailImage").value("https://image.test/book.png"));
+      .andExpect(jsonPath("$.title").value("클린 코드"))
+      .andExpect(jsonPath("$.author").value("로버트 마틴"))
+      .andExpect(jsonPath("$.isbn").value("9788912345678"))
+      .andExpect(jsonPath("$.thumbnailImage").value("https://image.test/book.png"));
   }
 
   @Test
@@ -334,9 +320,6 @@ class BookControllerTest {
     doNothing().when(bookService).hardDeleteBook(bookId);
 
     mockMvc.perform(delete("/api/books/{bookId}/hard", bookId))
-      .andExpect(status().isOk())
-      .andExpect(jsonPath("$.success").value(true))
-      .andExpect(jsonPath("$.status").value(204))
-      .andExpect(jsonPath("$.data").doesNotExist());
+      .andExpect(status().isNoContent());
   }
 }

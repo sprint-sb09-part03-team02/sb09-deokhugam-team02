@@ -40,28 +40,61 @@ public class CommentRepositoryImplTest {
 
   @BeforeEach
   void setUp() {
-    // 1. 유저, 책, 리뷰 생성
-    user = User.builder().email("test@test.com").nickname("민주").password("1234").build();
+    String suffix = UUID.randomUUID().toString().substring(0, 8);
+    LocalDateTime now = LocalDateTime.now();
+
+    // 1. 유저 생성
+    user = User.builder()
+      .email("test" + suffix + "@test.com")
+      .nickname("민주" + suffix)
+      .password("1234")
+      .build();
+    ReflectionTestUtils.setField(user, "createdAt", now);
+    ReflectionTestUtils.setField(user, "updatedAt", now);
     em.persist(user);
 
-    Book book = new Book("제목", "저자", "ISBN", "출판사", "설명", "url", LocalDate.now());
+    // 2. 책 생성
+    Book book = new Book("제목" + suffix, "저자", "ISBN-" + suffix, "출판사", "설명", "url", LocalDate.now());
+    ReflectionTestUtils.setField(book, "createdAt", now);
+    ReflectionTestUtils.setField(book, "updatedAt", now);
     em.persist(book);
 
-    review = Review.builder().user(user).book(book).content("리뷰").rating(5).build();
+    // 3. 리뷰 생성
+    review = Review.builder()
+      .user(user)
+      .book(book)
+      .content("리뷰 내용")
+      .rating(5)
+      .build();
+    ReflectionTestUtils.setField(review, "createdAt", now);
+    ReflectionTestUtils.setField(review, "updatedAt", now);
     em.persist(review);
     em.flush();
 
-    // 2. 옛날 댓글 생성
-    Comment commentOld = Comment.builder().review(review).userId(user.getId()).content("옛날댓글").build();
+    // 4. 옛날 댓글 생성
+    Comment commentOld = Comment.builder()
+      .review(review)
+      .userId(user.getId())
+      .content("옛날댓글")
+      .build();
+    ReflectionTestUtils.setField(commentOld, "createdAt", now);
+    ReflectionTestUtils.setField(commentOld, "updatedAt", now);
     em.persist(commentOld);
 
-    // 3. 최신 댓글 생성
-    Comment commentNew = Comment.builder().review(review).userId(user.getId()).content("최신댓글").build();
+    // 5. 최신 댓글 생성
+    Comment commentNew = Comment.builder()
+      .review(review)
+      .userId(user.getId())
+      .content("최신댓글")
+      .build();
+    ReflectionTestUtils.setField(commentNew, "createdAt", now);
+    ReflectionTestUtils.setField(commentNew, "updatedAt", now); // 추가됨
     em.persist(commentNew);
     commentNewId = commentNew.getId();
 
     em.flush();
 
+    // 6. 시간 업데이트
     em.createNativeQuery("UPDATE comments SET created_at = ?1 WHERE content = ?2")
       .setParameter(1, FIXED_OLD)
       .setParameter(2, "옛날댓글")
@@ -81,7 +114,7 @@ public class CommentRepositoryImplTest {
     // given
     CommentSearchRequest request = new CommentSearchRequest();
     request.setReviewId(review.getId());
-    request.setAfter(FIXED_NOW); // 최신댓글 시간 기준
+    request.setAfter(FIXED_NOW);
     request.setCursor(commentNewId.toString());
     request.setDirection("DESC");
     request.setLimit(10);
@@ -124,7 +157,7 @@ public class CommentRepositoryImplTest {
 
     // then
     assertThat(result).hasSize(2);
-    assertThat(result.stream().anyMatch(c -> c.userNickname().equals("민주"))).isTrue();
+    assertThat(result.stream().anyMatch(c -> c.userNickname().equals(user.getNickname()))).isTrue();
   }
 
   @Test

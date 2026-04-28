@@ -63,7 +63,12 @@ naver:
   api:
     client-id: YOUR_NAVER_CLIENT_ID
     client-secret: YOUR_NAVER_CLIENT_SECRET
-    url: https://openapi.naver.com/v1/search/book.json
+    url: https://openapi.naver.com/v1/search/book_adv.json
+
+ocr-space:
+  api:
+    key: YOUR_OCR_SPACE_API_KEY
+    url: https://api.ocr.space/parse/image
 
 # ⚠️ JWT Secret 주의:
 # - 최소 32자 이상의 랜덤 문자열 사용
@@ -83,4 +88,3 @@ logging:
     com.deokhugam: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql: TRACE
-

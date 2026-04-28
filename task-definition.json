@@ -68,6 +68,10 @@
         {
           "name": "NAVER_CLIENT_SECRET",
           "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:${AWS_ACCOUNT_ID}:secret:deokhugam/prod:NAVER_CLIENT_SECRET::"
+        },
+        {
+          "name": "OCR_SPACE_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:${AWS_ACCOUNT_ID}:secret:deokhugam/prod:OCR_SPACE_API_KEY::"
         }
       ],
       "logConfiguration": {
