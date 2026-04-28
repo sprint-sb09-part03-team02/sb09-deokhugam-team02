@@ -16,7 +16,9 @@ import com.deokhugam.deokhugam_server.domain.user.entity.User;
 import com.deokhugam.deokhugam_server.domain.user.repository.UserRepository;
 import com.deokhugam.deokhugam_server.global.type.Period;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,6 +40,7 @@ class PopularReviewServiceTest {
   @Mock private UserRepository userRepository;
   @Mock private ReviewMapper reviewMapper;
   @Mock private ApplicationEventPublisher eventPublisher;
+  private Map<UUID, Review> reviewMap;
 
   @BeforeEach
   void setUp() {
@@ -46,6 +49,7 @@ class PopularReviewServiceTest {
         reviewRepository, popularReviewRepository, bookRepository,
         userRepository, reviewMapper, eventPublisher
     );
+    reviewMap = new HashMap<>();
   }
 
   @AfterEach
@@ -69,6 +73,7 @@ class PopularReviewServiceTest {
 
     setupMockReview(reviewId1, "높은 점수 리뷰");
     setupMockReview(reviewId2, "낮은 점수 리뷰");
+    when(reviewRepository.findAllById(any())).thenReturn(List.copyOf(reviewMap.values()));
 
     when(popularReviewRepository.findAllByPeriodTypeAndCalculatedDate(any(), any()))
         .thenReturn(Collections.emptyList());
@@ -92,10 +97,10 @@ class PopularReviewServiceTest {
     Review mockReview = mock(Review.class);
     User mockUser = mock(User.class);
 
-    when(reviewRepository.getReferenceById(reviewId)).thenReturn(mockReview);
     when(mockReview.getId()).thenReturn(reviewId);
     when(mockReview.getUser()).thenReturn(mockUser);
     when(mockReview.getContent()).thenReturn(content);
     when(mockUser.getId()).thenReturn(UUID.randomUUID());
+    reviewMap.put(reviewId, mockReview);
   }
 }

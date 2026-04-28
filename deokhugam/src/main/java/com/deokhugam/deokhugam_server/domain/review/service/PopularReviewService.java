@@ -62,6 +62,8 @@ public class PopularReviewService {
     }
     popularReviewRepository.saveAll(rankings);
 
+    popularReviewRepository.saveAll(rankings);
+
     rankings.stream()
         .filter(r -> r.getRankOrder() <= 10)
         .forEach(r -> eventPublisher.publishEvent(new ReviewRankedEvent(
