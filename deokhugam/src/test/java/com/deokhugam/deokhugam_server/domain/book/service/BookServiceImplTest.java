@@ -13,8 +13,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.deokhugam.deokhugam_server.domain.book.client.NaverBookClient;
-import com.deokhugam.deokhugam_server.domain.book.client.OcrSpaceClient;
+import com.deokhugam.deokhugam_server.domain.book.client.BookInfoClient;
+import com.deokhugam.deokhugam_server.domain.book.client.TextExtractionClient;
 import com.deokhugam.deokhugam_server.domain.book.dto.request.BookCreateRequest;
 import com.deokhugam.deokhugam_server.domain.book.dto.request.BookSearchRequest;
 import com.deokhugam.deokhugam_server.domain.book.dto.request.BookUpdateRequest;
@@ -58,10 +58,10 @@ class BookServiceImplTest {
   private BookMapper bookMapper;
 
   @Mock
-  private OcrSpaceClient ocrSpaceClient;
+  private TextExtractionClient textExtractionClient;
 
   @Mock
-  private NaverBookClient naverBookClient;
+  private BookInfoClient bookInfoClient;
 
   @InjectMocks
   private BookServiceImpl bookService;
@@ -486,7 +486,7 @@ class BookServiceImplTest {
       "dummy".getBytes()
     );
 
-    when(ocrSpaceClient.parseText(image)).thenReturn("ISBN 978-89-1234-567-8");
+    when(textExtractionClient.parseText(image)).thenReturn("ISBN 978-89-1234-567-8");
 
     String result = bookService.extractIsbn(image);
 
@@ -503,7 +503,7 @@ class BookServiceImplTest {
       "dummy".getBytes()
     );
 
-    when(ocrSpaceClient.parseText(image)).thenReturn("ISBN 89-1234-567X");
+    when(textExtractionClient.parseText(image)).thenReturn("ISBN 89-1234-567X");
 
     String result = bookService.extractIsbn(image);
 
@@ -554,7 +554,7 @@ class BookServiceImplTest {
       "dummy".getBytes()
     );
 
-    when(ocrSpaceClient.parseText(image)).thenReturn("no isbn text");
+    when(textExtractionClient.parseText(image)).thenReturn("no isbn text");
 
     DeokhugamException exception = assertThrows(DeokhugamException.class, () ->
       bookService.extractIsbn(image)
@@ -579,7 +579,7 @@ class BookServiceImplTest {
       "https://image.test/book.png"
     );
 
-    when(naverBookClient.searchByIsbn(normalizedIsbn)).thenReturn(expected);
+    when(bookInfoClient.searchByIsbn(normalizedIsbn)).thenReturn(expected);
 
     NaverBookDto result = bookService.getBookInfo(isbn);
 
@@ -596,7 +596,7 @@ class BookServiceImplTest {
     String isbn = "978-89-1234-567-8";
     String normalizedIsbn = "9788912345678";
 
-    when(naverBookClient.searchByIsbn(normalizedIsbn))
+    when(bookInfoClient.searchByIsbn(normalizedIsbn))
       .thenThrow(new DeokhugamException(ErrorCode.BOOK_INFO_NOT_FOUND));
 
     DeokhugamException exception = assertThrows(DeokhugamException.class, () ->

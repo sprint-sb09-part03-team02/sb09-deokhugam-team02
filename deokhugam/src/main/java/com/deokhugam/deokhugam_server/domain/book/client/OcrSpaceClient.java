@@ -15,11 +15,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Component
 @RequiredArgsConstructor
-public class OcrSpaceClient {
+public class OcrSpaceClient implements TextExtractionClient {
 
   private final RestClient.Builder restClientBuilder;
   private final OcrSpaceProperties properties;
 
+  @Override
   public String parseText(MultipartFile image) {
     try {
       MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
