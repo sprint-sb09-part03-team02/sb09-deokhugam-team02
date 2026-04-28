@@ -4,7 +4,7 @@ import java.util.UUID;
 
 public record UserRankQueryDto(
     UUID userId,
-    Double totalReviewScore,
+    Long totalReviewScore,
     Long givenLikeCount,
     Long writtenCommentCount
 ) {

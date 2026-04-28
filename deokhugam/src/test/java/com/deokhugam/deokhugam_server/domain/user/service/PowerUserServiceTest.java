@@ -52,8 +52,8 @@ class PowerUserServiceTest {
     UUID user1Id = UUID.randomUUID();
     UUID user2Id = UUID.randomUUID();
 
-    UserRankQueryDto user1Stat = new UserRankQueryDto(user1Id, 0.0, 10L, 20L);
-    UserRankQueryDto user2Stat = new UserRankQueryDto(user2Id, 0.0, 50L, 100L);
+    UserRankQueryDto user1Stat = new UserRankQueryDto(user1Id, 0L, 10L, 20L);
+    UserRankQueryDto user2Stat = new UserRankQueryDto(user2Id, 0L, 50L, 100L);
 
     given(userRepository.findUserActivityStatistics(any(), any())).willReturn(List.of(user1Stat, user2Stat));
     given(popularReviewRepository.sumScoreByUserIdAndPeriod(any(), any(), any())).willReturn(Optional.of(0.0));

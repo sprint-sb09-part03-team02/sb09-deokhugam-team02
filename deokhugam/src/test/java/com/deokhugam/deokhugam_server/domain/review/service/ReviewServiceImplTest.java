@@ -3,6 +3,8 @@ package com.deokhugam.deokhugam_server.domain.review.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -63,16 +65,22 @@ class ReviewServiceImplTest {
   private User user;
   private Book book;
   private Review review;
-  private UUID userId = UUID.randomUUID();
-  private UUID bookId = UUID.randomUUID();
-  private UUID reviewId = UUID.randomUUID();
+  private final UUID userId = UUID.randomUUID();
+  private final UUID bookId = UUID.randomUUID();
+  private final UUID reviewId = UUID.randomUUID();
 
   @BeforeEach
   void setUp() {
     user = User.builder().id(userId).nickname("민주").build();
     book = new Book("제목", "저자", "123", "출판사", "설명", "url", LocalDate.now());
     ReflectionTestUtils.setField(book, "id", bookId);
-    review = Review.builder().id(reviewId).user(user).book(book).content("꿀잼").rating(5).build();
+    review = Review.builder()
+      .id(reviewId)
+      .user(user)
+      .book(book)
+      .content("꿀잼")
+      .rating(5)
+      .build();
   }
 
   @Nested
@@ -80,14 +88,43 @@ class ReviewServiceImplTest {
   class ReviewReadWrite {
 
     @Test
+    @DisplayName("생성 성공: 유효한 데이터로 리뷰 등록")
+    void createReview_Success() {
+      ReviewCreateRequest request = new ReviewCreateRequest(bookId, userId, "꿀잼", 5);
+      given(bookRepository.findById(bookId)).willReturn(Optional.of(book));
+      given(userRepository.findById(userId)).willReturn(Optional.of(user));
+      given(reviewRepository.existsByBookIdAndUserIdAndIsDeletedFalse(bookId, userId)).willReturn(false);
+      given(reviewMapper.toEntity(any(), any(), any())).willReturn(review);
+      given(reviewRepository.save(any())).willReturn(review);
+      given(reviewMapper.toDto(any(), anyBoolean())).willReturn(new ReviewDto(reviewId, bookId, "제목", "url", userId, "민주", "꿀잼", 5, 0, 0, false, null, null));
+
+      ReviewDto result = reviewService.createReview(request);
+
+      assertThat(result).isNotNull();
+      assertThat(result.content()).isEqualTo("꿀잼");
+      verify(reviewRepository).save(any());
+    }
+
+    @Test
+    @DisplayName("생성 실패: 이미 리뷰를 작성한 도서 (1인 1리뷰 제한)")
+    void createReview_Fail_AlreadyReviewed() {
+      given(bookRepository.findById(bookId)).willReturn(Optional.of(book));
+      given(userRepository.findById(userId)).willReturn(Optional.of(user));
+      given(reviewRepository.existsByBookIdAndUserIdAndIsDeletedFalse(bookId, userId)).willReturn(true);
+
+      assertThatThrownBy(() -> reviewService.createReview(new ReviewCreateRequest(bookId, userId, "내용", 5)))
+        .isInstanceOf(DeokhugamException.class)
+        .hasMessageContaining(ErrorCode.ALREADY_REVIEWED.getMessage());
+    }
+
+    @Test
     @DisplayName("생성 실패: 도서를 찾을 수 없음")
     void createReview_Fail_BookNotFound() {
       given(bookRepository.findById(bookId)).willReturn(Optional.empty());
 
       assertThatThrownBy(() -> reviewService.createReview(new ReviewCreateRequest(bookId, userId, "내용", 5)))
-          .isInstanceOf(DeokhugamException.class)
-          // .hasMessageContaining("BOOK_NOT_FOUND") 대신 아래처럼 수정!
-          .hasMessageContaining(ErrorCode.BOOK_NOT_FOUND.getMessage());
+        .isInstanceOf(DeokhugamException.class)
+        .hasMessageContaining(ErrorCode.BOOK_NOT_FOUND.getMessage());
     }
 
     @Test
@@ -95,7 +132,7 @@ class ReviewServiceImplTest {
     void getReview_Success() {
       given(reviewRepository.findByIdAndIsDeletedFalse(reviewId)).willReturn(Optional.of(review));
       given(reviewLikeRepository.existsByReviewIdAndUserId(reviewId, userId)).willReturn(true);
-      given(reviewMapper.toDto(any(), anyBoolean())).willReturn(new ReviewDto(reviewId, bookId, "제목", "url", userId, "닉네임", "내용", 5, 0, 0, true, null, null));
+      given(reviewMapper.toDto(any(), anyBoolean())).willReturn(new ReviewDto(reviewId, bookId, "제목", "url", userId, "민주", "꿀잼", 5, 0, 0, true, null, null));
 
       ReviewDto result = reviewService.getReview(reviewId, userId);
       assertThat(result.likedByMe()).isTrue();
@@ -105,7 +142,8 @@ class ReviewServiceImplTest {
     @DisplayName("조회 실패: 리뷰 없음")
     void getReview_Fail_NotFound() {
       given(reviewRepository.findByIdAndIsDeletedFalse(reviewId)).willReturn(Optional.empty());
-      assertThatThrownBy(() -> reviewService.getReview(reviewId, userId)).isInstanceOf(DeokhugamException.class);
+      assertThatThrownBy(() -> reviewService.getReview(reviewId, userId))
+        .isInstanceOf(DeokhugamException.class);
     }
   }
 
@@ -119,8 +157,8 @@ class ReviewServiceImplTest {
       ReviewSearchRequest request = new ReviewSearchRequest();
       request.setLimit(1);
       List<ReviewDto> dtoList = new ArrayList<>(List.of(
-          new ReviewDto(reviewId, bookId, "T1", "U1", userId, "N1", "C1", 5, 0, 0, false, LocalDateTime.now(), null),
-          new ReviewDto(UUID.randomUUID(), bookId, "T2", "U2", userId, "N2", "C2", 4, 0, 0, false, LocalDateTime.now(), null)
+        new ReviewDto(reviewId, bookId, "T1", "U1", userId, "N1", "C1", 5, 0, 0, false, LocalDateTime.now(), null),
+        new ReviewDto(UUID.randomUUID(), bookId, "T2", "U2", userId, "N2", "C2", 4, 0, 0, false, LocalDateTime.now(), null)
       ));
       given(reviewRepository.searchReviews(any())).willReturn(dtoList);
 
@@ -136,7 +174,7 @@ class ReviewServiceImplTest {
       ReflectionTestUtils.setField(pr, "createdAt", LocalDateTime.now());
 
       given(popularReviewRepository.findPopularReviewsWithPaging(any(), anyString(), any(), any(), any(Limit.class)))
-          .willReturn(List.of(pr));
+        .willReturn(List.of(pr));
       given(popularReviewRepository.countByPeriodType(any())).willReturn(1L);
 
       CursorPageResponse<PopularReviewDto> result = reviewService.searchPopularReviews(Period.DAILY, "DESC", "1", "2026-04-21T00:00:00Z", 10);
@@ -157,21 +195,36 @@ class ReviewServiceImplTest {
       given(reviewRepository.findByIdAndIsDeletedFalse(reviewId)).willReturn(Optional.of(otherReview));
 
       assertThatThrownBy(() -> reviewService.updateReview(reviewId, new ReviewUpdateRequest("내용", 5), userId))
-          .isInstanceOf(DeokhugamException.class)
-          .hasMessageContaining(ErrorCode.NOT_REVIEW_OWNER.getMessage());
+        .isInstanceOf(DeokhugamException.class)
+        .hasMessageContaining(ErrorCode.NOT_REVIEW_OWNER.getMessage());
     }
 
     @Test
     @DisplayName("물리 삭제 실패: 리뷰 존재 안 함")
     void hardDeleteReview_Fail_NotFound() {
       given(reviewRepository.findById(reviewId)).willReturn(Optional.empty());
-      assertThatThrownBy(() -> reviewService.hardDeleteReview(reviewId, userId)).isInstanceOf(DeokhugamException.class);
+      assertThatThrownBy(() -> reviewService.hardDeleteReview(reviewId, userId))
+        .isInstanceOf(DeokhugamException.class);
     }
   }
 
   @Nested
   @DisplayName("좋아요 토글 테스트")
   class LikeToggle {
+
+    @Test
+    @DisplayName("좋아요 추가 성공: 새 좋아요 저장 및 알림 이벤트 발행")
+    void likeReview_Add_Success() {
+      given(reviewRepository.findByIdAndIsDeletedFalse(reviewId)).willReturn(Optional.of(review));
+      given(userRepository.findById(userId)).willReturn(Optional.of(user));
+      given(reviewLikeRepository.findByReviewIdAndUserId(reviewId, userId)).willReturn(Optional.empty());
+
+      ReviewLikeDto result = reviewService.likeReview(reviewId, userId);
+
+      assertThat(result.liked()).isTrue();
+      verify(reviewLikeRepository).save(any());
+      verify(eventPublisher).publishEvent(any(ReviewLikedEvent.class));
+    }
 
     @Test
     @DisplayName("좋아요 취소: 이미 있는 경우 삭제 로직 실행")
@@ -193,7 +246,8 @@ class ReviewServiceImplTest {
       given(reviewRepository.findByIdAndIsDeletedFalse(reviewId)).willReturn(Optional.of(review));
       given(userRepository.findById(userId)).willReturn(Optional.empty());
 
-      assertThatThrownBy(() -> reviewService.likeReview(reviewId, userId)).isInstanceOf(DeokhugamException.class);
+      assertThatThrownBy(() -> reviewService.likeReview(reviewId, userId))
+        .isInstanceOf(DeokhugamException.class);
     }
   }
 }

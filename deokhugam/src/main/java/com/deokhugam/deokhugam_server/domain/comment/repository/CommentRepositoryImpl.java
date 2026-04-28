@@ -24,41 +24,41 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom {
     int pageSize = request.getLimit();
 
     return queryFactory
-        .select(Projections.constructor(CommentDto.class,
-            comment.id,
-            comment.review.id,
-            comment.userId,
-            user.nickname,
-            comment.content,
-            comment.createdAt,
-            comment.updatedAt
-        ))
-        .from(comment)
-        .leftJoin(user).on(comment.userId.eq(user.id))
-        .where(
-            eqReviewId(request.getReviewId()),
-            eqUserId(request.getUserId()),
-            ltCursorAfter(request.getAfter(), request.getCursor()),
-            comment.isDeleted.isFalse()
-        )
-        .orderBy(
-            getOrderSpecifier(request.getDirection()),
-            comment.id.desc()
-        )
-        .limit(pageSize + 1)
-        .fetch();
+      .select(Projections.constructor(CommentDto.class,
+        comment.id,
+        comment.review.id,
+        comment.userId,
+        user.nickname,
+        comment.content,
+        comment.createdAt,
+        comment.updatedAt
+      ))
+      .from(comment)
+      .leftJoin(user).on(comment.userId.eq(user.id))
+      .where(
+        eqReviewId(request.getReviewId()),
+        eqUserId(request.getUserId()),
+        getCursorCondition(request.getAfter(), request.getCursor(), request.getDirection()),
+        comment.isDeleted.isFalse()
+      )
+      .orderBy(
+        getOrderSpecifier(request.getDirection()),
+        comment.id.desc()
+      )
+      .limit(pageSize + 1)
+      .fetch();
   }
 
   @Override
   public long countComments(UUID reviewId) {
     return queryFactory
-        .select(comment.count())
-        .from(comment)
-        .where(
-            eqReviewId(reviewId),
-            comment.isDeleted.isFalse()
-        )
-        .fetchOne();
+      .select(comment.count())
+      .from(comment)
+      .where(
+        eqReviewId(reviewId),
+        comment.isDeleted.isFalse()
+      )
+      .fetchOne();
   }
 
   private BooleanExpression eqReviewId(UUID reviewId) {
@@ -69,12 +69,21 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom {
     return userId != null ? comment.userId.eq(userId) : null;
   }
 
-  private BooleanExpression ltCursorAfter(LocalDateTime after, String cursor) {
+  private BooleanExpression getCursorCondition(LocalDateTime after, String cursor, String direction) {
     if (after == null || cursor == null) return null;
 
-    return comment.createdAt.lt(after)
-        .or(comment.createdAt.eq(after)
-            .and(comment.id.lt(UUID.fromString(cursor))));
+    UUID uuidCursor = UUID.fromString(cursor);
+    boolean isAsc = "ASC".equalsIgnoreCase(direction);
+
+    if (isAsc) {
+      // 오름차순: 커서보다 이후 데이터 (Greater Than)
+      return comment.createdAt.gt(after)
+        .or(comment.createdAt.eq(after).and(comment.id.gt(uuidCursor)));
+    } else {
+      // 내림차순: 커서보다 이전 데이터 (Less Than)
+      return comment.createdAt.lt(after)
+        .or(comment.createdAt.eq(after).and(comment.id.lt(uuidCursor)));
+    }
   }
 
   private OrderSpecifier<LocalDateTime> getOrderSpecifier(String direction) {
