@@ -12,6 +12,7 @@ import com.deokhugam.deokhugam_server.global.type.Period;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -102,9 +103,9 @@ public class ReviewController {
   @GetMapping("/popular")
   public ResponseEntity<CursorPageResponse<PopularReviewDto>> searchPopularReview(
       @RequestParam(defaultValue = "DAILY") Period period,
-      @RequestParam(defaultValue = "DESC") String direction, // 수정됨: 인기 순위이므로 DESC가 기본
+      @RequestParam(defaultValue = "DESC") String direction,
       @RequestParam(required = false) String cursor,
-      @RequestParam(required = false) String after,
+      @RequestParam(required = false) LocalDateTime after,
       @RequestParam(defaultValue = "50") int limit
   ) {
     CursorPageResponse<PopularReviewDto> popularReviews = reviewService.searchPopularReviews(period, direction, cursor, after, limit);
