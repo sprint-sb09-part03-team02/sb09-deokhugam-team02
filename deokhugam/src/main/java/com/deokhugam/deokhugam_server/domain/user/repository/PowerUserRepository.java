@@ -16,7 +16,7 @@ public interface PowerUserRepository extends JpaRepository<PowerUser, UUID> {
     "JOIN FETCH p.user u " +
     "WHERE p.periodType = :period " +
     "AND (:cursor IS NULL OR p.rankOrder > :cursor) " +
-    "ORDER BY p.rankOrder ASC")
+    "ORDER BY p.rankOrder DESC")
   List<PowerUser> findPowerUsersDesc(
     @Param("period") Period period,
     @Param("cursor") Integer cursor,

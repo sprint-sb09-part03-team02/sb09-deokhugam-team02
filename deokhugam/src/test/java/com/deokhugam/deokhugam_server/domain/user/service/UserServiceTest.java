@@ -3,7 +3,6 @@ package com.deokhugam.deokhugam_server.domain.user.service;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -39,6 +38,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.data.domain.Limit;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -275,11 +275,12 @@ class UserServiceTest {
     ReflectionTestUtils.setField(user1, "createdAt", LocalDateTime.now());
     ReflectionTestUtils.setField(user2, "createdAt", LocalDateTime.now());
 
-    given(powerUserRepository.findPowerUsersByRequirements(eq(Period.MONTHLY), anyString(), any(), any(), any()))
-        .willReturn(List.of(user1, user2));
+    given(powerUserRepository.findPowerUsersDesc(eq(Period.MONTHLY), any(), any(Limit.class)))
+      .willReturn(List.of(user1, user2));
+
     given(powerUserRepository.countByPeriodType(Period.MONTHLY)).willReturn(10L);
     given(userMapper.toPowerUserDto(any())).willReturn(
-        new PowerUserDto(userId, "tester", Period.MONTHLY, LocalDateTime.now(), 1, 100.0, 500.0, 10, 5)
+      new PowerUserDto(userId, "tester", Period.MONTHLY, LocalDateTime.now(), 1, 100.0, 500.0, 10, 5)
     );
 
     // when
@@ -291,7 +292,7 @@ class UserServiceTest {
     assertThat(result.nextCursor()).isEqualTo("1");
     assertThat(result.totalElements()).isEqualTo(10L);
 
-    verify(powerUserRepository).findPowerUsersByRequirements(eq(Period.MONTHLY), eq("DESC"), any(), any(), any());
+    verify(powerUserRepository).findPowerUsersDesc(eq(Period.MONTHLY), any(), any(Limit.class));
     verify(userMapper, atLeastOnce()).toPowerUserDto(any());
   }
 
@@ -308,6 +309,5 @@ class UserServiceTest {
         .isInstanceOf(DeokhugamException.class)
         .hasMessage(ErrorCode.INVALID_INPUT_VALUE.getMessage());
 
-    verify(powerUserRepository, never()).findPowerUsersByRequirements(any(), any(), any(), any(), any());
-  }
+    verify(powerUserRepository, never()).findPowerUsersDesc(any(), any(), any());  }
 }
