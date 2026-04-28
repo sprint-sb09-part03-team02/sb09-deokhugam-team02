@@ -15,7 +15,7 @@ import org.springframework.web.client.RestClient;
 
 @Component
 @RequiredArgsConstructor
-public class NaverBookClient {
+public class NaverBookClient implements BookInfoClient {
 
   private static final DateTimeFormatter NAVER_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd");
   private static final Pattern HTML_TAG_PATTERN = Pattern.compile("<[^>]*>");
@@ -23,6 +23,7 @@ public class NaverBookClient {
   private final RestClient.Builder restClientBuilder;
   private final NaverApiProperties properties;
 
+  @Override
   public NaverBookDto searchByIsbn(String isbn) {
     try {
       NaverBookResponse response = restClientBuilder.build()
