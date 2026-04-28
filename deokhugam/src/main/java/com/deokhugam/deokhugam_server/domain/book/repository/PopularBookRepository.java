@@ -19,7 +19,6 @@ public interface PopularBookRepository extends JpaRepository<PopularBook, UUID> 
       + "JOIN FETCH p.book b " +
       "WHERE p.periodType = :period " +
       "AND (" +
-    "  CAST(:after AS LocalDate) IS NULL OR " +
     "  CAST(:after AS LocalDateTime) IS NULL OR " +
     "  (CAST(:direction AS string) = 'DESC' AND (p.createdAt < :after OR (p.createdAt = :after AND p.rankOrder > :cursor))) OR " +
     "  (CAST(:direction AS string) = 'ASC' AND (p.createdAt > :after OR (p.createdAt = :after AND p.rankOrder < :cursor)))" +
