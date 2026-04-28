@@ -9,6 +9,7 @@ import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -25,7 +26,6 @@ import com.deokhugam.deokhugam_server.domain.user.service.PowerUserService;
 import com.deokhugam.deokhugam_server.domain.user.service.UserService;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.type.Period;
-import com.deokhugam.deokhugam_server.global.util.JwtProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -55,9 +55,6 @@ class UserControllerTest {
 
   @MockitoBean
   private PowerUserService powerUserService;
-
-  @MockitoBean
-  private JwtProvider jwtProvider;
 
   private UserDto commonResponse;
 
@@ -100,6 +97,8 @@ class UserControllerTest {
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(request)))
       .andExpect(status().isOk())
+      .andExpect(header().string("Deokhugam-Request-User-ID", commonResponse.id().toString()))
+      .andExpect(header().doesNotExist("Authorization"))
       .andExpect(jsonPath("$.id").value(commonResponse.id().toString()))
       .andExpect(jsonPath("$.email").value(TEST_EMAIL))
       .andExpect(jsonPath("$.nickname").value(TEST_NICKNAME))

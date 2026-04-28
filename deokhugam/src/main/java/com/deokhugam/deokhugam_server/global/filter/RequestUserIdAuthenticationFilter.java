@@ -15,7 +15,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * 요청 헤더 "Deokhugam-Request-User-ID"에서 UUID를 읽어 SecurityContext에 인증 정보를 설정합니다.
  * 유효한 UUID가 존재하면 인증된 사용자로 처리합니다.
  */
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+public class RequestUserIdAuthenticationFilter extends OncePerRequestFilter {
 
   private static final String USER_ID_HEADER = "Deokhugam-Request-User-ID";
 

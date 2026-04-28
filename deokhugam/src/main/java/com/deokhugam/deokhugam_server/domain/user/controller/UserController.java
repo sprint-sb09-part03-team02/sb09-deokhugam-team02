@@ -4,11 +4,10 @@ import com.deokhugam.deokhugam_server.domain.user.dto.request.UserLoginRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserRegisterRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserUpdateRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.response.PowerUserDto;
-import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
-import com.deokhugam.deokhugam_server.global.type.Period;
-import com.deokhugam.deokhugam_server.global.util.JwtProvider;
 import com.deokhugam.deokhugam_server.domain.user.dto.response.UserDto;
 import com.deokhugam.deokhugam_server.domain.user.service.UserService;
+import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
+import com.deokhugam.deokhugam_server.global.type.Period;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -24,7 +23,6 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class UserController {
   private final UserService userService;
-  private final JwtProvider jwtProvider;
 
   @Operation(summary = "회원가입", description = "새로운 사용자를 등록합니다.")
   @PostMapping
@@ -38,10 +36,8 @@ public class UserController {
   @PostMapping("/login")
   public ResponseEntity<UserDto> login(@Valid @RequestBody UserLoginRequest request) {
     UserDto userDto = userService.login(request);
-    String token = jwtProvider.generateToken(userDto.id());
     return ResponseEntity.status(HttpStatus.OK)
         .header("Deokhugam-Request-User-ID", userDto.id().toString())
-        .header("Authorization", "Bearer " + token)
         .body(userDto);
   }
 

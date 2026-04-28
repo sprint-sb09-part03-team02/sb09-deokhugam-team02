@@ -42,14 +42,6 @@
       ],
       "secrets": [
         {
-          "name": "JWT_SECRET",
-          "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:${AWS_ACCOUNT_ID}:secret:deokhugam/prod:JWT_SECRET::"
-        },
-        {
-          "name": "JWT_EXPIRATION",
-          "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:${AWS_ACCOUNT_ID}:secret:deokhugam/prod:JWT_EXPIRATION::"
-        },
-        {
           "name": "SPRING_DATASOURCE_URL",
           "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:${AWS_ACCOUNT_ID}:secret:deokhugam/prod:SPRING_DATASOURCE_URL::"
         },
