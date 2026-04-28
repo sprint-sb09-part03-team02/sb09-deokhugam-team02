@@ -17,11 +17,13 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class OcrSpaceClient implements TextExtractionClient {
 
+  private static final String PROVIDER = "OCR_SPACE";
+
   private final RestClient.Builder restClientBuilder;
   private final OcrSpaceProperties properties;
 
   @Override
-  public String parseText(MultipartFile image) {
+  public TextExtractionResult extractText(MultipartFile image) {
     try {
       MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
       body.add("apikey", properties.key());
@@ -51,7 +53,7 @@ public class OcrSpaceClient implements TextExtractionClient {
         throw new DeokhugamException(ErrorCode.ISBN_EXTRACTION_FAILED);
       }
 
-      return parsedText;
+      return new TextExtractionResult(parsedText, PROVIDER);
     } catch (DeokhugamException e) {
       throw e;
     } catch (Exception e) {

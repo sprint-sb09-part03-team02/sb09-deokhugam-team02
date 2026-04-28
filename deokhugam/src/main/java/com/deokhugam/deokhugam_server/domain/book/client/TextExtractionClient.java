@@ -4,5 +4,5 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface TextExtractionClient {
 
-  String parseText(MultipartFile image);
+  TextExtractionResult extractText(MultipartFile image);
 }

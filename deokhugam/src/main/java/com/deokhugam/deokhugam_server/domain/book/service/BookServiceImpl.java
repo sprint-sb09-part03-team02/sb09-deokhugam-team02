@@ -11,6 +11,7 @@ import com.deokhugam.deokhugam_server.domain.book.entity.Book;
 import com.deokhugam.deokhugam_server.domain.book.entity.PopularBook;
 import com.deokhugam.deokhugam_server.domain.book.client.BookInfoClient;
 import com.deokhugam.deokhugam_server.domain.book.client.TextExtractionClient;
+import com.deokhugam.deokhugam_server.domain.book.client.TextExtractionResult;
 import com.deokhugam.deokhugam_server.domain.book.mapper.BookMapper;
 import com.deokhugam.deokhugam_server.domain.book.repository.BookRepository;
 import com.deokhugam.deokhugam_server.domain.book.repository.PopularBookRepository;
@@ -111,8 +112,8 @@ public class BookServiceImpl implements BookService {
   public String extractIsbn(MultipartFile image) {
     validateImageFile(image);
 
-    String ocrText = textExtractionClient.parseText(image);
-    String extractedIsbn = extractIsbnFromText(ocrText);
+    TextExtractionResult extractionResult = textExtractionClient.extractText(image);
+    String extractedIsbn = extractIsbnFromText(extractionResult.text());
     if (extractedIsbn == null) {
       throw new DeokhugamException(ErrorCode.ISBN_EXTRACTION_FAILED);
     }

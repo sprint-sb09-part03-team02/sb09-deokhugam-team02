@@ -37,8 +37,8 @@ class OcrSpaceClientTest {
   }
 
   @Test
-  @DisplayName("성공: OCR 결과 텍스트를 합쳐 반환한다")
-  void parseText_Success() {
+  @DisplayName("성공: OCR 결과 텍스트와 공급자 정보를 반환한다")
+  void extractText_Success() {
     // given
     MockMultipartFile image = new MockMultipartFile(
         "file",
@@ -64,16 +64,17 @@ class OcrSpaceClientTest {
         .andRespond(withSuccess(response, MediaType.APPLICATION_JSON));
 
     // when
-    String result = client.parseText(image);
+    TextExtractionResult result = client.extractText(image);
 
     // then
-    assertThat(result).isEqualTo("ISBN\n978-89-1234-567-8");
+    assertThat(result.text()).isEqualTo("ISBN\n978-89-1234-567-8");
+    assertThat(result.provider()).isEqualTo("OCR_SPACE");
     server.verify();
   }
 
   @Test
   @DisplayName("실패: OCR 처리 오류 응답이면 ISBN 추출 실패 예외를 던진다")
-  void parseText_Fail_ErroredResponse() {
+  void extractText_Fail_ErroredResponse() {
     // given
     MockMultipartFile image = new MockMultipartFile(
         "file",
@@ -92,7 +93,7 @@ class OcrSpaceClientTest {
         .andRespond(withSuccess(response, MediaType.APPLICATION_JSON));
 
     // when & then
-    assertThatThrownBy(() -> client.parseText(image))
+    assertThatThrownBy(() -> client.extractText(image))
         .isInstanceOf(DeokhugamException.class)
         .extracting("errorCode")
         .isEqualTo(ErrorCode.ISBN_EXTRACTION_FAILED);
@@ -101,7 +102,7 @@ class OcrSpaceClientTest {
 
   @Test
   @DisplayName("실패: OCR 결과 텍스트가 비어 있으면 ISBN 추출 실패 예외를 던진다")
-  void parseText_Fail_BlankParsedText() {
+  void extractText_Fail_BlankParsedText() {
     // given
     MockMultipartFile image = new MockMultipartFile(
         "file",
@@ -120,7 +121,7 @@ class OcrSpaceClientTest {
         .andRespond(withSuccess(response, MediaType.APPLICATION_JSON));
 
     // when & then
-    assertThatThrownBy(() -> client.parseText(image))
+    assertThatThrownBy(() -> client.extractText(image))
         .isInstanceOf(DeokhugamException.class)
         .extracting("errorCode")
         .isEqualTo(ErrorCode.ISBN_EXTRACTION_FAILED);
@@ -129,7 +130,7 @@ class OcrSpaceClientTest {
 
   @Test
   @DisplayName("실패: OCR API 호출이 실패하면 ISBN 추출 실패 예외로 변환한다")
-  void parseText_Fail_ApiException() {
+  void extractText_Fail_ApiException() {
     // given
     MockMultipartFile image = new MockMultipartFile(
         "file",
@@ -142,7 +143,7 @@ class OcrSpaceClientTest {
         .andRespond(withException(new IOException("network error")));
 
     // when & then
-    assertThatThrownBy(() -> client.parseText(image))
+    assertThatThrownBy(() -> client.extractText(image))
         .isInstanceOf(DeokhugamException.class)
         .extracting("errorCode")
         .isEqualTo(ErrorCode.ISBN_EXTRACTION_FAILED);
