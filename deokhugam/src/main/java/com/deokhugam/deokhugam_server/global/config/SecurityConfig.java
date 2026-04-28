@@ -1,7 +1,7 @@
 package com.deokhugam.deokhugam_server.global.config;
 
-import com.deokhugam.deokhugam_server.global.filter.JwtAuthenticationFilter;
 import com.deokhugam.deokhugam_server.global.filter.MdcLoggingFilter;
+import com.deokhugam.deokhugam_server.global.filter.RequestUserIdAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -68,7 +68,8 @@ public class SecurityConfig {
             .anyRequest().authenticated()
         )
         .addFilterBefore(new MdcLoggingFilter(), UsernamePasswordAuthenticationFilter.class)
-        .addFilterBefore(new JwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+        .addFilterBefore(new RequestUserIdAuthenticationFilter(),
+            UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
   }
