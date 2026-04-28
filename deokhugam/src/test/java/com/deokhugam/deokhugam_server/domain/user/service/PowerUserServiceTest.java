@@ -7,6 +7,7 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import com.deokhugam.deokhugam_server.domain.review.repository.PopularReviewRepository;
 import com.deokhugam.deokhugam_server.domain.user.dto.response.UserRankQueryDto;
 import com.deokhugam.deokhugam_server.domain.user.entity.PowerUser;
 import com.deokhugam.deokhugam_server.domain.user.entity.User;
@@ -35,6 +36,9 @@ class PowerUserServiceTest {
 
   @InjectMocks
   private PowerUserService powerUserService;
+
+  @Mock
+  private PopularReviewRepository popularReviewRepository;
 
   @Captor
   private ArgumentCaptor<List<PowerUser>> listCaptor;
