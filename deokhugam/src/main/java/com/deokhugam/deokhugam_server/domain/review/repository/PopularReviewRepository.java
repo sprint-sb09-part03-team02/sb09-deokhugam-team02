@@ -35,25 +35,28 @@ public interface PopularReviewRepository extends JpaRepository<PopularReview, UU
   List<PopularReview> findAllByPeriodTypeAndCalculatedDate(Period periodType,
       LocalDate calculatedDate);
 
-  @Query("select p from PopularReview p " +
-      "join fetch p.review r " +
-      "WHERE p.periodType = :period " +
-      "AND (" +
-    "  CAST(:after AS LocalDateTime) IS NULL OR " +
-    "  (CAST(:direction AS string) = 'DESC' AND (p.createdAt < :after OR (p.createdAt = :after AND p.rankOrder > :cursor))) OR " +
-    "  (CAST(:direction AS string) = 'ASC' AND (p.createdAt > :after OR (p.createdAt = :after AND p.rankOrder < :cursor)))" +
-      ") " +
-      "ORDER BY " +
-    "  CASE WHEN CAST(:direction AS string) = 'DESC' THEN p.createdAt END DESC, " +
-    "  CASE WHEN CAST(:direction AS string) = 'DESC' THEN p.rankOrder END ASC, " +
-    "  CASE WHEN CAST(:direction AS string) = 'ASC' THEN p.createdAt END ASC, " +
-    "  CASE WHEN CAST(:direction AS string) = 'ASC' THEN p.rankOrder END DESC")
-  List<PopularReview> findPopularReviewsWithPaging(
-      @Param("period") Period period,
-      @Param("direction") String direction,
-      @Param("cursor") Integer cursor,
-      @Param("after") LocalDateTime after,
-      @Param("limit") Limit limit
+  @Query("SELECT r FROM PopularReview r " +
+    "JOIN FETCH r.review rev " +
+    "WHERE r.periodType = :period " +
+    "AND (:after IS NULL OR r.createdAt < :after OR (r.createdAt = :after AND r.rankOrder > :cursor)) " +
+    "ORDER BY r.createdAt DESC, r.rankOrder DESC")
+  List<PopularReview> findPopularReviewsDesc(
+    @Param("period") Period period,
+    @Param("cursor") Integer cursor,
+    @Param("after") LocalDateTime after,
+    Limit limit
+  );
+
+  @Query("SELECT r FROM PopularReview r " +
+    "JOIN FETCH r.review rev " +
+    "WHERE r.periodType = :period " +
+    "AND (:after IS NULL OR r.createdAt > :after OR (r.createdAt = :after AND r.rankOrder < :cursor)) " +
+    "ORDER BY r.createdAt ASC, r.rankOrder ASC")
+  List<PopularReview> findPopularReviewsAsc(
+    @Param("period") Period period,
+    @Param("cursor") Integer cursor,
+    @Param("after") LocalDateTime after,
+    Limit limit
   );
 
   long countByPeriodType(Period periodType);
