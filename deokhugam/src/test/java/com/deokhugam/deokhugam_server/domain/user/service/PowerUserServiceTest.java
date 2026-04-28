@@ -7,7 +7,6 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-import com.deokhugam.deokhugam_server.domain.review.repository.PopularReviewRepository;
 import com.deokhugam.deokhugam_server.domain.user.dto.response.UserRankQueryDto;
 import com.deokhugam.deokhugam_server.domain.user.entity.PowerUser;
 import com.deokhugam.deokhugam_server.domain.user.entity.User;
@@ -15,7 +14,6 @@ import com.deokhugam.deokhugam_server.domain.user.repository.PowerUserRepository
 import com.deokhugam.deokhugam_server.domain.user.repository.UserRepository;
 import com.deokhugam.deokhugam_server.global.type.Period;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,9 +33,6 @@ class PowerUserServiceTest {
   @Mock
   private PowerUserRepository powerUserRepository;
 
-  @Mock
-  private PopularReviewRepository popularReviewRepository;
-
   @InjectMocks
   private PowerUserService powerUserService;
 
@@ -56,7 +51,6 @@ class PowerUserServiceTest {
     UserRankQueryDto user2Stat = new UserRankQueryDto(user2Id, 0L, 50L, 100L);
 
     given(userRepository.findUserActivityStatistics(any(), any())).willReturn(List.of(user1Stat, user2Stat));
-    given(popularReviewRepository.sumScoreByUserIdAndPeriod(any(), any(), any())).willReturn(Optional.of(0.0));
 
     given(userRepository.getReferenceById(user1Id)).willReturn(User.builder().id(user1Id).build());
     given(userRepository.getReferenceById(user2Id)).willReturn(User.builder().id(user2Id).build());

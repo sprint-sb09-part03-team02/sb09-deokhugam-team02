@@ -275,7 +275,7 @@ class UserServiceTest {
     ReflectionTestUtils.setField(user1, "createdAt", LocalDateTime.now());
     ReflectionTestUtils.setField(user2, "createdAt", LocalDateTime.now());
 
-    given(powerUserRepository.findPowerUsersDesc(eq(Period.MONTHLY), any(), any(Limit.class)))
+    given(powerUserRepository.findPowerUsersDesc(eq(Period.MONTHLY), any(), any(), any(Limit.class)))
       .willReturn(List.of(user1, user2));
 
     given(powerUserRepository.countByPeriodType(Period.MONTHLY)).willReturn(10L);
@@ -292,7 +292,7 @@ class UserServiceTest {
     assertThat(result.nextCursor()).isEqualTo("1");
     assertThat(result.totalElements()).isEqualTo(10L);
 
-    verify(powerUserRepository).findPowerUsersDesc(eq(Period.MONTHLY), any(), any(Limit.class));
+    verify(powerUserRepository).findPowerUsersDesc(eq(Period.MONTHLY), any(),any(), any(Limit.class));
     verify(userMapper, atLeastOnce()).toPowerUserDto(any());
   }
 
@@ -309,5 +309,5 @@ class UserServiceTest {
         .isInstanceOf(DeokhugamException.class)
         .hasMessage(ErrorCode.INVALID_INPUT_VALUE.getMessage());
 
-    verify(powerUserRepository, never()).findPowerUsersDesc(any(), any(), any());  }
+    verify(powerUserRepository, never()).findPowerUsersDesc(any(), any(),any(), any());  }
 }
