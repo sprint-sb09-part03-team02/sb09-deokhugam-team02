@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 public class PopularReviewBatch {
   private final PopularReviewService popularReviewService;
 
-  @Scheduled(cron = "0 0 3 * * *")
   public void executeDaily() {
     execute(Period.DAILY);
   }
