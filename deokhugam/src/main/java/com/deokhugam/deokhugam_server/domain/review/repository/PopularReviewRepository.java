@@ -32,17 +32,15 @@ public interface PopularReviewRepository extends JpaRepository<PopularReview, UU
       "join fetch p.review r " +
       "WHERE p.periodType = :period " +
       "AND (" +
-      "  :after IS NULL OR " +
-      "  (:direction = 'DESC' AND (p.createdAt < :after OR (p.createdAt = :after AND p.rankOrder > :cursor))) OR "
-      +
-      "  (:direction = 'ASC' AND (p.createdAt > :after OR (p.createdAt = :after AND p.rankOrder < :cursor)))"
-      +
+    "  CAST(:after AS LocalDateTime) IS NULL OR " +
+    "  (CAST(:direction AS string) = 'DESC' AND (p.createdAt < :after OR (p.createdAt = :after AND p.rankOrder > :cursor))) OR " +
+    "  (CAST(:direction AS string) = 'ASC' AND (p.createdAt > :after OR (p.createdAt = :after AND p.rankOrder < :cursor)))" +
       ") " +
       "ORDER BY " +
-      "  CASE WHEN :direction = 'DESC' THEN p.createdAt END DESC, " +
-      "  CASE WHEN :direction = 'DESC' THEN p.rankOrder END ASC, " +
-      "  CASE WHEN :direction = 'ASC' THEN p.createdAt END ASC, " +
-      "  CASE WHEN :direction = 'ASC' THEN p.rankOrder END DESC")
+    "  CASE WHEN CAST(:direction AS string) = 'DESC' THEN p.createdAt END DESC, " +
+    "  CASE WHEN CAST(:direction AS string) = 'DESC' THEN p.rankOrder END ASC, " +
+    "  CASE WHEN CAST(:direction AS string) = 'ASC' THEN p.createdAt END ASC, " +
+    "  CASE WHEN CAST(:direction AS string) = 'ASC' THEN p.rankOrder END DESC")
   List<PopularReview> findPopularReviewsWithPaging(
       @Param("period") Period period,
       @Param("direction") String direction,
