@@ -53,7 +53,7 @@ public class PopularReviewService {
 
     List<PopularReview> rankings = statistics.stream()
         .map(stat -> PopularReview.builder()
-            .review(reviewRepository.getReferenceById(stat.reviewId()))
+            .review(reviewMap.get(stat.reviewId()))
             .periodType(periodType)
             .score(stat.calculateScore())
             .likeCount(stat.likeCount())
