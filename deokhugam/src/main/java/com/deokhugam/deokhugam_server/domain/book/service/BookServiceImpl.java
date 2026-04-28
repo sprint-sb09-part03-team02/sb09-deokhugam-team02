@@ -19,10 +19,7 @@ import com.deokhugam.deokhugam_server.global.exception.DeokhugamException;
 import com.deokhugam.deokhugam_server.global.exception.ErrorCode;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.type.Period;
-import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -172,25 +169,26 @@ public class BookServiceImpl implements BookService {
 
   @Override
   public CursorPageResponse<PopularBookDto> searchPopularBooks(
-    Period period, String direction, String cursor, String after, int limit
+    Period period, String direction, String cursor, LocalDateTime after, int limit
   ) {
-    Integer cursorRank = parseCursorRank(cursor);
-    LocalDateTime afterLdt = parseLocalDateTime(after);
+    Integer cursorInt = (cursor != null) ? Integer.parseInt(cursor) : null;
+    Limit limitWithNext = Limit.of(limit + 1);
 
-    List<PopularBook> popularBooks = popularBookRepository.findPopularBooksWithPaging(
-      period, direction.toUpperCase(), cursorRank, afterLdt,
-      Limit.of(limit + 1)
-    );
+    List<PopularBook> results = "DESC".equalsIgnoreCase(direction)
+      ? popularBookRepository.findPopularBooksDesc(period, cursorInt, after, limitWithNext)
+      : popularBookRepository.findPopularBooksAsc(period, cursorInt, after, limitWithNext);
 
+    boolean hasNext = results.size() > limit;
+    List<PopularBook> content = hasNext ? results.subList(0, limit) : results;
+
+    String nextCursor = null;
+    LocalDateTime nextAfter = null;
+    if (!content.isEmpty()) {
+      PopularBook lastItem = content.get(content.size() - 1);
+      nextCursor = String.valueOf(lastItem.getRankOrder());
+      nextAfter = lastItem.getCreatedAt();
+    }
     long totalElements = popularBookRepository.countByPeriodType(period);
-
-    boolean hasNext = popularBooks.size() > limit;
-    List<PopularBook> content = hasNext ? popularBooks.subList(0, limit) : popularBooks;
-
-    String nextCursor =
-      content.isEmpty() ? null : String.valueOf(content.get(content.size() - 1).getRankOrder());
-    LocalDateTime nextAfter =
-      content.isEmpty() ? null : content.get(content.size() - 1).getCreatedAt();
 
     return new CursorPageResponse<>(
       content.stream().map(bookMapper::toPopularDto).toList(),
@@ -286,22 +284,6 @@ public class BookServiceImpl implements BookService {
       case "title" -> item.title();
       default -> item.title();
     };
-  }
-
-  private LocalDateTime parseLocalDateTime(String after) {
-    if (after == null || after.isBlank()) {
-      return null;
-    }
-
-    try {
-      ZoneId kstZone = ZoneId.of("Asia/Seoul");
-      if (after.endsWith("Z")) {
-        return LocalDateTime.ofInstant(Instant.parse(after), kstZone);
-      }
-      return LocalDateTime.parse(after);
-    } catch (Exception e) {
-      return LocalDate.parse(after.substring(0, 10)).atStartOfDay();
-    }
   }
 
   private String normalizeOrderBy(String orderBy) {

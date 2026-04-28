@@ -10,6 +10,7 @@ import com.deokhugam.deokhugam_server.domain.book.service.BookService;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.type.Period;
 import jakarta.validation.Valid;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -94,7 +95,7 @@ public class BookController {
           @RequestParam(defaultValue = "DAILY") Period period,
           @RequestParam(defaultValue = "ASC") String direction,
           @RequestParam(required = false) String cursor,
-          @RequestParam(required = false) String after,
+          @RequestParam(required = false) LocalDateTime after,
           @RequestParam(defaultValue = "50") int limit
   ) {
     CursorPageResponse<PopularBookDto> popularBooks = bookService.searchPopularBooks(
