@@ -8,6 +8,7 @@ import com.deokhugam.deokhugam_server.domain.book.dto.response.NaverBookDto;
 import com.deokhugam.deokhugam_server.domain.book.dto.response.PopularBookDto;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.type.Period;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,7 +27,7 @@ public interface BookService {
   void deleteBook(UUID bookId);
 
   CursorPageResponse<PopularBookDto> searchPopularBooks(
-    Period period, String direction, String cursor, String after, int limit
+    Period period, String direction, String cursor, LocalDateTime after, int limit
   );
 
   NaverBookDto getBookInfo(String isbn);

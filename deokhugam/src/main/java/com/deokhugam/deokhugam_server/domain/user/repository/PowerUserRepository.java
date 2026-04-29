@@ -15,25 +15,26 @@ public interface PowerUserRepository extends JpaRepository<PowerUser, UUID> {
   @Query("SELECT p FROM PowerUser p " +
     "JOIN FETCH p.user u " +
     "WHERE p.periodType = :period " +
-    "AND (:cursor IS NULL OR p.rankOrder > :cursor) " +
-    "ORDER BY p.rankOrder DESC")
+    "AND (:after IS NULL OR p.createdAt < :after OR (p.createdAt = :after AND p.rankOrder > :cursor)) " +
+    "ORDER BY p.createdAt DESC, p.rankOrder DESC")
   List<PowerUser> findPowerUsersDesc(
     @Param("period") Period period,
     @Param("cursor") Integer cursor,
+    @Param("after") LocalDateTime after,
     Limit limit
   );
 
   @Query("SELECT p FROM PowerUser p " +
     "JOIN FETCH p.user u " +
     "WHERE p.periodType = :period " +
-    "AND (:cursor IS NULL OR p.rankOrder > :cursor) " +
-    "ORDER BY p.rankOrder ASC")
+    "AND (:after IS NULL OR p.createdAt > :after OR (p.createdAt = :after AND p.rankOrder < :cursor)) " +
+    "ORDER BY p.createdAt ASC, p.rankOrder ASC")
   List<PowerUser> findPowerUsersAsc(
     @Param("period") Period period,
     @Param("cursor") Integer cursor,
+    @Param("after") LocalDateTime after,
     Limit limit
   );
-
   List<PowerUser> findAllByPeriodTypeAndCalculatedDate(Period periodType, LocalDate calculatedDate);
 
   long countByPeriodType(Period periodType);

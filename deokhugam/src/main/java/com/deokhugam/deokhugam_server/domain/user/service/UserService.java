@@ -7,6 +7,7 @@ import com.deokhugam.deokhugam_server.domain.user.dto.response.PowerUserDto;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.type.Period;
 import com.deokhugam.deokhugam_server.domain.user.dto.response.UserDto;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public interface UserService {
@@ -16,7 +17,7 @@ public interface UserService {
 
   UserDto find( UUID requestUserId, UUID targetUserId);
 
-  CursorPageResponse<PowerUserDto> findPowerUsers(Period period, String direction, String cursor, String after, int limit);
+  CursorPageResponse<PowerUserDto> findPowerUsers(Period period, String direction, String cursor, LocalDateTime after, int limit);
 
   UserDto update( UUID requestUserId, UUID targetUserId, UserUpdateRequest request);
 

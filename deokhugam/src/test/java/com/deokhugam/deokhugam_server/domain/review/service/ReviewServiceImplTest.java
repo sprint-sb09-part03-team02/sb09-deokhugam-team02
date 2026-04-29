@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -45,7 +44,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.Limit;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -173,11 +171,11 @@ class ReviewServiceImplTest {
       PopularReview pr = PopularReview.builder().review(review).rankOrder(1).build();
       ReflectionTestUtils.setField(pr, "createdAt", LocalDateTime.now());
 
-      given(popularReviewRepository.findPopularReviewsWithPaging(any(), anyString(), any(), any(), any(Limit.class)))
+      given(popularReviewRepository.findPopularReviewsDesc(any(), any(), any(), any()))
         .willReturn(List.of(pr));
       given(popularReviewRepository.countByPeriodType(any())).willReturn(1L);
 
-      CursorPageResponse<PopularReviewDto> result = reviewService.searchPopularReviews(Period.DAILY, "DESC", "1", "2026-04-21T00:00:00Z", 10);
+      CursorPageResponse<PopularReviewDto> result = reviewService.searchPopularReviews(Period.DAILY, "DESC", null, null, 10);
       assertThat(result.content()).isNotEmpty();
       verify(reviewMapper, atLeastOnce()).toPopularDto(any());
     }
