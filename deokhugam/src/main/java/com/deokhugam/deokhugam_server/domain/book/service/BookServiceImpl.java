@@ -19,6 +19,7 @@ import com.deokhugam.deokhugam_server.global.exception.DeokhugamException;
 import com.deokhugam.deokhugam_server.global.exception.ErrorCode;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.type.Period;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -172,18 +173,9 @@ public class BookServiceImpl implements BookService {
     Period period, String direction, String cursor, LocalDateTime after, int limit
   ) {
     Integer cursorInt = (cursor != null) ? Integer.parseInt(cursor) : null;
-    Limit limitWithNext = Limit.of(limit + 1);
-
-    List<PopularBook> results;
-    if (cursorInt == null || after == null) {
-      results = "DESC".equalsIgnoreCase(direction)
-        ? popularBookRepository.findPopularBooksDescFirstPage(period, limitWithNext)
-        : popularBookRepository.findPopularBooksAscFirstPage(period, limitWithNext);
-    } else {
-      results = "DESC".equalsIgnoreCase(direction)
-        ? popularBookRepository.findPopularBooksDesc(period, cursorInt, after, limitWithNext)
-        : popularBookRepository.findPopularBooksAsc(period, cursorInt, after, limitWithNext);
-    }
+    LocalDate latestDate = popularBookRepository.findMaxCalculatedDateByPeriodType(period)
+      .orElse(LocalDate.now());
+    List<PopularBook> results = popularBookRepository.findPopularBooksDynamic(period, cursorInt, after, direction, limit, latestDate);
     boolean hasNext = results.size() > limit;
     List<PopularBook> content = hasNext ? results.subList(0, limit) : results;
 

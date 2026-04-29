@@ -57,7 +57,7 @@ public class PopularBookService {
         .reviewCount(dto.reviewCount())
         .rating(dto.avgRating())
         .calculatedDate(date)
-        .rankOrder(rank) // 빌더에서 바로 순위 할당
+        .rankOrder(rank)
         .build();
   }
 }
