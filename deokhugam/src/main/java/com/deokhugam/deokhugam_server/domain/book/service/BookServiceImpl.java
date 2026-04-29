@@ -174,10 +174,16 @@ public class BookServiceImpl implements BookService {
     Integer cursorInt = (cursor != null) ? Integer.parseInt(cursor) : null;
     Limit limitWithNext = Limit.of(limit + 1);
 
-    List<PopularBook> results = "DESC".equalsIgnoreCase(direction)
-      ? popularBookRepository.findPopularBooksDesc(period, cursorInt, after, limitWithNext)
-      : popularBookRepository.findPopularBooksAsc(period, cursorInt, after, limitWithNext);
-
+    List<PopularBook> results;
+    if (cursorInt == null || after == null) {
+      results = "DESC".equalsIgnoreCase(direction)
+        ? popularBookRepository.findPopularBooksDescFirstPage(period, limitWithNext)
+        : popularBookRepository.findPopularBooksAscFirstPage(period, limitWithNext);
+    } else {
+      results = "DESC".equalsIgnoreCase(direction)
+        ? popularBookRepository.findPopularBooksDesc(period, cursorInt, after, limitWithNext)
+        : popularBookRepository.findPopularBooksAsc(period, cursorInt, after, limitWithNext);
+    }
     boolean hasNext = results.size() > limit;
     List<PopularBook> content = hasNext ? results.subList(0, limit) : results;
 

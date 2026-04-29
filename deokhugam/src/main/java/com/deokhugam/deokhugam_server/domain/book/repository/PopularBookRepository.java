@@ -38,7 +38,16 @@ public interface PopularBookRepository extends JpaRepository<PopularBook, UUID> 
     @Param("after") LocalDateTime after,
     Limit limit
   );
-  long countByPeriodType(Period periodType);
 
+  long countByPeriodType(Period periodType);
+  @Query("SELECT p FROM PopularBook p JOIN FETCH p.book b " +
+    "WHERE p.periodType = :period " +
+    "ORDER BY p.createdAt ASC, p.rankOrder ASC")
+  List<PopularBook> findPopularBooksAscFirstPage(@Param("period") Period period, Limit limit);
+
+  @Query("SELECT p FROM PopularBook p JOIN FETCH p.book b " +
+    "WHERE p.periodType = :period " +
+    "ORDER BY p.createdAt DESC, p.rankOrder DESC")
+  List<PopularBook> findPopularBooksDescFirstPage(@Param("period") Period period, Limit limit);
 }
 

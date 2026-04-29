@@ -38,14 +38,8 @@ public interface BookMapper {
   @Mapping(target = "period", source = "popularBook.periodType")
   @Mapping(target = "rank", source = "popularBook.rankOrder")
   @Mapping(target = "score", source = "popularBook.score")
-  @Mapping(
-    target = "reviewCount",
-    expression = "java(popularBook.getReviewCount() == null ? 0 : popularBook.getReviewCount().intValue())"
-  )
-  @Mapping(
-    target = "rating",
-    expression = "java(popularBook.getRating() == null ? 0.0 : popularBook.getRating())"
-  )
+  @Mapping(target = "reviewCount", source = "popularBook.book.reviewCount")
+  @Mapping(target = "rating", source = "popularBook.book.rating")
   @Mapping(target = "createdAt", source = "popularBook.createdAt")
   PopularBookDto toPopularDto(PopularBook popularBook);
 }
