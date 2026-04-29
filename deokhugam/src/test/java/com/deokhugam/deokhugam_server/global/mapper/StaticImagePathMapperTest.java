@@ -1,13 +1,17 @@
 package com.deokhugam.deokhugam_server.global.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import com.deokhugam.deokhugam_server.global.util.S3Util;
 
 class StaticImagePathMapperTest {
 
-  private final StaticImagePathMapper mapper = new StaticImagePathMapper();
+  private final S3Util s3Util = Mockito.mock(S3Util.class);
+  private final StaticImagePathMapper mapper = new StaticImagePathMapper(s3Util);
 
   @Test
   @DisplayName("정적 이미지 경로는 프론트가 /images prefix를 붙일 수 있도록 상대 경로로 변환한다")
@@ -21,11 +25,14 @@ class StaticImagePathMapperTest {
   }
 
   @Test
-  @DisplayName("S3 같은 외부 URL은 그대로 유지한다")
+  @DisplayName("외부 URL은 S3Util을 통해 표시 가능한 URL로 변환한다")
   void normalizeStaticImagePath_externalUrl() {
     String url = "https://bucket.s3.ap-northeast-2.amazonaws.com/books/image.png";
+    String presignedUrl = url + "?X-Amz-Signature=signature";
 
-    assertThat(mapper.normalizeStaticImagePath(url)).isEqualTo(url);
+    when(s3Util.toPresignedUrlIfS3Url(url)).thenReturn(presignedUrl);
+
+    assertThat(mapper.normalizeStaticImagePath(url)).isEqualTo(presignedUrl);
   }
 
   @Test

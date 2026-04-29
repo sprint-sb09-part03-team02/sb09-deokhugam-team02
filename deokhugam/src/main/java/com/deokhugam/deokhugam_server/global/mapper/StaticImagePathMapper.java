@@ -1,12 +1,17 @@
 package com.deokhugam.deokhugam_server.global.mapper;
 
+import com.deokhugam.deokhugam_server.global.util.S3Util;
+import lombok.RequiredArgsConstructor;
 import org.mapstruct.Named;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class StaticImagePathMapper {
 
   private static final String IMAGES_PREFIX = "images/";
+
+  private final S3Util s3Util;
 
   @Named("normalizeStaticImagePath")
   public String normalizeStaticImagePath(String thumbnailUrl) {
@@ -16,7 +21,7 @@ public class StaticImagePathMapper {
 
     String normalized = thumbnailUrl.trim();
     if (normalized.contains("://") || normalized.startsWith("//")) {
-      return normalized;
+      return s3Util.toPresignedUrlIfS3Url(normalized);
     }
 
     while (normalized.startsWith("/")) {
