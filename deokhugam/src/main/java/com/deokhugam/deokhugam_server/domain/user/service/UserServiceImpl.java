@@ -75,10 +75,16 @@ public class UserServiceImpl implements UserService {
 
     Limit limitWithNext = Limit.of(limit + 1);
 
-    List<PowerUser> results = "DESC".equalsIgnoreCase(direction)
-      ? powerUserRepository.findPowerUsersDesc(period, cursorInt, after, limitWithNext)
-      : powerUserRepository.findPowerUsersAsc(period, cursorInt, after, limitWithNext);
-
+    List<PowerUser> results;
+    if (cursorInt == null || after == null) {
+      results = "DESC".equalsIgnoreCase(direction)
+        ? powerUserRepository.findPowerUsersDescFirstPage(period, limitWithNext)
+        : powerUserRepository.findPowerUsersAscFirstPage(period, limitWithNext);
+    } else {
+      results = "DESC".equalsIgnoreCase(direction)
+        ? powerUserRepository.findPowerUsersDesc(period, cursorInt, after, limitWithNext)
+        : powerUserRepository.findPowerUsersAsc(period, cursorInt, after, limitWithNext);
+    }
     boolean hasNext = results.size() > limit;
     List<PowerUser> pagedResults = hasNext ? results.subList(0, limit) : results;
 

@@ -38,4 +38,14 @@ public interface PowerUserRepository extends JpaRepository<PowerUser, UUID> {
   List<PowerUser> findAllByPeriodTypeAndCalculatedDate(Period periodType, LocalDate calculatedDate);
 
   long countByPeriodType(Period periodType);
+
+  @Query("SELECT pu FROM PowerUser pu JOIN FETCH pu.user u " +
+    "WHERE pu.periodType = :period " +
+    "ORDER BY pu.createdAt ASC, pu.rankOrder ASC")
+  List<PowerUser> findPowerUsersAscFirstPage(@Param("period") Period period, Limit limit);
+
+  @Query("SELECT pu FROM PowerUser pu JOIN FETCH pu.user u " +
+    "WHERE pu.periodType = :period " +
+    "ORDER BY pu.createdAt DESC, pu.rankOrder DESC")
+  List<PowerUser> findPowerUsersDescFirstPage(@Param("period") Period period, Limit limit);
 }
