@@ -1,7 +1,6 @@
 package com.deokhugam.deokhugam_server.domain.user.service;
 
 import static com.deokhugam.deokhugam_server.global.exception.ErrorCode.*;
-import static com.deokhugam.deokhugam_server.global.util.DateTimeUtils.parseLocalDateTime;
 
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserLoginRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.request.UserRegisterRequest;
@@ -9,7 +8,6 @@ import com.deokhugam.deokhugam_server.domain.user.dto.request.UserUpdateRequest;
 import com.deokhugam.deokhugam_server.domain.user.dto.response.PowerUserDto;
 import com.deokhugam.deokhugam_server.domain.user.entity.PowerUser;
 import com.deokhugam.deokhugam_server.domain.user.repository.PowerUserRepository;
-import com.deokhugam.deokhugam_server.global.exception.ErrorCode;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.type.Period;
 import com.deokhugam.deokhugam_server.domain.user.dto.response.UserDto;
@@ -72,38 +70,38 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public CursorPageResponse<PowerUserDto> findPowerUsers(Period period, String direction,
-      String cursor, String after, int limit) {
-    Integer cursorRank = null;
-    if (cursor != null && !cursor.isBlank()) {
-      try {
-        cursorRank = Integer.parseInt(cursor);
-      } catch (NumberFormatException e) {
-        throw new DeokhugamException(ErrorCode.INVALID_INPUT_VALUE);
-      }
-    }
-    List<PowerUser> powerUsers;
-    if ("DESC".equalsIgnoreCase(direction)) {
-      powerUsers = powerUserRepository.findPowerUsersDesc(
-        period, cursorRank, Limit.of(limit + 1)
-      );
-    } else {
-      powerUsers = powerUserRepository.findPowerUsersAsc(
-        period, cursorRank, Limit.of(limit + 1)
-      );
+      String cursor, LocalDateTime after, int limit) {
+    Integer cursorInt = parseCursor(cursor);
+
+    Limit limitWithNext = Limit.of(limit + 1);
+
+    List<PowerUser> results = "DESC".equalsIgnoreCase(direction)
+      ? powerUserRepository.findPowerUsersDesc(period, cursorInt, after, limitWithNext)
+      : powerUserRepository.findPowerUsersAsc(period, cursorInt, after, limitWithNext);
+
+    boolean hasNext = results.size() > limit;
+    List<PowerUser> pagedResults = hasNext ? results.subList(0, limit) : results;
+
+    List<PowerUserDto> content = pagedResults.stream()
+      .map(userMapper::toPowerUserDto)
+      .toList();
+    String nextCursor = null;
+    LocalDateTime nextAfter = null;
+    if (!content.isEmpty()) {
+      PowerUser lastItem = pagedResults.get(pagedResults.size() - 1);
+      nextCursor = String.valueOf(lastItem.getRankOrder());
+      nextAfter = lastItem.getCreatedAt();
     }
 
     long totalElements = powerUserRepository.countByPeriodType(period);
 
-    boolean hasNext = powerUsers.size() > limit;
-    List<PowerUser> content = hasNext ? powerUsers.subList(0, limit) : powerUsers;
-
-    String nextCursor =
-        content.isEmpty() ? null : String.valueOf(content.get(content.size() - 1).getRankOrder());
-    LocalDateTime nextAfter =
-        content.isEmpty() ? null : content.get(content.size() - 1).getCreatedAt();
     return new CursorPageResponse<>(
-        content.stream().map(userMapper::toPowerUserDto).toList(),
-        nextCursor, nextAfter, content.size(), totalElements, hasNext
+      content,
+      nextCursor,
+      nextAfter,
+      content.size(),
+      totalElements,
+      hasNext
     );
   }
 
@@ -150,5 +148,14 @@ public class UserServiceImpl implements UserService {
       throw new DeokhugamException(HANDLE_ACCESS_DENIED);
     }
   }
-
+  private Integer parseCursor(String cursor) {
+    if (cursor == null || cursor.isBlank()) {
+      return null;
+    }
+    try {
+      return Integer.parseInt(cursor);
+    } catch (NumberFormatException e) {
+      throw new DeokhugamException(INVALID_INPUT_VALUE);
+    }
+  }
 }

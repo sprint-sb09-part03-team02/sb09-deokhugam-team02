@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
@@ -616,7 +617,6 @@ class BookServiceImplTest {
     Period period = Period.DAILY;
     String direction = "DESC";
     String cursor = null;
-    String after = null;
     int limit = 10;
 
     PopularBook popularBook = mock(PopularBook.class);
@@ -635,9 +635,8 @@ class BookServiceImplTest {
       LocalDateTime.now()
     );
 
-    when(popularBookRepository.findPopularBooksWithPaging(
+    when(popularBookRepository.findPopularBooksDesc(
       eq(period),
-      eq("DESC"),
       nullable(Integer.class),
       nullable(LocalDateTime.class),
       any(Limit.class)
@@ -647,7 +646,7 @@ class BookServiceImplTest {
     when(bookMapper.toPopularDto(popularBook)).thenReturn(dto);
 
     CursorPageResponse<PopularBookDto> result =
-      bookService.searchPopularBooks(period, direction, cursor, after, limit);
+      bookService.searchPopularBooks(period, direction, cursor, LocalDateTime.now(), limit);
 
     assertNotNull(result);
     assertEquals(1, result.content().size());
@@ -660,7 +659,6 @@ class BookServiceImplTest {
   void searchPopularBooks_success_hasNext() {
     Period period = Period.DAILY;
     String direction = "DESC";
-    int limit = 1;
 
     PopularBook first = mock(PopularBook.class);
     PopularBook second = mock(PopularBook.class);
@@ -684,9 +682,8 @@ class BookServiceImplTest {
       firstCreatedAt
     );
 
-    when(popularBookRepository.findPopularBooksWithPaging(
+    when(popularBookRepository.findPopularBooksDesc(
       eq(period),
-      eq("DESC"),
       nullable(Integer.class),
       nullable(LocalDateTime.class),
       any(Limit.class)
@@ -696,13 +693,13 @@ class BookServiceImplTest {
     when(bookMapper.toPopularDto(first)).thenReturn(firstDto);
 
     CursorPageResponse<PopularBookDto> result =
-      bookService.searchPopularBooks(period, direction, null, null, limit);
+      bookService.searchPopularBooks(period, direction, null, null, 1);
 
     assertNotNull(result);
     assertEquals(1, result.content().size());
     assertEquals(2L, result.totalElements());
     assertEquals("1", result.nextCursor());
     assertEquals(firstCreatedAt, result.nextAfter());
-    assertEquals(true, result.hasNext());
+    assertTrue(result.hasNext());
   }
 }

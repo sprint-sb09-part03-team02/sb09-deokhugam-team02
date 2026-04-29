@@ -1,6 +1,5 @@
 package com.deokhugam.deokhugam_server.domain.review.service;
 
-import static com.deokhugam.deokhugam_server.global.util.DateTimeUtils.parseLocalDateTime;
 
 import com.deokhugam.deokhugam_server.domain.book.entity.Book;
 import com.deokhugam.deokhugam_server.domain.book.repository.BookRepository;
@@ -171,27 +170,38 @@ public class ReviewServiceImpl implements ReviewService {
 
   @Override
   public CursorPageResponse<PopularReviewDto> searchPopularReviews(Period period, String direction, String cursor,
-      String after, int limit) {
-    Integer cursorRank = (cursor != null && !cursor.isBlank()) ? Integer.parseInt(cursor) : null;
-    LocalDateTime afterLdt = parseLocalDateTime(after);
+    LocalDateTime after, int limit) {
+    Integer cursorInt = (cursor != null && !cursor.isBlank()) ? Integer.parseInt(cursor) : null;
+    Limit limitWithNext = Limit.of(limit + 1);
 
-    List<PopularReview> popularReviews = popularReviewRepository.findPopularReviewsWithPaging(
-        period, direction.toUpperCase(), cursorRank, afterLdt,
-        Limit.of(limit + 1)
-    );
+    List<PopularReview> results = "DESC".equalsIgnoreCase(direction)
+      ? popularReviewRepository.findPopularReviewsDesc(period, cursorInt, after, limitWithNext)
+      : popularReviewRepository.findPopularReviewsAsc(period, cursorInt, after, limitWithNext);
+
+    boolean hasNext = results.size() > limit;
+    List<PopularReview> pagedResults = hasNext ? results.subList(0, limit) : results;
+
+    List<PopularReviewDto> content = pagedResults.stream()
+      .map(reviewMapper::toPopularDto)
+      .toList();
+
+    String nextCursor = null;
+    LocalDateTime nextAfter = null;
+    if (!content.isEmpty()) {
+      PopularReview lastItem = pagedResults.get(pagedResults.size() - 1);
+      nextCursor = String.valueOf(lastItem.getRankOrder());
+      nextAfter = lastItem.getCreatedAt();
+    }
 
     long totalElements = popularReviewRepository.countByPeriodType(period);
 
-    boolean hasNext = popularReviews.size() > limit;
-    List<PopularReview> content = hasNext ? popularReviews.subList(0, limit) : popularReviews;
-
-    String nextCursor =
-        content.isEmpty() ? null : String.valueOf(content.get(content.size() - 1).getRankOrder());
-    LocalDateTime nextAfter =
-        content.isEmpty() ? null : content.get(content.size() - 1).getCreatedAt();
     return new CursorPageResponse<>(
-        content.stream().map(reviewMapper::toPopularDto).toList(),
-        nextCursor, nextAfter, content.size(), totalElements, hasNext
+      content,
+      nextCursor,
+      nextAfter,
+      content.size(),
+      totalElements,
+      hasNext
     );
   }
 }

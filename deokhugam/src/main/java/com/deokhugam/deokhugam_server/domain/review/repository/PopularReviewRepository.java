@@ -1,6 +1,7 @@
 package com.deokhugam.deokhugam_server.domain.review.repository;
 
 import com.deokhugam.deokhugam_server.domain.review.entity.PopularReview;
+import com.deokhugam.deokhugam_server.domain.user.dto.response.UserScoreDto;
 import com.deokhugam.deokhugam_server.global.type.Period;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -25,28 +26,37 @@ public interface PopularReviewRepository extends JpaRepository<PopularReview, UU
       @Param("date") LocalDate date
   );
 
+  @Query("SELECT new com.deokhugam.deokhugam_server.domain.user.dto.response.UserScoreDto(pr.review.user.id, SUM(pr.score)) " +
+    "FROM PopularReview pr " +
+    "WHERE pr.periodType = :periodType AND pr.calculatedDate = :date " +
+    "GROUP BY pr.review.user.id")
+  List<UserScoreDto> sumAllUserScoresByPeriod(@Param("periodType") Period periodType, @Param("date") LocalDate date);
+
   List<PopularReview> findAllByPeriodTypeAndCalculatedDate(Period periodType,
       LocalDate calculatedDate);
 
-  @Query("select p from PopularReview p " +
-      "join fetch p.review r " +
-      "WHERE p.periodType = :period " +
-      "AND (" +
-    "  CAST(:after AS LocalDateTime) IS NULL OR " +
-    "  (CAST(:direction AS string) = 'DESC' AND (p.createdAt < :after OR (p.createdAt = :after AND p.rankOrder > :cursor))) OR " +
-    "  (CAST(:direction AS string) = 'ASC' AND (p.createdAt > :after OR (p.createdAt = :after AND p.rankOrder < :cursor)))" +
-      ") " +
-      "ORDER BY " +
-    "  CASE WHEN CAST(:direction AS string) = 'DESC' THEN p.createdAt END DESC, " +
-    "  CASE WHEN CAST(:direction AS string) = 'DESC' THEN p.rankOrder END ASC, " +
-    "  CASE WHEN CAST(:direction AS string) = 'ASC' THEN p.createdAt END ASC, " +
-    "  CASE WHEN CAST(:direction AS string) = 'ASC' THEN p.rankOrder END DESC")
-  List<PopularReview> findPopularReviewsWithPaging(
-      @Param("period") Period period,
-      @Param("direction") String direction,
-      @Param("cursor") Integer cursor,
-      @Param("after") LocalDateTime after,
-      @Param("limit") Limit limit
+  @Query("SELECT r FROM PopularReview r " +
+    "JOIN FETCH r.review rev " +
+    "WHERE r.periodType = :period " +
+    "AND (:after IS NULL OR r.createdAt < :after OR (r.createdAt = :after AND r.rankOrder > :cursor)) " +
+    "ORDER BY r.createdAt DESC, r.rankOrder DESC")
+  List<PopularReview> findPopularReviewsDesc(
+    @Param("period") Period period,
+    @Param("cursor") Integer cursor,
+    @Param("after") LocalDateTime after,
+    Limit limit
+  );
+
+  @Query("SELECT r FROM PopularReview r " +
+    "JOIN FETCH r.review rev " +
+    "WHERE r.periodType = :period " +
+    "AND (:after IS NULL OR r.createdAt > :after OR (r.createdAt = :after AND r.rankOrder < :cursor)) " +
+    "ORDER BY r.createdAt ASC, r.rankOrder ASC")
+  List<PopularReview> findPopularReviewsAsc(
+    @Param("period") Period period,
+    @Param("cursor") Integer cursor,
+    @Param("after") LocalDateTime after,
+    Limit limit
   );
 
   long countByPeriodType(Period periodType);
