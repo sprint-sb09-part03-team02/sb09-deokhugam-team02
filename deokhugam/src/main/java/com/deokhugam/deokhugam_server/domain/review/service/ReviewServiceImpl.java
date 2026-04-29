@@ -2,7 +2,6 @@ package com.deokhugam.deokhugam_server.domain.review.service;
 
 
 import com.deokhugam.deokhugam_server.domain.book.entity.Book;
-import com.deokhugam.deokhugam_server.domain.book.entity.PopularBook;
 import com.deokhugam.deokhugam_server.domain.book.repository.BookRepository;
 import com.deokhugam.deokhugam_server.domain.review.dto.request.ReviewCreateRequest;
 import com.deokhugam.deokhugam_server.domain.review.dto.request.ReviewSearchRequest;
@@ -24,11 +23,11 @@ import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.exception.DeokhugamException;
 import com.deokhugam.deokhugam_server.global.exception.ErrorCode;
 import com.deokhugam.deokhugam_server.global.type.Period;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.Limit;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -172,19 +171,11 @@ public class ReviewServiceImpl implements ReviewService {
   @Override
   public CursorPageResponse<PopularReviewDto> searchPopularReviews(Period period, String direction, String cursor,
     LocalDateTime after, int limit) {
+    LocalDate latestDate = popularReviewRepository.findMaxCalculatedDateByPeriodType(period)
+      .orElse(LocalDate.now());
     Integer cursorInt = (cursor != null && !cursor.isBlank()) ? Integer.parseInt(cursor) : null;
-    Limit limitWithNext = Limit.of(limit + 1);
+    List<PopularReview> results = popularReviewRepository.findPopularReviewDynamic(period, cursorInt, after, direction, limit, latestDate);
 
-    List<PopularReview> results;
-    if (cursorInt == null || after == null) {
-      results = "DESC".equalsIgnoreCase(direction)
-        ? popularReviewRepository.findPopularReviewsDescFirstPage(period, limitWithNext)
-        : popularReviewRepository.findPopularReviewsAscFirstPage(period, limitWithNext);
-    } else {
-      results = "DESC".equalsIgnoreCase(direction)
-        ? popularReviewRepository.findPopularReviewsDesc(period, cursorInt, after, limitWithNext)
-        : popularReviewRepository.findPopularReviewsAsc(period, cursorInt, after, limitWithNext);
-    }
     boolean hasNext = results.size() > limit;
     List<PopularReview> content = hasNext ? results.subList(0, limit) : results;
 
