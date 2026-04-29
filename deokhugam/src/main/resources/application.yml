@@ -17,7 +17,7 @@ spring:
       initialize-schema: never
 
   profiles:
-    active: ${SPRING_PROFILES_ACTIVE:local-h2}   # 기본값은 즉시 실행 가능한 H2 로컬 프로필
+    active: ${SPRING_PROFILES_ACTIVE:local}   # 기본값은 즉시 실행 가능한 H2 로컬 프로필
 
 logging:
   file:

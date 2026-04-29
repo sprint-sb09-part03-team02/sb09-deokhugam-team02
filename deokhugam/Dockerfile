@@ -25,8 +25,8 @@ RUN groupadd -r appgroup && useradd -r -g appgroup appuser
 # 빌드된 JAR 복사 (와일드카드로 버전 무관하게 처리)
 COPY --from=builder /app/build/libs/*.jar app.jar
 
-# 파일 소유권 변경
-RUN chown appuser:appgroup app.jar
+# 파일 로그 디렉터리 생성 및 소유권 변경
+RUN mkdir -p /app/logs && chown -R appuser:appgroup /app
 
 USER appuser
 
@@ -36,7 +36,6 @@ EXPOSE 8080
 # 비민감 기본값
 ENV DB_PORT=5432
 ENV AWS_REGION=ap-northeast-2
-ENV JWT_EXPIRATION=86400000
 ENV SPRING_PROFILES_ACTIVE=dev
 
 ENTRYPOINT ["java", \

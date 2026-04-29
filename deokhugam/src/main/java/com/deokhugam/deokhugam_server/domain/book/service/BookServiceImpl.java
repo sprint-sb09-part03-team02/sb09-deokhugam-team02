@@ -19,6 +19,7 @@ import com.deokhugam.deokhugam_server.global.exception.DeokhugamException;
 import com.deokhugam.deokhugam_server.global.exception.ErrorCode;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.type.Period;
+import com.deokhugam.deokhugam_server.global.util.S3Util;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,7 +27,6 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Limit;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -50,12 +50,14 @@ public class BookServiceImpl implements BookService {
   private final PopularBookRepository popularBookRepository;
   private final TextExtractionClient textExtractionClient;
   private final BookInfoClient bookInfoClient;
+  private final S3Util s3Util;
 
   @Override
   @Transactional
   public BookDto createBook(BookCreateRequest request, MultipartFile thumbnailImage) {
     String normalizedIsbn = normalizeIsbn(request.isbn());
     validateDuplicateIsbn(normalizedIsbn);
+    String thumbnailUrl = uploadThumbnailImage(thumbnailImage);
 
     Book book = new Book(
       request.title().trim(),
@@ -63,7 +65,7 @@ public class BookServiceImpl implements BookService {
       normalizedIsbn,
       normalizeText(request.publisher()),
       normalizeText(request.description()),
-      null,
+      thumbnailUrl,
       request.publishedDate()
     );
 
@@ -134,13 +136,14 @@ public class BookServiceImpl implements BookService {
   public BookDto updateBook(UUID bookId, BookUpdateRequest request, MultipartFile thumbnailImage) {
     Book book = bookRepository.findByIdAndIsDeletedFalse(bookId)
       .orElseThrow(() -> new DeokhugamException(ErrorCode.BOOK_NOT_FOUND));
+    String thumbnailUrl = uploadThumbnailImage(thumbnailImage);
 
     book.update(
       normalizeText(request.title()),
       normalizeText(request.author()),
       normalizeText(request.publisher()),
       normalizeText(request.description()),
-      null,
+      thumbnailUrl,
       request.publishedDate()
     );
 
@@ -224,6 +227,19 @@ public class BookServiceImpl implements BookService {
       throw new DeokhugamException(ErrorCode.INVALID_FILE);
     }
 
+    validateImageContentType(image);
+  }
+
+  private String uploadThumbnailImage(MultipartFile image) {
+    if (image == null || image.isEmpty()) {
+      return null;
+    }
+
+    validateImageContentType(image);
+    return s3Util.upload(image, "books");
+  }
+
+  private void validateImageContentType(MultipartFile image) {
     String contentType = image.getContentType();
     if (contentType == null || !contentType.startsWith("image/")) {
       throw new DeokhugamException(ErrorCode.INVALID_FILE_TYPE);
