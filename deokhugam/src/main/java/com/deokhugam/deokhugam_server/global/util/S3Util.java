@@ -3,6 +3,7 @@ package com.deokhugam.deokhugam_server.global.util;
 import com.deokhugam.deokhugam_server.global.exception.DeokhugamException;
 import com.deokhugam.deokhugam_server.global.exception.ErrorCode;
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +13,10 @@ import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 
 @Slf4j
 @Component
@@ -20,12 +24,16 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 public class S3Util {
 
   private final S3Client s3Client;
+  private final S3Presigner s3Presigner;
 
   @Value("${cloud.aws.s3.bucket}")
   private String bucket;
 
   @Value("${cloud.aws.region.static}")
   private String region;
+
+  @Value("${cloud.aws.s3.presigned-url-expiration:3600}")
+  private long presignedUrlExpirationSeconds;
 
   /**
    * MultipartFile을 S3에 업로드하고 퍼블릭 URL을 반환합니다.
@@ -71,8 +79,30 @@ public class S3Util {
     }
   }
 
+  public String toPresignedUrlIfS3Url(String fileUrl) {
+    if (fileUrl == null || fileUrl.isBlank() || !isManagedS3Url(fileUrl)) {
+      return fileUrl;
+    }
+
+    String key = extractKeyFromUrl(fileUrl);
+    GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+        .bucket(bucket)
+        .key(key)
+        .build();
+    GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+        .signatureDuration(Duration.ofSeconds(presignedUrlExpirationSeconds))
+        .getObjectRequest(getObjectRequest)
+        .build();
+
+    return s3Presigner.presignGetObject(presignRequest).url().toString();
+  }
+
   private String buildUrl(String key) {
     return "https://" + bucket + ".s3." + region + ".amazonaws.com/" + key;
+  }
+
+  private boolean isManagedS3Url(String url) {
+    return url.startsWith("https://" + bucket + ".s3." + region + ".amazonaws.com/");
   }
 
   private String extractKeyFromUrl(String url) {
