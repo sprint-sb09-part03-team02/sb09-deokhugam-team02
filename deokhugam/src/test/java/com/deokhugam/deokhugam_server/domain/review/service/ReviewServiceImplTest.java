@@ -171,8 +171,8 @@ class ReviewServiceImplTest {
       PopularReview pr = PopularReview.builder().review(review).rankOrder(1).build();
       ReflectionTestUtils.setField(pr, "createdAt", LocalDateTime.now());
 
-      given(popularReviewRepository.findPopularReviewsDesc(any(), any(), any(), any()))
-        .willReturn(List.of(pr));
+      when(popularReviewRepository.findPopularReviewsDescFirstPage(any(), any()))
+        .thenReturn(List.of(pr));
       given(popularReviewRepository.countByPeriodType(any())).willReturn(1L);
 
       CursorPageResponse<PopularReviewDto> result = reviewService.searchPopularReviews(Period.DAILY, "DESC", null, null, 10);

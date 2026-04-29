@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -635,14 +634,8 @@ class BookServiceImplTest {
       LocalDateTime.now()
     );
 
-    when(popularBookRepository.findPopularBooksDesc(
-      eq(period),
-      nullable(Integer.class),
-      nullable(LocalDateTime.class),
-      any(Limit.class)
-    )).thenReturn(List.of(popularBook));
-
-    when(popularBookRepository.countByPeriodType(period)).thenReturn(1L);
+    when(popularBookRepository.findPopularBooksDescFirstPage(any(), any()))
+      .thenReturn(List.of(popularBook));
     when(bookMapper.toPopularDto(popularBook)).thenReturn(dto);
 
     CursorPageResponse<PopularBookDto> result =
@@ -682,12 +675,8 @@ class BookServiceImplTest {
       firstCreatedAt
     );
 
-    when(popularBookRepository.findPopularBooksDesc(
-      eq(period),
-      nullable(Integer.class),
-      nullable(LocalDateTime.class),
-      any(Limit.class)
-    )).thenReturn(List.of(first, second));
+    when(popularBookRepository.findPopularBooksDescFirstPage(eq(period), any(Limit.class)))
+      .thenReturn(List.of(first, second));
 
     when(popularBookRepository.countByPeriodType(period)).thenReturn(2L);
     when(bookMapper.toPopularDto(first)).thenReturn(firstDto);
