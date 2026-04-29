@@ -48,7 +48,9 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
         commentsCount
       ))
       .from(user)
-      .where(user.isDeleted.isFalse())
+      .where(user.isDeleted.isFalse(),
+        reviewsCount.gt(0L).or(likesCount.gt(0L)).or(commentsCount.gt(0L))
+        )
       .fetch();
   }
 }
