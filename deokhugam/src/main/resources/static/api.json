@@ -1,0 +1,3323 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "OpenAPI definition",
+    "version": "v0"
+  },
+  "servers": [
+    {
+      "url": "http://sprint-project-1196140422.ap-northeast-2.elb.amazonaws.com/sb/deokhugam",
+      "description": "Generated server url"
+    }
+  ],
+  "tags": [
+    {
+      "name": "알림 관리",
+      "description": "알림 관련 API"
+    },
+    {
+      "name": "도서 관리",
+      "description": "도서 관련 API"
+    },
+    {
+      "name": "댓글 관리",
+      "description": "댓글 관련 API"
+    },
+    {
+      "name": "사용자 관리",
+      "description": "사용자 관련 API"
+    },
+    {
+      "name": "리뷰 관리",
+      "description": "리뷰 관련 API"
+    }
+  ],
+  "paths": {
+    "/api/users": {
+      "post": {
+        "tags": [
+          "사용자 관리"
+        ],
+        "summary": "회원가입",
+        "description": "새로운 사용자를 등록합니다.",
+        "operationId": "register",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserRegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "409": {
+            "description": "이메일 중복",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 내부 오류",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "회원가입 성공",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청 (입력값 검증 실패)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/login": {
+      "post": {
+        "tags": [
+          "사용자 관리"
+        ],
+        "summary": "로그인",
+        "description": "사용자 로그인을 처리합니다.",
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserLoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "로그인 성공",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "로그인 실패 (이메일 또는 비밀번호 불일치)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 내부 오류",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청 (입력값 검증 실패)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reviews": {
+      "get": {
+        "tags": [
+          "리뷰 관리"
+        ],
+        "summary": "리뷰 목록 조회",
+        "description": "검색 조건에 맞는 리뷰 목록을 조회합니다.",
+        "operationId": "searchReviews",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "작성자 ID",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          {
+            "name": "bookId",
+            "in": "query",
+            "description": "도서 ID",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "description": "검색 키워드 (작성자 닉네임 | 내용)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "홍길동"
+          },
+          {
+            "name": "orderBy",
+            "in": "query",
+            "description": "정렬 기준(createdAt | rating)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "createdAt"
+            },
+            "example": "createdAt"
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "description": "정렬 방향",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "DESC",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            },
+            "example": "DESC"
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "커서 페이지네이션 커서",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "description": "보조 커서(createdAt)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "페이지 크기",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            },
+            "example": 50
+          },
+          {
+            "name": "Deokhugam-Request-User-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "requestUserId",
+            "in": "query",
+            "description": "요청자 ID",
+            "required": true,
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "리뷰 목록 조회 성공",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CursorPageResponseReviewDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 내부 오류",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CursorPageResponseReviewDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청 (정렬 기준 오류, 페이지네이션 파라미터 오류, 요청자 ID 누락)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CursorPageResponseReviewDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "리뷰 관리"
+        ],
+        "summary": "리뷰 등록",
+        "description": "새로운 리뷰를 등록합니다.",
+        "operationId": "createReview",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "409": {
+            "description": "이미 작성된 리뷰 존재",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewDto"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "리뷰 등록 성공",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 내부 오류",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청 (입력값 검증 실패)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "도서 정보 없음",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reviews/{reviewId}/like": {
+      "post": {
+        "tags": [
+          "리뷰 관리"
+        ],
+        "summary": "리뷰 좋아요",
+        "description": "리뷰에 좋아요를 추가하거나 취소합니다.",
+        "operationId": "likeReview",
+        "parameters": [
+          {
+            "name": "reviewId",
+            "in": "path",
+            "description": "리뷰 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          {
+            "name": "Deokhugam-Request-User-ID",
+            "in": "header",
+            "description": "요청자 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "리뷰 정보 없음",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewLikeDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 내부 오류",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewLikeDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "리뷰 좋아요 성공",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewLikeDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청 (요청자 ID 누락)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewLikeDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/comments": {
+      "get": {
+        "tags": [
+          "댓글 관리"
+        ],
+        "summary": "리뷰 댓글 목록 조회",
+        "description": "특정 리뷰에 달린 댓글 목록을 시간순으로 조회합니다.",
+        "operationId": "getCommentsByReviewId",
+        "parameters": [
+          {
+            "name": "reviewId",
+            "in": "query",
+            "description": "리뷰 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "description": "정렬 방향",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "DESC",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            },
+            "example": "DESC"
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "커서 페이지네이션 커서",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "description": "보조 커서(createdAt)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "페이지 크기",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            },
+            "example": 50
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "잘못된 요청 (정렬 방향 오류, 페이지네이션 파라미터 오류, 리뷰 ID 누락)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CursorPageResponseCommentDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "리뷰 정보 없음",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CursorPageResponseCommentDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 내부 오류",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CursorPageResponseCommentDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "댓글 목록 조회 성공",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CursorPageResponseCommentDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "댓글 관리"
+        ],
+        "summary": "댓글 등록",
+        "description": "새로운 댓글을 등록합니다.",
+        "operationId": "createComment",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommentCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "댓글 등록 성공",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "리뷰 정보 없음",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 내부 오류",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청 (입력값 검증 실패)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/books": {
+      "get": {
+        "tags": [
+          "도서 관리"
+        ],
+        "summary": "도서 목록 조회",
+        "description": "검색 조건에 맞는 도서 목록을 조회합니다.",
+        "operationId": "searchBooks",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "description": "도서 제목 | 저자 | ISBN",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "자바"
+          },
+          {
+            "name": "orderBy",
+            "in": "query",
+            "description": "정렬 기준 (title | publishedDate | rating | reviewCount)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "title"
+            },
+            "example": "title"
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "description": "정렬 방향",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "DESC",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            },
+            "example": "DESC"
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "커서 페이지네이션 커서",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "description": "보조 커서(createdAt)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "페이지 크기",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            },
+            "example": 50
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "잘못된 요청 (정렬 기준 오류, 페이지네이션 파라미터 오류 등)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CursorPageResponseBookDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 내부 오류",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CursorPageResponseBookDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "도서 목록 조회 성공",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CursorPageResponseBookDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "도서 관리"
+        ],
+        "summary": "도서 등록",
+        "description": "새로운 도서를 등록합니다.",
+        "operationId": "createBook",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "bookData": {
+                    "$ref": "#/components/schemas/BookCreateRequest"
+                  },
+                  "thumbnailImage": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "도서 썸네일 이미지"
+                  }
+                },
+                "required": [
+                  "bookData"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "잘못된 요청 (입력값 검증 실패, ISBN 형식 오류 등)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 내부 오류",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ISBN 중복",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookDto"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "도서 등록 성공",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/books/isbn/ocr": {
+      "post": {
+        "tags": [
+          "도서 관리"
+        ],
+        "summary": "OCR 기반 ISBN 인식",
+        "description": "OCR을 통해 ISBN을 인식합니다.",
+        "operationId": "getBookInfoByImage",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "도서 이미지"
+                  }
+                },
+                "required": [
+                  "image"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ISBN 인식 성공",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 이미지 형식 또는 OCR 인식 실패",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 내부 오류",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/{userId}": {
+      "get": {
+        "tags": [
+          "사용자 관리"
+        ],
+        "summary": "사용자 정보 조회",
+        "description": "사용자 ID로 상세 정보를 조회합니다.",
+        "operationId": "getUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "사용자 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "사용자 정보 없음",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 내부 오류",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "사용자 정보 조회 성공",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "사용자 관리"
+        ],
+        "summary": "사용자 논리 삭제",
+        "description": "사용자를 논리적으로 삭제합니다.",
+        "operationId": "deleteUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "사용자 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "사용자 삭제 성공"
+          },
+          "404": {
+            "description": "사용자 정보 없음"
+          },
+          "500": {
+            "description": "서버 내부 오류"
+          },
+          "403": {
+            "description": "사용자 삭제 권한 없음"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "사용자 관리"
+        ],
+        "summary": "사용자 정보 수정",
+        "description": "사용자의 닉네임을 수정합니다.",
+        "operationId": "updateUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "사용자 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "사용자 정보 수정 권한 없음",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "사용자 정보 없음",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 내부 오류",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청 (입력값 검증 실패)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "사용자 정보 수정 성공",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reviews/{reviewId}": {
+      "get": {
+        "tags": [
+          "리뷰 관리"
+        ],
+        "summary": "리뷰 상세 정보 조회",
+        "description": "리뷰 ID로 상세 정보를 조회합니다.",
+        "operationId": "getReview",
+        "parameters": [
+          {
+            "name": "reviewId",
+            "in": "path",
+            "description": "리뷰 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          {
+            "name": "Deokhugam-Request-User-ID",
+            "in": "header",
+            "description": "요청자 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "리뷰 정보 없음",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 내부 오류",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "리뷰 정보 조회 성공",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청 (요청자 ID 누락)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "리뷰 관리"
+        ],
+        "summary": "리뷰 논리 삭제",
+        "description": "본인이 작성한 리뷰를 논리적으로 삭제합니다.",
+        "operationId": "deleteReview",
+        "parameters": [
+          {
+            "name": "reviewId",
+            "in": "path",
+            "description": "리뷰 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          {
+            "name": "Deokhugam-Request-User-ID",
+            "in": "header",
+            "description": "요청자 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "리뷰 삭제 성공"
+          },
+          "403": {
+            "description": "리뷰 삭제 권한 없음"
+          },
+          "404": {
+            "description": "리뷰 정보 없음"
+          },
+          "500": {
+            "description": "서버 내부 오류"
+          },
+          "400": {
+            "description": "잘못된 요청 (요청자 ID 누락)"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "리뷰 관리"
+        ],
+        "summary": "리뷰 수정",
+        "description": "본인이 작성한 리뷰를 수정합니다.",
+        "operationId": "updateReview",
+        "parameters": [
+          {
+            "name": "reviewId",
+            "in": "path",
+            "description": "리뷰 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          {
+            "name": "Deokhugam-Request-User-ID",
+            "in": "header",
+            "description": "요청자 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "404": {
+            "description": "리뷰 정보 없음",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 내부 오류",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청 (입력값 검증 실패)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "리뷰 수정 성공",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "리뷰 수정 권한 없음",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications/{notificationId}": {
+      "patch": {
+        "tags": [
+          "알림 관리"
+        ],
+        "summary": "알림 읽음 상태 업데이트",
+        "description": "특정 알림의 읽음 상태를 업데이트합니다.",
+        "operationId": "updateNotification",
+        "parameters": [
+          {
+            "name": "notificationId",
+            "in": "path",
+            "description": "알림 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          {
+            "name": "Deokhugam-Request-User-ID",
+            "in": "header",
+            "description": "요청자 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "알림 수정 권한 없음",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "알림 상태 업데이트 성공",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청 (입력값 검증 실패, 요청자 ID 누락)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 내부 오류",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "알림 정보 없음",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications/read-all": {
+      "patch": {
+        "tags": [
+          "알림 관리"
+        ],
+        "summary": "모든 알림 읽음 처리",
+        "description": "사용자의 모든 알림을 읽음 상태로 처리합니다.",
+        "operationId": "markAllAsRead",
+        "parameters": [
+          {
+            "name": "Deokhugam-Request-User-ID",
+            "in": "header",
+            "description": "사용자 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "잘못된 요청 (사용자 ID 누락)"
+          },
+          "404": {
+            "description": "사용자 정보 없음"
+          },
+          "500": {
+            "description": "서버 내부 오류"
+          },
+          "204": {
+            "description": "알림 읽음 처리 성공"
+          }
+        }
+      }
+    },
+    "/api/comments/{commentId}": {
+      "get": {
+        "tags": [
+          "댓글 관리"
+        ],
+        "summary": "댓글 상세 정보 조회",
+        "description": "특정 댓글의 상세 정보를 조회합니다.",
+        "operationId": "getComment",
+        "parameters": [
+          {
+            "name": "commentId",
+            "in": "path",
+            "description": "댓글 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "댓글 조회 성공",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "댓글 정보 없음",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 내부 오류",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "댓글 관리"
+        ],
+        "summary": "댓글 논리 삭제",
+        "description": "본인이 작성한 댓글을 논리적으로 삭제합니다.",
+        "operationId": "deleteComment",
+        "parameters": [
+          {
+            "name": "commentId",
+            "in": "path",
+            "description": "댓글 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          {
+            "name": "Deokhugam-Request-User-ID",
+            "in": "header",
+            "description": "요청자 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "댓글 정보 없음"
+          },
+          "500": {
+            "description": "서버 내부 오류"
+          },
+          "204": {
+            "description": "댓글 삭제 성공"
+          },
+          "403": {
+            "description": "댓글 삭제 권한 없음"
+          },
+          "400": {
+            "description": "잘못된 요청 (요청자 ID 누락)"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "댓글 관리"
+        ],
+        "summary": "댓글 수정",
+        "description": "본인이 작성한 댓글을 수정합니다.",
+        "operationId": "updateComment",
+        "parameters": [
+          {
+            "name": "commentId",
+            "in": "path",
+            "description": "댓글 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          {
+            "name": "Deokhugam-Request-User-ID",
+            "in": "header",
+            "description": "요청자 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommentUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "댓글 수정 권한 없음",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "댓글 정보 없음",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "댓글 수정 성공",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청 (입력값 검증 실패, 요청자 ID 누락)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 내부 오류",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/books/{bookId}": {
+      "get": {
+        "tags": [
+          "도서 관리"
+        ],
+        "summary": "도서 상세 정보 조회",
+        "description": "도서 ID로 상세 정보를 조회합니다.",
+        "operationId": "getBook",
+        "parameters": [
+          {
+            "name": "bookId",
+            "in": "path",
+            "description": "도서 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "도서 정보 조회 성공",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 내부 오류",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "도서 정보 없음",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "도서 관리"
+        ],
+        "summary": "도서 논리 삭제",
+        "description": "도서를 논리적으로 삭제합니다.",
+        "operationId": "deleteBook",
+        "parameters": [
+          {
+            "name": "bookId",
+            "in": "path",
+            "description": "도서 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "도서 삭제 성공"
+          },
+          "500": {
+            "description": "서버 내부 오류"
+          },
+          "404": {
+            "description": "도서 정보 없음"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "도서 관리"
+        ],
+        "summary": "도서 정보 수정",
+        "description": "도서 정보를 수정합니다.",
+        "operationId": "updateBook",
+        "parameters": [
+          {
+            "name": "bookId",
+            "in": "path",
+            "description": "도서 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "bookData": {
+                    "$ref": "#/components/schemas/BookUpdateRequest"
+                  },
+                  "thumbnailImage": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "수정할 도서 썸네일 이미지"
+                  }
+                },
+                "required": [
+                  "bookData"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "잘못된 요청 (입력값 검증 실패, ISBN 형식 오류 등)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 내부 오류",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "도서 정보 수정 성공",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ISBN 중복",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "도서 정보 없음",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/power": {
+      "get": {
+        "tags": [
+          "사용자 관리"
+        ],
+        "summary": "파워 유저 목록 조회",
+        "description": "기간별 파워 유저 목록을 조회합니다.",
+        "operationId": "getPowerUsers",
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "description": "랭킹 기간",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "DAILY",
+              "enum": [
+                "DAILY",
+                "WEEKLY",
+                "MONTHLY",
+                "ALL_TIME"
+              ]
+            },
+            "example": "DAILY"
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "description": "정렬 방향",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "ASC",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            },
+            "example": "DESC"
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "커서 페이지네이션 커서",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "description": "보조 커서(createdAt)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "페이지 크기",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            },
+            "example": 50
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "파워 유저 목록 조회 성공",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CursorPageResponsePowerUserDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 내부 오류",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CursorPageResponsePowerUserDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청 (랭킹 기간 오류, 정렬 방향 오류 등)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CursorPageResponsePowerUserDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reviews/popular": {
+      "get": {
+        "tags": [
+          "리뷰 관리"
+        ],
+        "summary": "인기 리뷰 목록 조회",
+        "description": "기간별 인기 리뷰 목록을 조회합니다.",
+        "operationId": "getPopularReviews",
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "description": "랭킹 기간",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "DAILY",
+              "enum": [
+                "DAILY",
+                "WEEKLY",
+                "MONTHLY",
+                "ALL_TIME"
+              ]
+            },
+            "example": "DAILY"
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "description": "정렬 방향",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "ASC",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            },
+            "example": "DESC"
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "커서 페이지네이션 커서",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "description": "보조 커서(createdAt)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "페이지 크기",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            },
+            "example": 50
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "인기 리뷰 목록 조회 성공",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CursorPageResponsePopularReviewDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 내부 오류",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CursorPageResponsePopularReviewDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청 (랭킹 기간 오류, 정렬 방향 오류 등)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CursorPageResponsePopularReviewDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications": {
+      "get": {
+        "tags": [
+          "알림 관리"
+        ],
+        "summary": "알림 목록 조회",
+        "description": "사용자의 알림 목록을 조회합니다.",
+        "operationId": "getNotifications",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "사용자 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "description": "정렬 방향",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "DESC",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            },
+            "example": "DESC"
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "커서 페이지네이션 커서",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "description": "보조 커서(createdAt)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "페이지 크기",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            },
+            "example": 20
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "잘못된 요청 (정렬 방향 오류, 페이지네이션 파라미터 오류, 사용자 ID 누락)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CursorPageResponseNotificationDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "사용자 정보 없음",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CursorPageResponseNotificationDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 내부 오류",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CursorPageResponseNotificationDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "알림 목록 조회 성공",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CursorPageResponseNotificationDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/books/popular": {
+      "get": {
+        "tags": [
+          "도서 관리"
+        ],
+        "summary": "인기 도서 목록 조회",
+        "description": "기간별 인기 도서 목록을 조회합니다.",
+        "operationId": "getPopularBooks",
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "description": "랭킹 기간",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "DAILY",
+              "enum": [
+                "DAILY",
+                "WEEKLY",
+                "MONTHLY",
+                "ALL_TIME"
+              ]
+            },
+            "example": "DAILY"
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "description": "정렬 방향",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "ASC",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            },
+            "example": "DESC"
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "커서 페이지네이션 커서",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "description": "보조 커서(createdAt)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "페이지 크기",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            },
+            "example": 50
+          }
+        ],
+        "responses": {
+          "500": {
+            "description": "서버 내부 오류",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CursorPageResponsePopularBookDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "인기 도서 목록 조회 성공",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CursorPageResponsePopularBookDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청 (랭킹 기간 오류, 정렬 방향 오류 등)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CursorPageResponsePopularBookDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/books/info": {
+      "get": {
+        "tags": [
+          "도서 관리"
+        ],
+        "summary": "ISBN으로 도서 정보 조회",
+        "description": "Naver API를 통해 ISBN으로 도서 정보를 조회합니다.",
+        "operationId": "getBookInfoByIsbn",
+        "parameters": [
+          {
+            "name": "isbn",
+            "in": "query",
+            "description": "ISBN 번호",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": 9788965402602
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "도서 정보 조회 성공",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/NaverBookDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 내부 오류",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/NaverBookDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 ISBN 형식",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/NaverBookDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "도서 정보 없음",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/NaverBookDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/hard": {
+      "delete": {
+        "tags": [
+          "사용자 관리"
+        ],
+        "summary": "사용자 물리 삭제",
+        "description": "사용자를 물리적으로 삭제합니다.",
+        "operationId": "permanentDeleteUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "사용자 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "사용자 삭제 성공"
+          },
+          "404": {
+            "description": "사용자 정보 없음"
+          },
+          "500": {
+            "description": "서버 내부 오류"
+          },
+          "403": {
+            "description": "사용자 삭제 권한 없음"
+          }
+        }
+      }
+    },
+    "/api/reviews/{reviewId}/hard": {
+      "delete": {
+        "tags": [
+          "리뷰 관리"
+        ],
+        "summary": "리뷰 물리 삭제",
+        "description": "본인이 작성한 리뷰를 물리적으로 삭제합니다.",
+        "operationId": "permanentDeleteReview",
+        "parameters": [
+          {
+            "name": "reviewId",
+            "in": "path",
+            "description": "리뷰 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          {
+            "name": "Deokhugam-Request-User-ID",
+            "in": "header",
+            "description": "요청자 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "리뷰 삭제 성공"
+          },
+          "403": {
+            "description": "리뷰 삭제 권한 없음"
+          },
+          "404": {
+            "description": "리뷰 정보 없음"
+          },
+          "500": {
+            "description": "서버 내부 오류"
+          },
+          "400": {
+            "description": "잘못된 요청 (요청자 ID 누락)"
+          }
+        }
+      }
+    },
+    "/api/comments/{commentId}/hard": {
+      "delete": {
+        "tags": [
+          "댓글 관리"
+        ],
+        "summary": "댓글 물리 삭제",
+        "description": "본인이 작성한 댓글을 물리적으로 삭제합니다.",
+        "operationId": "permanentDeleteComment",
+        "parameters": [
+          {
+            "name": "commentId",
+            "in": "path",
+            "description": "댓글 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          {
+            "name": "Deokhugam-Request-User-ID",
+            "in": "header",
+            "description": "요청자 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "댓글 정보 없음"
+          },
+          "500": {
+            "description": "서버 내부 오류"
+          },
+          "204": {
+            "description": "댓글 삭제 성공"
+          },
+          "403": {
+            "description": "댓글 삭제 권한 없음"
+          },
+          "400": {
+            "description": "잘못된 요청 (요청자 ID 누락)"
+          }
+        }
+      }
+    },
+    "/api/books/{bookId}/hard": {
+      "delete": {
+        "tags": [
+          "도서 관리"
+        ],
+        "summary": "도서 물리 삭제",
+        "description": "도서를 물리적으로 삭제합니다.",
+        "operationId": "permanentDeleteBook",
+        "parameters": [
+          {
+            "name": "bookId",
+            "in": "path",
+            "description": "도서 ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "도서 삭제 성공"
+          },
+          "500": {
+            "description": "서버 내부 오류"
+          },
+          "404": {
+            "description": "도서 정보 없음"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "UserRegisterRequest": {
+        "type": "object",
+        "description": "회원가입 정보",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "nickname": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 2
+          },
+          "password": {
+            "type": "string",
+            "pattern": "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,20}$"
+          }
+        },
+        "required": [
+          "email",
+          "nickname",
+          "password"
+        ]
+      },
+      "UserDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string"
+          },
+          "nickname": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "UserLoginRequest": {
+        "type": "object",
+        "description": "로그인 정보",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "ReviewCreateRequest": {
+        "type": "object",
+        "description": "리뷰 정보",
+        "properties": {
+          "bookId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "content": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 5,
+            "minimum": 1
+          }
+        },
+        "required": [
+          "bookId",
+          "content",
+          "rating",
+          "userId"
+        ]
+      },
+      "ReviewDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "bookId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "bookTitle": {
+            "type": "string"
+          },
+          "bookThumbnailUrl": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userNickname": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "likeCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "commentCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "likedByMe": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ReviewLikeDto": {
+        "type": "object",
+        "properties": {
+          "reviewId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "liked": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CommentCreateRequest": {
+        "type": "object",
+        "description": "댓글 등록 정보",
+        "properties": {
+          "reviewId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "content": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "content",
+          "reviewId",
+          "userId"
+        ]
+      },
+      "CommentDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reviewId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userNickname": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "BookCreateRequest": {
+        "type": "object",
+        "description": "도서 정보",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "publisher": {
+            "type": "string"
+          },
+          "publishedDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "isbn": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "author",
+          "description",
+          "publishedDate",
+          "publisher",
+          "title"
+        ]
+      },
+      "BookDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "publisher": {
+            "type": "string"
+          },
+          "publishedDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "isbn": {
+            "type": "string"
+          },
+          "thumbnailUrl": {
+            "type": "string"
+          },
+          "reviewCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rating": {
+            "type": "number",
+            "format": "double"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "UserUpdateRequest": {
+        "type": "object",
+        "description": "수정할 사용자 정보",
+        "properties": {
+          "nickname": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 2
+          }
+        },
+        "required": [
+          "nickname"
+        ]
+      },
+      "ReviewUpdateRequest": {
+        "type": "object",
+        "description": "수정할 리뷰 정보",
+        "properties": {
+          "content": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 5,
+            "minimum": 1
+          }
+        },
+        "required": [
+          "content",
+          "rating"
+        ]
+      },
+      "NotificationUpdateRequest": {
+        "type": "object",
+        "description": "알림 상태 정보",
+        "properties": {
+          "confirmed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "NotificationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reviewId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reviewContent": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "confirmed": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CommentUpdateRequest": {
+        "type": "object",
+        "description": "댓글 수정 정보",
+        "properties": {
+          "content": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "content"
+        ]
+      },
+      "BookUpdateRequest": {
+        "type": "object",
+        "description": "수정할 도서 정보",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "publisher": {
+            "type": "string"
+          },
+          "publishedDate": {
+            "type": "string",
+            "format": "date"
+          }
+        },
+        "required": [
+          "author",
+          "description",
+          "publishedDate",
+          "publisher",
+          "title"
+        ]
+      },
+      "CursorPageResponsePowerUserDto": {
+        "type": "object",
+        "description": "커서 기반 페이지 응답",
+        "properties": {
+          "content": {
+            "type": "array",
+            "description": "페이지 내용",
+            "items": {
+              "$ref": "#/components/schemas/PowerUserDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "description": "다음 페이지 커서"
+          },
+          "nextAfter": {
+            "type": "string",
+            "format": "date-time",
+            "description": "마지막 요소의 생성 시간",
+            "example": "2025-04-06T15:04:05.000Z"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32",
+            "description": "페이지 크기",
+            "example": 10
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64",
+            "description": "총 요소 수",
+            "example": 100
+          },
+          "hasNext": {
+            "type": "boolean",
+            "description": "다음 페이지 여부",
+            "example": true
+          }
+        }
+      },
+      "PowerUserDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nickname": {
+            "type": "string"
+          },
+          "period": {
+            "type": "string",
+            "enum": [
+              "DAILY",
+              "WEEKLY",
+              "MONTHLY",
+              "ALL_TIME"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "rank": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "score": {
+            "type": "number",
+            "format": "double"
+          },
+          "reviewScoreSum": {
+            "type": "number",
+            "format": "double"
+          },
+          "likeCount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "commentCount": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "CursorPageResponseReviewDto": {
+        "type": "object",
+        "description": "커서 기반 페이지 응답",
+        "properties": {
+          "content": {
+            "type": "array",
+            "description": "페이지 내용",
+            "items": {
+              "$ref": "#/components/schemas/ReviewDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "description": "다음 페이지 커서"
+          },
+          "nextAfter": {
+            "type": "string",
+            "format": "date-time",
+            "description": "마지막 요소의 생성 시간",
+            "example": "2025-04-06T15:04:05.000Z"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32",
+            "description": "페이지 크기",
+            "example": 10
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64",
+            "description": "총 요소 수",
+            "example": 100
+          },
+          "hasNext": {
+            "type": "boolean",
+            "description": "다음 페이지 여부",
+            "example": true
+          }
+        }
+      },
+      "CursorPageResponsePopularReviewDto": {
+        "type": "object",
+        "description": "커서 기반 페이지 응답",
+        "properties": {
+          "content": {
+            "type": "array",
+            "description": "페이지 내용",
+            "items": {
+              "$ref": "#/components/schemas/PopularReviewDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "description": "다음 페이지 커서"
+          },
+          "nextAfter": {
+            "type": "string",
+            "format": "date-time",
+            "description": "마지막 요소의 생성 시간",
+            "example": "2025-04-06T15:04:05.000Z"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32",
+            "description": "페이지 크기",
+            "example": 10
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64",
+            "description": "총 요소 수",
+            "example": 100
+          },
+          "hasNext": {
+            "type": "boolean",
+            "description": "다음 페이지 여부",
+            "example": true
+          }
+        }
+      },
+      "PopularReviewDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reviewId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "bookId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "bookTitle": {
+            "type": "string"
+          },
+          "bookThumbnailUrl": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userNickname": {
+            "type": "string"
+          },
+          "reviewContent": {
+            "type": "string"
+          },
+          "reviewRating": {
+            "type": "number",
+            "format": "double"
+          },
+          "period": {
+            "type": "string",
+            "enum": [
+              "DAILY",
+              "WEEKLY",
+              "MONTHLY",
+              "ALL_TIME"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "rank": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "score": {
+            "type": "number",
+            "format": "double"
+          },
+          "likeCount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "commentCount": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "CursorPageResponseNotificationDto": {
+        "type": "object",
+        "description": "커서 기반 페이지 응답",
+        "properties": {
+          "content": {
+            "type": "array",
+            "description": "페이지 내용",
+            "items": {
+              "$ref": "#/components/schemas/NotificationDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "description": "다음 페이지 커서"
+          },
+          "nextAfter": {
+            "type": "string",
+            "format": "date-time",
+            "description": "마지막 요소의 생성 시간",
+            "example": "2025-04-06T15:04:05.000Z"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32",
+            "description": "페이지 크기",
+            "example": 10
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64",
+            "description": "총 요소 수",
+            "example": 100
+          },
+          "hasNext": {
+            "type": "boolean",
+            "description": "다음 페이지 여부",
+            "example": true
+          }
+        }
+      },
+      "CursorPageResponseCommentDto": {
+        "type": "object",
+        "description": "커서 기반 페이지 응답",
+        "properties": {
+          "content": {
+            "type": "array",
+            "description": "페이지 내용",
+            "items": {
+              "$ref": "#/components/schemas/CommentDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "description": "다음 페이지 커서"
+          },
+          "nextAfter": {
+            "type": "string",
+            "format": "date-time",
+            "description": "마지막 요소의 생성 시간",
+            "example": "2025-04-06T15:04:05.000Z"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32",
+            "description": "페이지 크기",
+            "example": 10
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64",
+            "description": "총 요소 수",
+            "example": 100
+          },
+          "hasNext": {
+            "type": "boolean",
+            "description": "다음 페이지 여부",
+            "example": true
+          }
+        }
+      },
+      "CursorPageResponseBookDto": {
+        "type": "object",
+        "description": "커서 기반 페이지 응답",
+        "properties": {
+          "content": {
+            "type": "array",
+            "description": "페이지 내용",
+            "items": {
+              "$ref": "#/components/schemas/BookDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "description": "다음 페이지 커서"
+          },
+          "nextAfter": {
+            "type": "string",
+            "format": "date-time",
+            "description": "마지막 요소의 생성 시간",
+            "example": "2025-04-06T15:04:05.000Z"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32",
+            "description": "페이지 크기",
+            "example": 10
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64",
+            "description": "총 요소 수",
+            "example": 100
+          },
+          "hasNext": {
+            "type": "boolean",
+            "description": "다음 페이지 여부",
+            "example": true
+          }
+        }
+      },
+      "CursorPageResponsePopularBookDto": {
+        "type": "object",
+        "description": "커서 기반 페이지 응답",
+        "properties": {
+          "content": {
+            "type": "array",
+            "description": "페이지 내용",
+            "items": {
+              "$ref": "#/components/schemas/PopularBookDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "description": "다음 페이지 커서"
+          },
+          "nextAfter": {
+            "type": "string",
+            "format": "date-time",
+            "description": "마지막 요소의 생성 시간",
+            "example": "2025-04-06T15:04:05.000Z"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32",
+            "description": "페이지 크기",
+            "example": 10
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64",
+            "description": "총 요소 수",
+            "example": 100
+          },
+          "hasNext": {
+            "type": "boolean",
+            "description": "다음 페이지 여부",
+            "example": true
+          }
+        }
+      },
+      "PopularBookDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "bookId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          },
+          "thumbnailUrl": {
+            "type": "string"
+          },
+          "period": {
+            "type": "string",
+            "enum": [
+              "DAILY",
+              "WEEKLY",
+              "MONTHLY",
+              "ALL_TIME"
+            ]
+          },
+          "rank": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "score": {
+            "type": "number",
+            "format": "double"
+          },
+          "reviewCount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "rating": {
+            "type": "number",
+            "format": "double"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "NaverBookDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "publisher": {
+            "type": "string"
+          },
+          "publishedDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "isbn": {
+            "type": "string"
+          },
+          "thumbnailImage": {
+            "type": "string",
+            "format": "byte"
+          }
+        }
+      }
+    }
+  }
+}

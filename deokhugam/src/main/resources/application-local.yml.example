@@ -1,0 +1,83 @@
+# 로컬 PostgreSQL 개발 환경 설정 (예시)
+#
+# 📌 사용 방법:
+# 1. 이 파일을 application-local.yml로 복사
+# 2. 본인의 로컬 PostgreSQL 정보로 수정
+# 3. 다음 명령어로 서버 실행: ./gradlew bootRun --args='--spring.profiles.active=local'
+#
+# ⚠️ 주의:
+# - 민감정보(비밀번호, API 키 등)를 포함하므로 Git에 커밋하지 마세요
+# - application-local.yml은 .gitignore에 등록
+# - 공유해야 할 정보는 이 예시 파일만 수정
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/deokhugam
+    username: deokhugam
+    password: deokhugam_1234
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    hibernate:
+      ddl-auto: update          # 로컬에서는 update 권장 (운영은 validate)
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+# ⚠️ AWS 자격증명 주의:
+# - 로컬 개발에서도 AWS 서비스가 필요한 경우:
+#   1. 개인 IAM 사용자를 생성하고 액세스 키 발급
+#   2. ~/.aws/credentials 파일에 설정 (이 파일에 직접 작성하면 안됨)
+#   또는
+#   3. 환경변수로 주입: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+# - 이 파일에 액세스 키를 하드코딩하면 절대 안됩니다
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY_ID}
+      secret-key: ${AWS_SECRET_ACCESS_KEY}
+    s3:
+      bucket: deokhugam-storage
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false
+
+# ⚠️ Naver API 키 주의:
+# - 개인 Naver 애플리케이션 등록 후 Client ID/Secret 발급
+# - 팀 공유 키를 사용하면 안됨
+naver:
+  api:
+    client-id: YOUR_NAVER_CLIENT_ID
+    client-secret: YOUR_NAVER_CLIENT_SECRET
+    url: https://openapi.naver.com/v1/search/book_adv.json
+
+ocr-space:
+  api:
+    key: YOUR_OCR_SPACE_API_KEY
+    url: https://api.ocr.space/parse/image
+
+springdoc:
+  swagger-ui:
+    enabled: true
+  api-docs:
+    enabled: true
+
+logging:
+  level:
+    com.deokhugam: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql: TRACE

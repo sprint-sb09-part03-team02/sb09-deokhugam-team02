@@ -1,0 +1,106 @@
+{
+  "family": "deokhugam-task",
+  "executionRoleArn": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/deokhugam-task-role",
+  "networkMode": "bridge",
+  "requiresCompatibilities": [
+    "EC2"
+  ],
+  "cpu": "512",
+  "memory": "768",
+  "runtimePlatform": {
+    "cpuArchitecture": "X86_64",
+    "operatingSystemFamily": "LINUX"
+  },
+  "containerDefinitions": [
+    {
+      "name": "deokhugam-server",
+      "image": "IMAGE_URI",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "hostPort": 8080,
+          "protocol": "tcp",
+          "name": "deokhugam-server-8080-tcp",
+          "appProtocol": "http"
+        }
+      ],
+      "environment": [
+        {
+          "name": "AWS_REGION",
+          "value": "ap-northeast-2"
+        },
+        {
+          "name": "AWS_S3_BUCKET",
+          "value": "deokhugam-storage"
+        },
+        {
+          "name": "LOG_FILE_PATH",
+          "value": "/app/logs"
+        },
+        {
+          "name": "S3_LOG_BUCKET",
+          "value": "deokhugam-logs-297904"
+        },
+        {
+          "name": "S3_LOG_PREFIX",
+          "value": "app"
+        },
+        {
+          "name": "S3_LOG_DELETE_AFTER_UPLOAD",
+          "value": "false"
+        },
+        {
+          "name": "SPRING_PROFILES_ACTIVE",
+          "value": "dev"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "SPRING_DATASOURCE_URL",
+          "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:${AWS_ACCOUNT_ID}:secret:deokhugam/prod:SPRING_DATASOURCE_URL::"
+        },
+        {
+          "name": "SPRING_DATASOURCE_USERNAME",
+          "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:${AWS_ACCOUNT_ID}:secret:deokhugam/prod:SPRING_DATASOURCE_USERNAME::"
+        },
+        {
+          "name": "SPRING_DATASOURCE_PASSWORD",
+          "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:${AWS_ACCOUNT_ID}:secret:deokhugam/prod:SPRING_DATASOURCE_PASSWORD::"
+        },
+        {
+          "name": "NAVER_CLIENT_ID",
+          "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:${AWS_ACCOUNT_ID}:secret:deokhugam/prod:NAVER_CLIENT_ID::"
+        },
+        {
+          "name": "NAVER_CLIENT_SECRET",
+          "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:${AWS_ACCOUNT_ID}:secret:deokhugam/prod:NAVER_CLIENT_SECRET::"
+        },
+        {
+          "name": "OCR_SPACE_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:${AWS_ACCOUNT_ID}:secret:deokhugam/prod:OCR_SPACE_API_KEY::"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/deokhugam-task",
+          "awslogs-create-group": "true",
+          "awslogs-region": "ap-northeast-2",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "curl -f http://localhost:8080/actuator/health || exit 1"
+        ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 120
+      }
+    }
+  ]
+}
