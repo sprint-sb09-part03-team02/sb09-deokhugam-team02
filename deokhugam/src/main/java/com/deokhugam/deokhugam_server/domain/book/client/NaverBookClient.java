@@ -7,6 +7,7 @@ import com.deokhugam.deokhugam_server.global.exception.ErrorCode;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 import java.util.List;
 import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
@@ -59,8 +60,28 @@ public class NaverBookClient implements BookInfoClient {
       clean(item.publisher()),
       parsePublishedDate(item.pubdate()),
       item.normalizedIsbn(),
-      item.image()
+      encodeImageAsBase64(item.image())
     );
+  }
+
+  private String encodeImageAsBase64(String imageUrl) {
+    if (imageUrl == null || imageUrl.isBlank()) {
+      return null;
+    }
+
+    try {
+      byte[] imageBytes = restClientBuilder.build()
+        .get()
+        .uri(imageUrl)
+        .retrieve()
+        .body(byte[].class);
+
+      return imageBytes == null || imageBytes.length == 0
+        ? null
+        : Base64.getEncoder().encodeToString(imageBytes);
+    } catch (Exception e) {
+      return null;
+    }
   }
 
   private LocalDate parsePublishedDate(String value) {

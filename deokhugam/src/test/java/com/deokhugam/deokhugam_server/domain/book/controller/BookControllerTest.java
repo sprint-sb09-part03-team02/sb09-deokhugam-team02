@@ -93,6 +93,58 @@ class BookControllerTest {
   }
 
   @Test
+  @DisplayName("도서 등록 성공 - bookData JSON 파트")
+  void createBook_success_withBookDataJsonPart() throws Exception {
+    UUID bookId = UUID.randomUUID();
+    LocalDate publishedDate = LocalDate.of(2024, 1, 1);
+    LocalDateTime now = LocalDateTime.of(2026, 4, 23, 10, 0);
+    MockMultipartFile bookData = new MockMultipartFile(
+      "bookData",
+      "",
+      "application/json",
+      """
+          {
+            "title": "클린 코드",
+            "author": "로버트 마틴",
+            "isbn": "978-89-1234-567-8",
+            "publisher": "인사이트",
+            "description": "설명",
+            "publishedDate": "2024-01-01"
+          }
+          """.getBytes()
+    );
+    MockMultipartFile thumbnailImage = new MockMultipartFile(
+      "thumbnailImage",
+      "thumbnail.png",
+      "image/png",
+      "dummy-image".getBytes()
+    );
+    BookDto response = new BookDto(
+      bookId,
+      "클린 코드",
+      "로버트 마틴",
+      "설명",
+      "인사이트",
+      publishedDate,
+      "9788912345678",
+      "https://image.test/thumbnail.png",
+      0,
+      0.0,
+      now,
+      now
+    );
+
+    when(bookService.createBook(any(), any())).thenReturn(response);
+
+    mockMvc.perform(multipart("/api/books")
+        .file(bookData)
+        .file(thumbnailImage))
+      .andExpect(status().isCreated())
+      .andExpect(jsonPath("$.id").value(bookId.toString()))
+      .andExpect(jsonPath("$.thumbnailUrl").value("https://image.test/thumbnail.png"));
+  }
+
+  @Test
   @DisplayName("도서 목록 조회 성공")
   void getBooks_success() throws Exception {
     UUID bookId = UUID.randomUUID();

@@ -14,6 +14,7 @@ import com.deokhugam.deokhugam_server.global.exception.DeokhugamException;
 import com.deokhugam.deokhugam_server.global.exception.ErrorCode;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.Base64;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -65,6 +66,9 @@ class NaverBookClientTest {
         .andExpect(header("X-Naver-Client-Id", "client-id"))
         .andExpect(header("X-Naver-Client-Secret", "client-secret"))
         .andRespond(withSuccess(response, MediaType.APPLICATION_JSON));
+    server.expect(requestTo("https://image.example/book.jpg"))
+        .andExpect(method(HttpMethod.GET))
+        .andRespond(withSuccess("image-bytes".getBytes(), MediaType.IMAGE_JPEG));
 
     // when
     NaverBookDto result = client.searchByIsbn(isbn);
@@ -75,7 +79,9 @@ class NaverBookClientTest {
     assertThat(result.description()).isEqualTo("좋은 코드를 위한 설명");
     assertThat(result.publishedDate()).isEqualTo(LocalDate.of(2024, 1, 31));
     assertThat(result.isbn()).isEqualTo(isbn);
-    assertThat(result.thumbnailImage()).isEqualTo("https://image.example/book.jpg");
+    assertThat(result.thumbnailImage()).isEqualTo(
+        Base64.getEncoder().encodeToString("image-bytes".getBytes())
+    );
     server.verify();
   }
 
