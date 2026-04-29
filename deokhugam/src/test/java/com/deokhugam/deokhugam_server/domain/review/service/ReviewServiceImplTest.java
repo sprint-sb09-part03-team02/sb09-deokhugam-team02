@@ -1,5 +1,6 @@
 package com.deokhugam.deokhugam_server.domain.review.service;
 
+import static com.deokhugam.deokhugam_server.domain.review.entity.QPopularReview.popularReview;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -171,7 +172,7 @@ class ReviewServiceImplTest {
       PopularReview pr = PopularReview.builder().review(review).rankOrder(1).build();
       ReflectionTestUtils.setField(pr, "createdAt", LocalDateTime.now());
 
-      when(popularReviewRepository.findPopularReviewsDescFirstPage(any(), any()))
+      when(popularReviewRepository.findPopularReviewDynamic(any(), any(), any(), anyString(), anyInt(), any(LocalDate.class)))
         .thenReturn(List.of(pr));
       given(popularReviewRepository.countByPeriodType(any())).willReturn(1L);
 

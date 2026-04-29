@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -43,7 +45,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Limit;
 import org.springframework.mock.web.MockMultipartFile;
 
 @ExtendWith(MockitoExtension.class)
@@ -634,7 +635,7 @@ class BookServiceImplTest {
       LocalDateTime.now()
     );
 
-    when(popularBookRepository.findPopularBooksDescFirstPage(any(), any()))
+    when(popularBookRepository.findPopularBooksDynamic(any(), any(), any(), anyString(), anyInt(), any(LocalDate.class)))
       .thenReturn(List.of(popularBook));
     when(bookMapper.toPopularDto(popularBook)).thenReturn(dto);
 
@@ -675,7 +676,7 @@ class BookServiceImplTest {
       firstCreatedAt
     );
 
-    when(popularBookRepository.findPopularBooksDescFirstPage(eq(period), any(Limit.class)))
+    when(popularBookRepository.findPopularBooksDynamic(any(), any(), any(), anyString(), anyInt(), any(LocalDate.class)))
       .thenReturn(List.of(first, second));
 
     when(popularBookRepository.countByPeriodType(period)).thenReturn(2L);
