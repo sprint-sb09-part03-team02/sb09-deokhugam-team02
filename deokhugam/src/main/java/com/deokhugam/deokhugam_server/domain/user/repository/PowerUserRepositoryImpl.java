@@ -4,7 +4,6 @@ import com.deokhugam.deokhugam_server.domain.user.entity.PowerUser;
 import com.deokhugam.deokhugam_server.domain.user.entity.QPowerUser;
 import com.deokhugam.deokhugam_server.global.type.Period;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -25,26 +24,22 @@ public class PowerUserRepositoryImpl implements PowerUserRepositoryCustom {
       .where(
         powerUser.periodType.eq(period),
         powerUser.calculatedDate.eq(latestDate),
-        cursorCondition(powerUser, cursor, after, direction)
+        cursorCondition(powerUser, cursor, direction)
       )
-      .orderBy(direction.equalsIgnoreCase("DESC") ?
-          powerUser.createdAt.desc() : powerUser.createdAt.asc(),
-        powerUser.rankOrder.desc())
+      .orderBy(direction.equalsIgnoreCase("ASC") ?
+          powerUser.rankOrder.asc() : powerUser.rankOrder.desc()
+      )
       .limit(limit + 1)
       .fetch();
   }
 
-  private BooleanExpression cursorCondition(QPowerUser pu, Integer cursor, LocalDateTime after, String direction) {
-    if (after == null || cursor == null) {
-      return null;
-    }
+  private BooleanExpression cursorCondition(QPowerUser pu, Integer cursor, String direction) {
+    if ( cursor == null)  return null;
 
     if (direction.equalsIgnoreCase("DESC")) {
-      return pu.createdAt.lt(after)
-        .or(pu.createdAt.eq(after).and(pu.rankOrder.gt(cursor)));
+      return pu.rankOrder.gt(cursor);
     } else {
-      return pu.createdAt.gt(after)
-        .or(pu.createdAt.eq(after).and(pu.rankOrder.lt(cursor)));
+      return pu.rankOrder.lt(cursor);
     }
   }
 }

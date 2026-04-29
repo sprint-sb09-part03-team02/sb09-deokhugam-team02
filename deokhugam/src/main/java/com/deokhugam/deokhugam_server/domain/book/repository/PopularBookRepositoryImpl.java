@@ -25,24 +25,22 @@ public class PopularBookRepositoryImpl implements PopularBookRepositoryCustom {
       .where(
         popularBook.periodType.eq(period),
         popularBook.calculatedDate.eq(latestDate),
-        cursorCondition(popularBook, cursor, after, direction)
+        cursorCondition(popularBook, cursor, direction)
       )
-      .orderBy(direction.equalsIgnoreCase("DESC") ?
-          popularBook.createdAt.desc() : popularBook.createdAt.asc(),
-        popularBook.rankOrder.desc())
+      .orderBy(direction.equalsIgnoreCase("ASC") ?
+        popularBook.rankOrder.asc() : popularBook.rankOrder.desc()
+      )
       .limit(limit + 1)
       .fetch();
   }
 
-  private BooleanExpression cursorCondition(QPopularBook pb, Integer cursor, LocalDateTime after, String direction) {
-    if (after == null || cursor == null) return null;
+  private BooleanExpression cursorCondition(QPopularBook pb, Integer cursor, String direction) {
+    if (cursor == null) return null;
 
-    if (direction.equalsIgnoreCase("DESC")) {
-      return pb.createdAt.lt(after)
-        .or(pb.createdAt.eq(after).and(pb.rankOrder.gt(cursor)));
+    if (direction.equalsIgnoreCase("ASC")) {
+      return pb.rankOrder.gt(cursor);
     } else {
-      return pb.createdAt.gt(after)
-        .or(pb.createdAt.eq(after).and(pb.rankOrder.lt(cursor)));
+      return pb.rankOrder.lt(cursor);
     }
   }
 }
