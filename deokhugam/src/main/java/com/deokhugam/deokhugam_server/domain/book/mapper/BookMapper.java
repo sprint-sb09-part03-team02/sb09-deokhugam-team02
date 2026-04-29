@@ -30,22 +30,14 @@ public interface BookMapper {
   @Mapping(target = "reviewCount", expression = "java((int) queryDto.reviewCount())")
   BookDto toDto(BookSearchQueryDto queryDto);
 
-  @Mapping(target = "id", source = "popularBook.id")
-  @Mapping(target = "bookId", source = "popularBook.book.id")
-  @Mapping(target = "title", source = "popularBook.book.title")
-  @Mapping(target = "author", source = "popularBook.book.author")
-  @Mapping(target = "thumbnailUrl", source = "popularBook.book.thumbnailUrl", qualifiedByName = "normalizeStaticImagePath")
-  @Mapping(target = "period", source = "popularBook.periodType")
-  @Mapping(target = "rank", source = "popularBook.rankOrder")
-  @Mapping(target = "score", source = "popularBook.score")
-  @Mapping(
-    target = "reviewCount",
-    expression = "java(popularBook.getReviewCount() == null ? 0 : popularBook.getReviewCount().intValue())"
-  )
-  @Mapping(
-    target = "rating",
-    expression = "java(popularBook.getRating() == null ? 0.0 : popularBook.getRating())"
-  )
-  @Mapping(target = "createdAt", source = "popularBook.createdAt")
+
+  @Mapping(target = "id", source = "id")
+  @Mapping(target = "bookId", source = "book.id")
+  @Mapping(target = "title", source = "book.title")
+  @Mapping(target = "author", source = "book.author")
+  @Mapping(target = "thumbnailUrl", source = "book.thumbnailUrl", qualifiedByName = "normalizeStaticImagePath")
+  @Mapping(target = "period", source = "periodType")
+  @Mapping(target = "rank", source = "rankOrder")
+  @Mapping(target = "score", source = "score")
   PopularBookDto toPopularDto(PopularBook popularBook);
 }

@@ -3,6 +3,8 @@ package com.deokhugam.deokhugam_server.domain.user.service;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -24,6 +26,7 @@ import com.deokhugam.deokhugam_server.global.exception.DeokhugamException;
 import com.deokhugam.deokhugam_server.global.exception.ErrorCode;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.type.Period;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -38,7 +41,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.data.domain.Limit;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -275,7 +277,7 @@ class UserServiceTest {
     ReflectionTestUtils.setField(user1, "createdAt", LocalDateTime.now());
     ReflectionTestUtils.setField(user2, "createdAt", LocalDateTime.now());
 
-    given(powerUserRepository.findPowerUsersDesc(eq(Period.MONTHLY), any(), any(), any(Limit.class)))
+    given(powerUserRepository.findPowerUsersDynamic(eq(Period.MONTHLY), any(), any(), anyString(), anyInt(), any(LocalDate.class)))
       .willReturn(List.of(user1, user2));
 
     given(powerUserRepository.countByPeriodType(Period.MONTHLY)).willReturn(10L);
@@ -292,7 +294,7 @@ class UserServiceTest {
     assertThat(result.nextCursor()).isEqualTo("1");
     assertThat(result.totalElements()).isEqualTo(10L);
 
-    verify(powerUserRepository).findPowerUsersDesc(eq(Period.MONTHLY), any(),any(), any(Limit.class));
+    verify(powerUserRepository).findPowerUsersDynamic(eq(Period.MONTHLY), any(), any(), anyString(), anyInt(), any(LocalDate.class));
     verify(userMapper, atLeastOnce()).toPowerUserDto(any());
   }
 
@@ -309,5 +311,6 @@ class UserServiceTest {
         .isInstanceOf(DeokhugamException.class)
         .hasMessage(ErrorCode.INVALID_INPUT_VALUE.getMessage());
 
-    verify(powerUserRepository, never()).findPowerUsersDesc(any(), any(),any(), any());  }
+    verify(powerUserRepository, never()).findPowerUsersDynamic(eq(Period.MONTHLY), any(), any(), anyString(), anyInt(), any(LocalDate.class));
+  }
 }

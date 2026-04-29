@@ -2,7 +2,6 @@ package com.deokhugam.deokhugam_server.domain.review.service;
 
 import static com.deokhugam.deokhugam_server.global.util.PeriodUtil.getStartDate;
 
-import com.deokhugam.deokhugam_server.domain.review.dto.response.PopularReviewDto;
 import com.deokhugam.deokhugam_server.domain.review.dto.response.ReviewRankQueryDto;
 import com.deokhugam.deokhugam_server.domain.review.entity.PopularReview;
 import com.deokhugam.deokhugam_server.domain.review.entity.Review;
@@ -10,10 +9,8 @@ import com.deokhugam.deokhugam_server.domain.review.event.ReviewRankedEvent;
 import com.deokhugam.deokhugam_server.domain.review.mapper.ReviewMapper;
 import com.deokhugam.deokhugam_server.domain.review.repository.PopularReviewRepository;
 import com.deokhugam.deokhugam_server.domain.review.repository.ReviewRepository;
-import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.type.Period;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +18,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.Limit;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,37 +75,5 @@ public class PopularReviewService {
             r.getRankOrder(),
             r.getReview().getContent()
         )));
-  }
-
-  public CursorPageResponse<PopularReviewDto> getPopularReviews(
-    Period period, String direction, Integer cursor, LocalDateTime after, int limitSize) {
-
-    Limit limitWithNext = Limit.of(limitSize + 1);
-
-    List<PopularReview> results = "DESC".equalsIgnoreCase(direction)
-      ? popularReviewRepository.findPopularReviewsDesc(period, cursor, after, limitWithNext)
-      : popularReviewRepository.findPopularReviewsAsc(period, cursor, after, limitWithNext);
-
-    boolean hasNext = results.size() > limitSize;
-    List<PopularReview> pagedResults = hasNext
-      ? results.subList(0, limitSize)
-      : results;
-
-    List<PopularReviewDto> content = pagedResults.stream()
-      .map(reviewMapper::toPopularDto)
-      .toList();
-
-    String nextCursor = null;
-    LocalDateTime nextAfter = null;
-    if (!content.isEmpty()) {
-      PopularReview lastItem = pagedResults.get(pagedResults.size() - 1);
-      nextCursor = String.valueOf(lastItem.getRankOrder());
-      nextAfter = lastItem.getCreatedAt();
-    }
-
-    long totalElements = popularReviewRepository.countByPeriodType(period);
-
-    return new CursorPageResponse<>(
-      content, nextCursor, nextAfter, content.size(), totalElements, hasNext);
   }
 }
