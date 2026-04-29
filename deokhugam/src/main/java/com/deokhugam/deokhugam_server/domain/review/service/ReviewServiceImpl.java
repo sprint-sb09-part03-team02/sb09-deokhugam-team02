@@ -2,6 +2,7 @@ package com.deokhugam.deokhugam_server.domain.review.service;
 
 
 import com.deokhugam.deokhugam_server.domain.book.entity.Book;
+import com.deokhugam.deokhugam_server.domain.book.entity.PopularBook;
 import com.deokhugam.deokhugam_server.domain.book.repository.BookRepository;
 import com.deokhugam.deokhugam_server.domain.review.dto.request.ReviewCreateRequest;
 import com.deokhugam.deokhugam_server.domain.review.dto.request.ReviewSearchRequest;
@@ -174,21 +175,23 @@ public class ReviewServiceImpl implements ReviewService {
     Integer cursorInt = (cursor != null && !cursor.isBlank()) ? Integer.parseInt(cursor) : null;
     Limit limitWithNext = Limit.of(limit + 1);
 
-    List<PopularReview> results = "DESC".equalsIgnoreCase(direction)
-      ? popularReviewRepository.findPopularReviewsDesc(period, cursorInt, after, limitWithNext)
-      : popularReviewRepository.findPopularReviewsAsc(period, cursorInt, after, limitWithNext);
-
+    List<PopularReview> results;
+    if (cursorInt == null || after == null) {
+      results = "DESC".equalsIgnoreCase(direction)
+        ? popularReviewRepository.findPopularReviewsDescFirstPage(period, limitWithNext)
+        : popularReviewRepository.findPopularReviewsAscFirstPage(period, limitWithNext);
+    } else {
+      results = "DESC".equalsIgnoreCase(direction)
+        ? popularReviewRepository.findPopularReviewsDesc(period, cursorInt, after, limitWithNext)
+        : popularReviewRepository.findPopularReviewsAsc(period, cursorInt, after, limitWithNext);
+    }
     boolean hasNext = results.size() > limit;
-    List<PopularReview> pagedResults = hasNext ? results.subList(0, limit) : results;
-
-    List<PopularReviewDto> content = pagedResults.stream()
-      .map(reviewMapper::toPopularDto)
-      .toList();
+    List<PopularReview> content = hasNext ? results.subList(0, limit) : results;
 
     String nextCursor = null;
     LocalDateTime nextAfter = null;
     if (!content.isEmpty()) {
-      PopularReview lastItem = pagedResults.get(pagedResults.size() - 1);
+      PopularReview lastItem = content.get(content.size() - 1);
       nextCursor = String.valueOf(lastItem.getRankOrder());
       nextAfter = lastItem.getCreatedAt();
     }
@@ -196,7 +199,7 @@ public class ReviewServiceImpl implements ReviewService {
     long totalElements = popularReviewRepository.countByPeriodType(period);
 
     return new CursorPageResponse<>(
-      content,
+      content.stream().map(reviewMapper::toPopularDto).toList(),
       nextCursor,
       nextAfter,
       content.size(),

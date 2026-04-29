@@ -61,5 +61,13 @@ public interface PopularReviewRepository extends JpaRepository<PopularReview, UU
 
   long countByPeriodType(Period periodType);
 
+  @Query("SELECT p FROM PopularReview p JOIN FETCH p.review b " +
+    "WHERE p.periodType = :period " +
+    "ORDER BY p.createdAt ASC, p.rankOrder ASC")
+  List<PopularReview> findPopularReviewsAscFirstPage(@Param("period") Period period, Limit limit);
 
+  @Query("SELECT p FROM PopularReview p JOIN FETCH p.review b " +
+    "WHERE p.periodType = :period " +
+    "ORDER BY p.createdAt DESC, p.rankOrder DESC")
+  List<PopularReview> findPopularReviewsDescFirstPage(@Param("period") Period period, Limit limit);
 }
