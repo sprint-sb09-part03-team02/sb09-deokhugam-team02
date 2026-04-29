@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <springProperty name="LOG_PATH" source="logging.file.path" defaultValue="./logs"/>
+  <springProperty name="CONSOLE_PATTERN" source="logging.pattern.console"
+    defaultValue="%d{yyyy-MM-dd HH:mm:ss} [%X{requestId}] [%X{clientIp}] %-5level %logger{36} - %msg%n"/>
+  <springProperty name="FILE_PATTERN" source="logging.pattern.file"
+    defaultValue="%d{yyyy-MM-dd HH:mm:ss} [%X{requestId}] [%X{clientIp}] %-5level %logger{36} - %msg%n"/>
+
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>${CONSOLE_PATTERN}</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${LOG_PATH}/deokhugam.log</file>
+    <encoder>
+      <pattern>${FILE_PATTERN}</pattern>
+    </encoder>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>${LOG_PATH}/deokhugam.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <maxHistory>7</maxHistory>
+    </rollingPolicy>
+  </appender>
+
+  <root level="INFO">
+    <appender-ref ref="CONSOLE"/>
+    <appender-ref ref="FILE"/>
+  </root>
+</configuration>
