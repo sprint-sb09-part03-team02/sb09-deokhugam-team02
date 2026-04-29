@@ -9,8 +9,8 @@ flowchart LR
   GH["GitHub Actions"] --> ECR["Amazon ECR"]
   ECR --> ECS["ECS EC2 Service"]
   ECS --> RDS["RDS PostgreSQL"]
-  ECS --> S3IMG["S3 deokhugam-storage"]
-  ECS --> S3LOG["S3 deokhugam-logs-297904"]
+  ECS --> S3IMG["S3 image bucket"]
+  ECS --> S3LOG["S3 log bucket"]
   ECS --> CW["CloudWatch Logs"]
   SM["Secrets Manager"] --> ECS
 ```
@@ -19,18 +19,18 @@ flowchart LR
 
 | 리소스 | 값 |
 | --- | --- |
-| Region | `ap-northeast-2` |
-| ECR repository | `deokhugam-api` |
-| ECS cluster | `deokhugam-cluster` |
-| ECS service | `deokhugam-service` |
-| ECS task family | `deokhugam-task` |
+| Region | `<aws-region>` |
+| ECR repository | `<ecr-repository>` |
+| ECS cluster | `<ecs-cluster>` |
+| ECS service | `<ecs-service>` |
+| ECS task family | `<ecs-task-family>` |
 | Container name | `deokhugam-server` |
 | Container port | `8080` |
 | Runtime | ECS EC2, `linux/amd64`, bridge network |
 | RDS | PostgreSQL |
-| Image bucket | `deokhugam-storage` |
-| Log bucket | `deokhugam-logs-297904` |
-| CloudWatch log group | `/ecs/deokhugam-task` |
+| Image bucket | `<image-bucket>` |
+| Log bucket | `<log-bucket>` |
+| CloudWatch log group | `<cloudwatch-log-group>` |
 
 ## 네트워크 구성 체크
 
@@ -82,7 +82,7 @@ RDS 연결 장애가 발생하면 먼저 RDS SG의 `5432` inbound source가 ECS 
 | `memory` | `768` |
 | `runtimePlatform.cpuArchitecture` | `X86_64` |
 | `executionRoleArn` | `ecsTaskExecutionRole` |
-| `taskRoleArn` | `deokhugam-task-role` |
+| `taskRoleArn` | `<ecs-task-role>` |
 | Health check | `curl -f http://localhost:8080/actuator/health || exit 1` |
 
 컨테이너 환경변수:
@@ -90,10 +90,10 @@ RDS 연결 장애가 발생하면 먼저 RDS SG의 `5432` inbound source가 ECS 
 | Key | 값 |
 | --- | --- |
 | `SPRING_PROFILES_ACTIVE` | `dev` |
-| `AWS_REGION` | `ap-northeast-2` |
-| `AWS_S3_BUCKET` | `deokhugam-storage` |
+| `AWS_REGION` | `<aws-region>` |
+| `AWS_S3_BUCKET` | `<image-bucket>` |
 | `LOG_FILE_PATH` | `/app/logs` |
-| `S3_LOG_BUCKET` | `deokhugam-logs-297904` |
+| `S3_LOG_BUCKET` | `<log-bucket>` |
 | `S3_LOG_PREFIX` | `app` |
 | `S3_LOG_DELETE_AFTER_UPLOAD` | `false` |
 
@@ -103,7 +103,7 @@ ECS EC2 인스턴스가 `linux/amd64` 환경이므로 이미지는 반드시 amd
 
 ```bash
 cd deokhugam
-docker build --platform linux/amd64 -t deokhugam-api:latest .
+docker build --platform linux/amd64 -t <ecr-repository>:latest .
 ```
 
 Dockerfile은 non-root `appuser`로 애플리케이션을 실행합니다. 파일 로그를 쓰기 위해 `/app/logs`를 생성하고 `/app` 소유권을 `appuser:appgroup`으로 변경합니다.
@@ -134,7 +134,7 @@ RUN mkdir -p /app/logs && chown -R appuser:appgroup /app
 업로드 경로:
 
 ```text
-s3://deokhugam-logs-297904/app/yyyy/MM/dd/deokhugam.yyyy-MM-dd.log
+s3://<log-bucket>/app/yyyy/MM/dd/deokhugam.yyyy-MM-dd.log
 ```
 
 ### S3 Lifecycle 권장값
@@ -154,7 +154,7 @@ s3://deokhugam-logs-297904/app/yyyy/MM/dd/deokhugam.yyyy-MM-dd.log
 - ECR 로그인 및 push
 - ECS task definition 등록
 - ECS service update
-- `ecsTaskExecutionRole`, `deokhugam-task-role`에 대한 `iam:PassRole`
+- `<ecs-task-execution-role>`, `<ecs-task-role>`에 대한 `iam:PassRole`
 
 ### `ecsTaskExecutionRole`
 
@@ -164,12 +164,12 @@ s3://deokhugam-logs-297904/app/yyyy/MM/dd/deokhugam.yyyy-MM-dd.log
 - CloudWatch Logs write
 - Secrets Manager `GetSecretValue`
 
-### `deokhugam-task-role`
+### `<ecs-task-role>`
 
 애플리케이션 런타임에서 필요한 권한:
 
-- `deokhugam-storage` 이미지 업로드/조회/삭제
-- `deokhugam-logs-297904/app/*` 로그 업로드
+- `<image-bucket>` 이미지 업로드/조회/삭제
+- `<log-bucket>/app/*` 로그 업로드
 
 로그 업로드 최소 권한 예시:
 
@@ -181,7 +181,7 @@ s3://deokhugam-logs-297904/app/yyyy/MM/dd/deokhugam.yyyy-MM-dd.log
       "Sid": "S3DailyLogUpload",
       "Effect": "Allow",
       "Action": "s3:PutObject",
-      "Resource": "arn:aws:s3:::deokhugam-logs-297904/app/*"
+      "Resource": "arn:aws:s3:::<log-bucket>/app/*"
     }
   ]
 }
@@ -205,9 +205,9 @@ s3://deokhugam-logs-297904/app/yyyy/MM/dd/deokhugam.yyyy-MM-dd.log
 
 ```bash
 aws ecs describe-services \
-  --cluster deokhugam-cluster \
-  --services deokhugam-service \
-  --region ap-northeast-2
+  --cluster <ecs-cluster> \
+  --services <ecs-service> \
+  --region <aws-region>
 ```
 
 확인할 값:
@@ -244,14 +244,14 @@ Batch가 한 번 이상 실행된 뒤 메트릭 값이 표시됩니다.
 스케줄 기준 다음날 `00:10 KST` 이후 아래 경로를 확인합니다.
 
 ```text
-s3://deokhugam-logs-297904/app/yyyy/MM/dd/
+s3://<log-bucket>/app/yyyy/MM/dd/
 ```
 
 객체가 없다면 아래 순서로 확인합니다.
 
 1. ECS task definition의 `LOG_FILE_PATH`, `S3_LOG_BUCKET`, `S3_LOG_PREFIX`
 2. 컨테이너가 하루 전 로그 파일을 실제로 생성했는지
-3. `deokhugam-task-role`에 `s3:PutObject` 권한이 있는지
+3. `<ecs-task-role>`에 `s3:PutObject` 권한이 있는지
 4. CloudWatch Logs에서 `S3_LOG_UPLOAD_FAILED` 또는 skip 로그가 있는지
 
 ## 트러블슈팅
@@ -263,7 +263,7 @@ s3://deokhugam-logs-297904/app/yyyy/MM/dd/
 해결:
 
 ```bash
-docker buildx build --platform linux/amd64 -t deokhugam-api:{tag} --load .
+docker buildx build --platform linux/amd64 -t <ecr-repository>:<tag> --load .
 ```
 
 ### `CannotPullContainerError`

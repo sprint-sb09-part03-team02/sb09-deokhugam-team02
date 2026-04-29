@@ -1,7 +1,7 @@
 # 덕후감 서버 (Deokhugam Server)
 
 [![CI](https://github.com/sprint-sb09-part03-team02/sb09-deokhugam-team02/actions/workflows/ci.yml/badge.svg)](https://github.com/sprint-sb09-part03-team02/sb09-deokhugam-team02/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/sprint-sb09-part03-team02/sb09-deokhugam-team02/graph/badge.svg?token=ZHKEENIICM)](https://codecov.io/gh/sprint-sb09-part03-team02/sb09-deokhugam-team02)
+[![codecov](https://codecov.io/gh/sprint-sb09-part03-team02/sb09-deokhugam-team02/graph/badge.svg)](https://codecov.io/gh/sprint-sb09-part03-team02/sb09-deokhugam-team02)
 
 덕후감은 도서, 리뷰, 댓글, 알림, 인기 랭킹을 관리하는 Spring Boot 기반 백엔드 서버입니다.
 로컬 개발은 H2로 바로 실행할 수 있고, 운영 배포는 GitHub Actions를 통해 ECR 이미지를 빌드한 뒤 AWS ECS EC2 서비스로 배포합니다.
@@ -109,8 +109,8 @@ PR -> CI 통과 -> dev -> main merge -> CD -> ECR push -> ECS service update
 | ECR | Docker 이미지 저장소 |
 | ECS EC2 | Spring Boot 애플리케이션 실행 |
 | RDS PostgreSQL | 운영 데이터베이스 및 Spring Batch 메타테이블 저장 |
-| S3 `deokhugam-storage` | 이미지/썸네일 저장 |
-| S3 `deokhugam-logs-297904` | 날짜별 애플리케이션 로그 적재 |
+| S3 이미지 버킷 | 이미지/썸네일 저장 |
+| S3 로그 버킷 | 날짜별 애플리케이션 로그 적재 |
 | Secrets Manager | DB, Naver API, OCR Space API 민감값 관리 |
 | CloudWatch Logs | ECS 컨테이너 표준 출력 로그 확인 |
 
