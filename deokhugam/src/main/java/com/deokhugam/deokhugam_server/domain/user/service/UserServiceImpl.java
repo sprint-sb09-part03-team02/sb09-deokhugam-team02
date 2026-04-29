@@ -15,11 +15,11 @@ import com.deokhugam.deokhugam_server.domain.user.entity.User;
 import com.deokhugam.deokhugam_server.domain.user.mapper.UserMapper;
 import com.deokhugam.deokhugam_server.domain.user.repository.UserRepository;
 import com.deokhugam.deokhugam_server.global.exception.DeokhugamException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Limit;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,21 +70,11 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public CursorPageResponse<PowerUserDto> findPowerUsers(Period period, String direction,
-      String cursor, LocalDateTime after, int limit) {
+    String cursor, LocalDateTime after, int limit) {
     Integer cursorInt = parseCursor(cursor);
-
-    Limit limitWithNext = Limit.of(limit + 1);
-
-    List<PowerUser> results;
-    if (cursorInt == null || after == null) {
-      results = "DESC".equalsIgnoreCase(direction)
-        ? powerUserRepository.findPowerUsersDescFirstPage(period, limitWithNext)
-        : powerUserRepository.findPowerUsersAscFirstPage(period, limitWithNext);
-    } else {
-      results = "DESC".equalsIgnoreCase(direction)
-        ? powerUserRepository.findPowerUsersDesc(period, cursorInt, after, limitWithNext)
-        : powerUserRepository.findPowerUsersAsc(period, cursorInt, after, limitWithNext);
-    }
+    LocalDate latestDate = powerUserRepository.findMaxCalculatedDateByPeriodType(period)
+      .orElse(LocalDate.now());
+    List<PowerUser> results = powerUserRepository.findPowerUsersDynamic(period, cursorInt, after, direction, limit, latestDate);
     boolean hasNext = results.size() > limit;
     List<PowerUser> pagedResults = hasNext ? results.subList(0, limit) : results;
 
