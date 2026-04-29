@@ -22,9 +22,11 @@ import com.deokhugam.deokhugam_server.domain.user.repository.UserRepository;
 import com.deokhugam.deokhugam_server.global.response.CursorPageResponse;
 import com.deokhugam.deokhugam_server.global.exception.DeokhugamException;
 import com.deokhugam.deokhugam_server.global.exception.ErrorCode;
+import com.deokhugam.deokhugam_server.global.mapper.StaticImagePathMapper;
 import com.deokhugam.deokhugam_server.global.type.Period;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -46,6 +48,7 @@ public class ReviewServiceImpl implements ReviewService {
   private final ReviewMapper reviewMapper;
   private final ApplicationEventPublisher eventPublisher;
   private final PopularReviewRepository popularReviewRepository;
+  private final StaticImagePathMapper staticImagePathMapper;
 
   @Override
   @Transactional
@@ -77,7 +80,9 @@ public class ReviewServiceImpl implements ReviewService {
   @Override
   public CursorPageResponse<ReviewDto> searchReviews(ReviewSearchRequest request) {
     // 리포지토리에서 이미 ReviewDto 리스트를 반환함
-    List<ReviewDto> content = reviewRepository.searchReviews(request);
+    List<ReviewDto> content = new ArrayList<>(reviewRepository.searchReviews(request).stream()
+        .map(this::normalizeBookThumbnailUrl)
+        .toList());
 
     boolean hasNext = content.size() > request.getLimit();
     if (hasNext) {
@@ -94,6 +99,24 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     return new CursorPageResponse<>(content, nextCursor, nextAfter, request.getLimit(), 0L, hasNext);
+  }
+
+  private ReviewDto normalizeBookThumbnailUrl(ReviewDto review) {
+    return new ReviewDto(
+        review.id(),
+        review.bookId(),
+        review.bookTitle(),
+        staticImagePathMapper.normalizeStaticImagePath(review.bookThumbnailUrl()),
+        review.userId(),
+        review.userNickname(),
+        review.content(),
+        review.rating(),
+        review.likeCount(),
+        review.commentCount(),
+        review.likedByMe(),
+        review.createdAt(),
+        review.updatedAt()
+    );
   }
 
   @Override
