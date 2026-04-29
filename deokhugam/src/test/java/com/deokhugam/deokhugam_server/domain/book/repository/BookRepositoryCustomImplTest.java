@@ -42,8 +42,6 @@ class BookRepositoryCustomImplTest {
   private User user3;
 
   private PopularBook rank1;
-  private PopularBook rank2;
-  private PopularBook rank3;
 
   private static final LocalDateTime BASE_TIME = LocalDateTime.of(2026, 4, 27, 10, 0, 0);
   private static final LocalDate RANK_DATE = LocalDate.of(2026, 4, 27);
@@ -78,15 +76,21 @@ class BookRepositoryCustomImplTest {
       BASE_TIME.minusDays(1)
     );
 
-    persistReview(cleanCode, user1, "좋은 책입니다.", 5, BASE_TIME.minusDays(2));
-    persistReview(cleanCode, user2, "다시 읽고 싶은 책입니다.", 3, BASE_TIME.minusDays(1));
-
-    persistReview(effectiveJava, user1, "자바 필독서입니다.", 5, BASE_TIME.minusDays(2));
-    persistReview(effectiveJava, user3, "실무에 좋습니다.", 5, BASE_TIME.minusDays(1));
+    persistReview(cleanCode, user1, "clean-review-1", 5);
+    persistReview(cleanCode, user2, "clean-review-2", 3);
+    persistReview(effectiveJava, user1, "java-review-1", 5);
+    persistReview(effectiveJava, user3, "java-review-2", 5);
 
     rank1 = persistPopularBook(cleanCode, Period.DAILY, 10.0, 1, 2L, 4.0, RANK_DATE);
-    rank2 = persistPopularBook(effectiveJava, Period.DAILY, 9.0, 2, 2L, 5.0, RANK_DATE);
-    rank3 = persistPopularBook(noReviewBook, Period.DAILY, 1.0, 3, 0L, 0.0, RANK_DATE);
+    persistPopularBook(effectiveJava, Period.DAILY, 9.0, 2, 2L, 5.0, RANK_DATE);
+    persistPopularBook(noReviewBook, Period.DAILY, 1.0, 3, 0L, 0.0, RANK_DATE);
+
+    em.flush();
+
+    updateReviewCreatedAt("clean-review-1", BASE_TIME.minusDays(2));
+    updateReviewCreatedAt("clean-review-2", BASE_TIME.minusDays(1));
+    updateReviewCreatedAt("java-review-1", BASE_TIME.minusDays(2));
+    updateReviewCreatedAt("java-review-2", BASE_TIME.minusDays(1));
 
     em.flush();
     em.clear();
@@ -381,8 +385,7 @@ class BookRepositoryCustomImplTest {
     Book book,
     User user,
     String content,
-    int rating,
-    LocalDateTime createdAt
+    int rating
   ) {
     Review review = Review.builder()
       .book(book)
@@ -391,11 +394,18 @@ class BookRepositoryCustomImplTest {
       .rating(rating)
       .build();
 
-    ReflectionTestUtils.setField(review, "createdAt", createdAt);
-    ReflectionTestUtils.setField(review, "updatedAt", createdAt);
+    ReflectionTestUtils.setField(review, "createdAt", BASE_TIME);
+    ReflectionTestUtils.setField(review, "updatedAt", BASE_TIME);
 
     em.persist(review);
     return review;
+  }
+
+  private void updateReviewCreatedAt(String content, LocalDateTime createdAt) {
+    em.createNativeQuery("UPDATE reviews SET created_at = ?1, updated_at = ?1 WHERE content = ?2")
+      .setParameter(1, createdAt)
+      .setParameter(2, content)
+      .executeUpdate();
   }
 
   private PopularBook persistPopularBook(
