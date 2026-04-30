@@ -59,23 +59,24 @@ class UserRepositoryCustomImplTest {
     LocalDate end = LocalDate.now();
 
     User activeUser = createUser("active@test.com", "활동유저");
-    User inactiveUser = createUser("inactive@test.com", "무활동유저");
 
-    Book book = new Book("제목", "저자", "ISBN-111", "출판사", "설명", "url", LocalDate.now());
-    bookRepository.save(book);
+    Book book1 = createBook("ISBN-111", "테스트 책 1");
+    saveReview(activeUser, book1, "리뷰1");
 
-    saveReview(activeUser, book, "리뷰1");
-    saveReview(activeUser, book, "리뷰2");
+    Book book2 = createBook("ISBN-222", "테스트 책 2");
+    saveReview(activeUser, book2, "리뷰2");
 
-    Review reviewForLike = reviewRepository.findAll().get(0);
-    reviewLikeRepository.save(ReviewLike.builder().user(activeUser).review(reviewForLike).build());
+    Review firstReview = reviewRepository.findAll().get(0);
+    reviewLikeRepository.save(ReviewLike.builder()
+      .user(activeUser)
+      .review(firstReview)
+      .build());
 
     commentRepository.save(Comment.builder()
       .userId(activeUser.getId())
-      .review(reviewForLike)
+      .review(firstReview)
       .content("댓글입니다")
       .build());
-
     em.flush();
     em.clear();
 
@@ -98,6 +99,12 @@ class UserRepositoryCustomImplTest {
       .nickname(nickname)
       .password("password")
       .build());
+  }
+  private Book createBook(String isbn, String title) {
+    Book book = new Book(
+      title, "저자", isbn, "출판사", "설명", "url", LocalDate.now()
+    );
+    return bookRepository.save(book);
   }
 
   private void saveReview(User user, Book book, String content) {
