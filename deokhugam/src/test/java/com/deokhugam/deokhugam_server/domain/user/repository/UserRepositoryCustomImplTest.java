@@ -57,26 +57,10 @@ class UserRepositoryCustomImplTest {
     // given
     LocalDate start = LocalDate.now().minusDays(1);
     LocalDate end = LocalDate.now();
-
     User activeUser = createUser("active@test.com", "활동유저");
 
-    Book book1 = createBook("ISBN-111", "테스트 책 1");
-    saveReview(activeUser, book1, "리뷰1");
+    setupUserActivities(activeUser);
 
-    Book book2 = createBook("ISBN-222", "테스트 책 2");
-    saveReview(activeUser, book2, "리뷰2");
-
-    Review firstReview = reviewRepository.findAll().get(0);
-    reviewLikeRepository.save(ReviewLike.builder()
-      .user(activeUser)
-      .review(firstReview)
-      .build());
-
-    commentRepository.save(Comment.builder()
-      .userId(activeUser.getId())
-      .review(firstReview)
-      .content("댓글입니다")
-      .build());
     em.flush();
     em.clear();
 
@@ -86,11 +70,33 @@ class UserRepositoryCustomImplTest {
     // then
     assertThat(result).hasSize(1);
 
-    UserRankQueryDto stats = result.get(0);
-    assertThat(stats.userId()).isEqualTo(activeUser.getId());
-    assertThat(stats.totalReviewScore()).isEqualTo(2L);
-    assertThat(stats.givenLikeCount()).isEqualTo(1L);
-    assertThat(stats.writtenCommentCount()).isEqualTo(1L);
+    assertThat(result.get(0))
+      .extracting(
+        UserRankQueryDto::userId,
+        UserRankQueryDto::totalReviewScore,
+        UserRankQueryDto::givenLikeCount,
+        UserRankQueryDto::writtenCommentCount
+      )
+      .containsExactly(activeUser.getId(), 2L, 1L, 1L);
+  }
+
+  private void setupUserActivities(User user) {
+    Book book1 = createBook("ISBN-111", "테스트 책 1");
+    Review review1 = saveReview(user, book1, "리뷰1");
+
+    Book book2 = createBook("ISBN-222", "테스트 책 2");
+    saveReview(user, book2, "리뷰2");
+
+    reviewLikeRepository.save(ReviewLike.builder()
+      .user(user)
+      .review(review1)
+      .build());
+
+    commentRepository.save(Comment.builder()
+      .userId(user.getId())
+      .review(review1)
+      .content("댓글입니다")
+      .build());
   }
 
   private User createUser(String email, String nickname) {
@@ -100,15 +106,15 @@ class UserRepositoryCustomImplTest {
       .password("password")
       .build());
   }
+
   private Book createBook(String isbn, String title) {
-    Book book = new Book(
+    return bookRepository.save(new Book(
       title, "저자", isbn, "출판사", "설명", "url", LocalDate.now()
-    );
-    return bookRepository.save(book);
+    ));
   }
 
-  private void saveReview(User user, Book book, String content) {
-    reviewRepository.save(Review.builder()
+  private Review saveReview(User user, Book book, String content) {
+    return reviewRepository.save(Review.builder()
       .user(user)
       .book(book)
       .content(content)
