@@ -44,7 +44,7 @@ class PowerUserRepositoryImplTest {
   private final LocalDate targetDate = LocalDate.of(2026, 4, 30);
 
   @Test
-  @DisplayName("활동왕 유저를 동적으로 조회하고 커서 기반 페이징이 적용된다")
+  @DisplayName("파워 유저를 동적으로 조회하고 커서 기반 페이징이 적용된다")
   void findPowerUsersDynamic_Pagination_Success() {
     // given
     for (int i = 1; i <= 5; i++) {
@@ -65,9 +65,9 @@ class PowerUserRepositoryImplTest {
     // then
     assertThat(result).hasSize(limit + 1)
       .extracting(PowerUser::getRankOrder)
-      .containsExactly(3, 4, 5);
+      .containsExactly(5, 4, 3);
 
-    assertThat(result.get(0).getUser().getNickname()).isEqualTo("활동왕3");
+    assertThat(result.get(0).getUser().getNickname()).isEqualTo("활동왕5");
   }
 
 
