@@ -15,15 +15,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(
-    name = "reviews",
-    uniqueConstraints = {
-        @UniqueConstraint(
-            name = "uk_book_user_is_deleted", // 수정: 논리 삭제 충돌 해결을 위해 is_deleted 추가
-            columnNames = {"book_id", "user_id", "is_deleted"}
-        )
-    }
-)
+@Table(name = "reviews")
 public class Review extends BaseEntity {
 
   @Id

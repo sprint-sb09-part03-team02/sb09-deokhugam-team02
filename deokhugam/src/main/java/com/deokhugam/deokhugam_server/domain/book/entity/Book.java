@@ -1,13 +1,17 @@
 package com.deokhugam.deokhugam_server.domain.book.entity;
 
 import com.deokhugam.deokhugam_server.global.entity.BaseEntity;
+import java.text.Normalizer;
+import java.time.LocalDate;
+import java.util.Locale;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.LocalDate;
-import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,6 +23,8 @@ import org.hibernate.annotations.UuidGenerator;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Book extends BaseEntity {
 
+  private static final Pattern DIGIT_PATTERN = Pattern.compile("\\d+");
+
   @Id
   @GeneratedValue
   @UuidGenerator
@@ -27,6 +33,9 @@ public class Book extends BaseEntity {
 
   @Column(name = "title", nullable = false, length = 255)
   private String title;
+
+  @Column(name = "title_sort_key", nullable = false, length = 500)
+  private String titleSortKey;
 
   @Column(name = "author", nullable = false, length = 255)
   private String author;
@@ -62,6 +71,7 @@ public class Book extends BaseEntity {
     LocalDate publishedDate
   ) {
     this.title = title;
+    this.titleSortKey = toTitleSortKey(title);
     this.author = author;
     this.isbn = isbn;
     this.publisher = publisher;
@@ -82,6 +92,7 @@ public class Book extends BaseEntity {
   ) {
     if (title != null) {
       this.title = title;
+      this.titleSortKey = toTitleSortKey(title);
     }
     if (author != null) {
       this.author = author;
@@ -103,5 +114,35 @@ public class Book extends BaseEntity {
   public void updateReviewStatistics(int reviewCount, double rating) {
     this.reviewCount = reviewCount;
     this.rating = rating;
+  }
+
+  public static String toTitleSortKey(String title) {
+    if (title == null || title.isBlank()) {
+      return "";
+    }
+
+    String normalized = Normalizer.normalize(title.trim(), Normalizer.Form.NFKC)
+      .toLowerCase(Locale.ROOT)
+      .replaceAll("[\\p{Punct}\\p{IsPunctuation}]+", " ")
+      .replaceAll("\\s+", " ")
+      .trim();
+
+    Matcher matcher = DIGIT_PATTERN.matcher(normalized);
+    StringBuilder sortKey = new StringBuilder();
+
+    while (matcher.find()) {
+      matcher.appendReplacement(sortKey, padNumber(matcher.group()));
+    }
+    matcher.appendTail(sortKey);
+
+    return sortKey.toString();
+  }
+
+  private static String padNumber(String value) {
+    String normalizedNumber = value.replaceFirst("^0+(?!$)", "");
+    if (normalizedNumber.length() >= 20) {
+      return normalizedNumber;
+    }
+    return "0".repeat(20 - normalizedNumber.length()) + normalizedNumber;
   }
 }
