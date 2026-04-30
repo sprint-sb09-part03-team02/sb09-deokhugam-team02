@@ -52,10 +52,6 @@
           "value": "false"
         },
         {
-          "name": "S3_LOG_UPLOAD_CRON",
-          "value": "0 0 1 * * *"
-        },
-        {
           "name": "SPRING_PROFILES_ACTIVE",
           "value": "dev"
         }

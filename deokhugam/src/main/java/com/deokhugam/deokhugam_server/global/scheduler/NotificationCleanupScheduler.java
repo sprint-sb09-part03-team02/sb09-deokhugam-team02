@@ -19,9 +19,10 @@ public class NotificationCleanupScheduler {
   @Qualifier("notificationCleanupJob")
   private final Job notificationCleanupJob;
 
-  @Scheduled(cron = "0 0 3 * * *")
+  @Scheduled(cron = "${deokhugam.batch.notification-cleanup.cron:0 30 3 * * *}", zone = "Asia/Seoul")
   public void runNotificationCleanup() {
     try {
+      log.info("[Batch] Starting notification cleanup job...");
       jobLauncher.run(notificationCleanupJob, new JobParametersBuilder()
           .addLong("requestedAt", System.currentTimeMillis())
           .toJobParameters());
