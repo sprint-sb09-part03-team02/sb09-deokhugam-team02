@@ -203,6 +203,76 @@ class BookRepositoryCustomImplTest {
   }
 
   @Test
+  @DisplayName("성공: 한글, 영문, 숫자, 대소문자가 섞인 제목을 정렬용 키 기준으로 조회한다")
+  void searchBooks_OrderByTitleSortKeyMixedCharacters_Success() {
+    persistBook(
+      "정렬-Banana",
+      "테스터",
+      "9790000000001",
+      LocalDate.of(2024, 1, 1),
+      BASE_TIME.plusDays(1)
+    );
+    persistBook(
+      "정렬-apple",
+      "테스터",
+      "9790000000002",
+      LocalDate.of(2024, 1, 2),
+      BASE_TIME.plusDays(2)
+    );
+    persistBook(
+      "정렬-10",
+      "테스터",
+      "9790000000003",
+      LocalDate.of(2024, 1, 3),
+      BASE_TIME.plusDays(3)
+    );
+    persistBook(
+      "정렬-2",
+      "테스터",
+      "9790000000004",
+      LocalDate.of(2024, 1, 4),
+      BASE_TIME.plusDays(4)
+    );
+    persistBook(
+      "정렬-가나다",
+      "테스터",
+      "9790000000005",
+      LocalDate.of(2024, 1, 5),
+      BASE_TIME.plusDays(5)
+    );
+
+    em.flush();
+    em.clear();
+
+    BookSearchRequest ascRequest = new BookSearchRequest(
+      "정렬",
+      "title",
+      "ASC",
+      null,
+      null,
+      10
+    );
+    BookSearchRequest descRequest = new BookSearchRequest(
+      "정렬",
+      "title",
+      "DESC",
+      null,
+      null,
+      10
+    );
+
+    List<BookSearchQueryDto> ascResult = bookRepository.searchBooks(ascRequest);
+    List<BookSearchQueryDto> descResult = bookRepository.searchBooks(descRequest);
+
+    assertThat(ascResult)
+      .extracting(BookSearchQueryDto::title)
+      .containsExactly("정렬-2", "정렬-10", "정렬-apple", "정렬-Banana", "정렬-가나다");
+    assertThat(descResult)
+      .extracting(BookSearchQueryDto::title)
+      .containsExactly("정렬-가나다", "정렬-Banana", "정렬-apple", "정렬-10", "정렬-2");
+  }
+
+  @Test
   @DisplayName("성공: 출간일 기준 오름차순으로 도서 목록을 조회한다")
   void searchBooks_OrderByPublishedDateAsc_Success() {
     BookSearchRequest request = new BookSearchRequest(

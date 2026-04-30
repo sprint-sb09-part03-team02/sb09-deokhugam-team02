@@ -41,10 +41,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({MockitoExtension.class, OutputCaptureExtension.class})
 @MockitoSettings(strictness = Strictness.LENIENT)
 class UserServiceTest {
   @Mock
@@ -229,7 +231,7 @@ class UserServiceTest {
 
   @Test
   @DisplayName("소프트 삭제 성공")
-  void deleteSoft_Success() {
+  void deleteSoft_Success(CapturedOutput output) {
     // given
     given(userRepository.findById(userId)).willReturn(Optional.of(user));
 
@@ -238,12 +240,15 @@ class UserServiceTest {
 
     // then
     assertThat(user.isDeleted()).isTrue();
+    assertThat(output.getOut()).contains("User soft delete completed");
+    assertThat(output.getOut()).contains("requestUserId=" + requestUserId);
+    assertThat(output.getOut()).contains("targetUserId=" + userId);
     verify(userRepository).findById(userId);
   }
 
   @Test
   @DisplayName("물리 삭제 성공")
-  void deleteHard_Success() {
+  void deleteHard_Success(CapturedOutput output) {
     // given
     given(userRepository.existsById(userId)).willReturn(true);
     // when
@@ -251,6 +256,9 @@ class UserServiceTest {
     // then
     verify(userRepository).existsById(userId);
     verify(userRepository).deleteById(userId);
+    assertThat(output.getOut()).contains("User hard delete completed");
+    assertThat(output.getOut()).contains("requestUserId=" + requestUserId);
+    assertThat(output.getOut()).contains("targetUserId=" + userId);
   }
 
   @Test

@@ -7,6 +7,7 @@ import static com.deokhugam.deokhugam_server.domain.review.entity.QReview.review
 import com.deokhugam.deokhugam_server.domain.book.dto.request.BookSearchRequest;
 import com.deokhugam.deokhugam_server.domain.book.dto.response.BookRankQueryDto;
 import com.deokhugam.deokhugam_server.domain.book.dto.response.BookSearchQueryDto;
+import com.deokhugam.deokhugam_server.domain.book.entity.Book;
 import com.deokhugam.deokhugam_server.domain.book.entity.PopularBook;
 import com.deokhugam.deokhugam_server.domain.book.entity.QPopularBook;
 import com.deokhugam.deokhugam_server.global.type.Period;
@@ -65,6 +66,7 @@ public class BookRepositoryCustomImpl implements BookRepositoryCustom {
       .groupBy(
         book.id,
         book.title,
+        book.titleSortKey,
         book.author,
         book.description,
         book.publisher,
@@ -262,13 +264,15 @@ public class BookRepositoryCustomImpl implements BookRepositoryCustom {
     LocalDateTime after,
     String direction
   ) {
+    String titleSortKeyCursor = Book.toTitleSortKey(cursor);
+
     if (isAsc(direction)) {
-      return book.title.gt(cursor)
-        .or(book.title.eq(cursor).and(book.createdAt.gt(after)));
+      return book.titleSortKey.gt(titleSortKeyCursor)
+        .or(book.titleSortKey.eq(titleSortKeyCursor).and(book.createdAt.gt(after)));
     }
 
-    return book.title.lt(cursor)
-      .or(book.title.eq(cursor).and(book.createdAt.lt(after)));
+    return book.titleSortKey.lt(titleSortKeyCursor)
+      .or(book.titleSortKey.eq(titleSortKeyCursor).and(book.createdAt.lt(after)));
   }
 
   private BooleanExpression comparePublishedDateCursor(
@@ -354,8 +358,8 @@ public class BookRepositoryCustomImpl implements BookRepositoryCustom {
       case "publisheddate" -> new OrderSpecifier<>(order, book.publishedDate);
       case "rating" -> new OrderSpecifier<>(order, ratingExpression);
       case "reviewcount" -> new OrderSpecifier<>(order, reviewCountExpression);
-      case "title" -> new OrderSpecifier<>(order, book.title);
-      default -> new OrderSpecifier<>(order, book.title);
+      case "title" -> new OrderSpecifier<>(order, book.titleSortKey);
+      default -> new OrderSpecifier<>(order, book.titleSortKey);
     };
   }
 
