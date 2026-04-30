@@ -21,7 +21,7 @@ public class RankingScheduler {
   private final Job rankingJob;
 
   // 1. 매일 새벽 3시: DAILY와 ALL_TIME을 함께 갱신 (홈 화면 데이터 보장)
-  @Scheduled(cron = "0 0 3 * * *")
+  @Scheduled(cron = "${deokhugam.batch.ranking.daily-cron:0 0 3 * * *}", zone = "Asia/Seoul")
   public void runDailyAndAllTimeRanking() {
     log.info("[Batch] Starting Daily and All-Time ranking jobs...");
     runJob(Period.DAILY);
@@ -29,14 +29,14 @@ public class RankingScheduler {
   }
 
   // 2. 매주 월요일 새벽 4시: WEEKLY 갱신
-  @Scheduled(cron = "0 0 4 * * MON")
+  @Scheduled(cron = "${deokhugam.batch.ranking.weekly-cron:0 0 4 * * MON}", zone = "Asia/Seoul")
   public void runWeeklyRanking() {
     log.info("[Batch] Starting Weekly ranking job...");
     runJob(Period.WEEKLY);
   }
 
   // 3. 매달 1일 새벽 5시: MONTHLY 갱신
-  @Scheduled(cron = "0 0 5 1 * *")
+  @Scheduled(cron = "${deokhugam.batch.ranking.monthly-cron:0 0 5 1 * *}", zone = "Asia/Seoul")
   public void runMonthlyRanking() {
     log.info("[Batch] Starting Monthly ranking job...");
     runJob(Period.MONTHLY);
