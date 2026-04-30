@@ -30,8 +30,11 @@ import org.springframework.test.util.ReflectionTestUtils;
 @Import(QueryDslConfig.class)
 class BookRepositoryCustomImplTest {
 
-  @Autowired private BookRepository bookRepository;
-  @Autowired private EntityManager em;
+  @Autowired
+  private BookRepository bookRepository;
+
+  @Autowired
+  private EntityManager em;
 
   private Book cleanCode;
   private Book effectiveJava;
@@ -141,11 +144,70 @@ class BookRepositoryCustomImplTest {
   }
 
   @Test
+  @DisplayName("성공: ISBN 검색 시 하이픈을 제거하고 검색한다")
+  void searchBooks_KeywordIsbnHyphen_Success() {
+    BookSearchRequest request = new BookSearchRequest(
+      "978-2222222222",
+      "title",
+      "ASC",
+      null,
+      null,
+      10
+    );
+
+    List<BookSearchQueryDto> result = bookRepository.searchBooks(request);
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).title()).isEqualTo("Effective Java");
+    assertThat(result.get(0).isbn()).isEqualTo("9782222222222");
+  }
+
+  @Test
   @DisplayName("성공: 제목 기준 오름차순으로 도서 목록을 조회한다")
   void searchBooks_OrderByTitleAsc_Success() {
     BookSearchRequest request = new BookSearchRequest(
       null,
       "title",
+      "ASC",
+      null,
+      null,
+      10
+    );
+
+    List<BookSearchQueryDto> result = bookRepository.searchBooks(request);
+
+    assertThat(result).hasSize(3);
+    assertThat(result.get(0).title()).isEqualTo("Clean Code");
+    assertThat(result.get(1).title()).isEqualTo("Effective Java");
+    assertThat(result.get(2).title()).isEqualTo("No Review Book");
+  }
+
+  @Test
+  @DisplayName("성공: 제목 기준 내림차순으로 도서 목록을 조회한다")
+  void searchBooks_OrderByTitleDesc_Success() {
+    BookSearchRequest request = new BookSearchRequest(
+      null,
+      "title",
+      "DESC",
+      null,
+      null,
+      10
+    );
+
+    List<BookSearchQueryDto> result = bookRepository.searchBooks(request);
+
+    assertThat(result).hasSize(3);
+    assertThat(result.get(0).title()).isEqualTo("No Review Book");
+    assertThat(result.get(1).title()).isEqualTo("Effective Java");
+    assertThat(result.get(2).title()).isEqualTo("Clean Code");
+  }
+
+  @Test
+  @DisplayName("성공: 출간일 기준 오름차순으로 도서 목록을 조회한다")
+  void searchBooks_OrderByPublishedDateAsc_Success() {
+    BookSearchRequest request = new BookSearchRequest(
+      null,
+      "publishedDate",
       "ASC",
       null,
       null,
@@ -181,6 +243,31 @@ class BookRepositoryCustomImplTest {
   }
 
   @Test
+  @DisplayName("성공: 평점 기준 오름차순으로 도서 목록을 조회한다")
+  void searchBooks_OrderByRatingAsc_Success() {
+    BookSearchRequest request = new BookSearchRequest(
+      null,
+      "rating",
+      "ASC",
+      null,
+      null,
+      10
+    );
+
+    List<BookSearchQueryDto> result = bookRepository.searchBooks(request);
+
+    assertThat(result).hasSize(3);
+    assertThat(result.get(0).title()).isEqualTo("No Review Book");
+    assertThat(result.get(0).rating()).isEqualTo(0.0);
+
+    assertThat(result.get(1).title()).isEqualTo("Clean Code");
+    assertThat(result.get(1).rating()).isEqualTo(4.0);
+
+    assertThat(result.get(2).title()).isEqualTo("Effective Java");
+    assertThat(result.get(2).rating()).isEqualTo(5.0);
+  }
+
+  @Test
   @DisplayName("성공: 평점 기준 내림차순으로 도서 목록을 조회한다")
   void searchBooks_OrderByRatingDesc_Success() {
     BookSearchRequest request = new BookSearchRequest(
@@ -206,6 +293,28 @@ class BookRepositoryCustomImplTest {
   }
 
   @Test
+  @DisplayName("성공: 리뷰 수 기준 오름차순으로 도서 목록을 조회한다")
+  void searchBooks_OrderByReviewCountAsc_Success() {
+    BookSearchRequest request = new BookSearchRequest(
+      null,
+      "reviewCount",
+      "ASC",
+      null,
+      null,
+      10
+    );
+
+    List<BookSearchQueryDto> result = bookRepository.searchBooks(request);
+
+    assertThat(result).hasSize(3);
+    assertThat(result.get(0).title()).isEqualTo("No Review Book");
+    assertThat(result.get(0).reviewCount()).isEqualTo(0);
+
+    assertThat(result.get(1).reviewCount()).isEqualTo(2);
+    assertThat(result.get(2).reviewCount()).isEqualTo(2);
+  }
+
+  @Test
   @DisplayName("성공: 리뷰 수 기준 내림차순으로 도서 목록을 조회한다")
   void searchBooks_OrderByReviewCountDesc_Success() {
     BookSearchRequest request = new BookSearchRequest(
@@ -226,8 +335,8 @@ class BookRepositoryCustomImplTest {
   }
 
   @Test
-  @DisplayName("성공: 커서 이후의 도서 목록을 조회한다")
-  void searchBooks_CursorPaging_Success() {
+  @DisplayName("성공: 제목 기준 커서 이후의 도서 목록을 조회한다")
+  void searchBooks_TitleCursorPaging_Success() {
     BookSearchRequest firstRequest = new BookSearchRequest(
       null,
       "title",
@@ -256,6 +365,102 @@ class BookRepositoryCustomImplTest {
   }
 
   @Test
+  @DisplayName("성공: 출간일 기준 커서 이후의 도서 목록을 조회한다")
+  void searchBooks_PublishedDateCursorPaging_Success() {
+    BookSearchRequest firstRequest = new BookSearchRequest(
+      null,
+      "publishedDate",
+      "ASC",
+      null,
+      null,
+      2
+    );
+
+    List<BookSearchQueryDto> firstResult = bookRepository.searchBooks(firstRequest);
+    BookSearchQueryDto lastItem = firstResult.get(1);
+
+    BookSearchRequest nextRequest = new BookSearchRequest(
+      null,
+      "publishedDate",
+      "ASC",
+      lastItem.publishedDate().toString(),
+      lastItem.createdAt(),
+      10
+    );
+
+    List<BookSearchQueryDto> nextResult = bookRepository.searchBooks(nextRequest);
+
+    assertThat(nextResult).hasSize(1);
+    assertThat(nextResult.get(0).title()).isEqualTo("No Review Book");
+  }
+
+  @Test
+  @DisplayName("성공: 평점 기준 커서 이후의 도서 목록을 조회한다")
+  void searchBooks_RatingCursorPaging_Success() {
+    BookSearchRequest firstRequest = new BookSearchRequest(
+      null,
+      "rating",
+      "ASC",
+      null,
+      null,
+      2
+    );
+
+    List<BookSearchQueryDto> firstResult = bookRepository.searchBooks(firstRequest);
+    BookSearchQueryDto lastItem = firstResult.get(1);
+
+    BookSearchRequest nextRequest = new BookSearchRequest(
+      null,
+      "rating",
+      "ASC",
+      String.valueOf(lastItem.rating()),
+      lastItem.createdAt(),
+      10
+    );
+
+    List<BookSearchQueryDto> nextResult = bookRepository.searchBooks(nextRequest);
+
+    assertThat(nextResult).hasSize(1);
+    assertThat(nextResult.get(0).title()).isEqualTo("Effective Java");
+  }
+
+  @Test
+  @DisplayName("성공: 리뷰 수 기준 커서 이후의 도서 목록을 조회한다")
+  void searchBooks_ReviewCountCursorPaging_Success() {
+    BookSearchRequest firstRequest = new BookSearchRequest(
+      null,
+      "reviewCount",
+      "ASC",
+      null,
+      null,
+      2
+    );
+
+    List<BookSearchQueryDto> firstResult = bookRepository.searchBooks(firstRequest);
+
+    assertThat(firstResult).hasSize(3);
+
+    BookSearchQueryDto lastItem = firstResult.get(1);
+
+    BookSearchRequest nextRequest = new BookSearchRequest(
+      null,
+      "reviewCount",
+      "ASC",
+      String.valueOf(lastItem.reviewCount()),
+      lastItem.createdAt(),
+      10
+    );
+
+    List<BookSearchQueryDto> nextResult = bookRepository.searchBooks(nextRequest);
+
+    assertThat(nextResult).isNotNull();
+    assertThat(nextResult)
+      .allSatisfy(book ->
+        assertThat(book.reviewCount()).isGreaterThanOrEqualTo(lastItem.reviewCount())
+      );
+  }
+
+  @Test
   @DisplayName("성공: 삭제되지 않은 도서 수만 조회한다")
   void countBooks_Success() {
     long count = bookRepository.countBooks(new BookSearchRequest(
@@ -271,6 +476,21 @@ class BookRepositoryCustomImplTest {
   }
 
   @Test
+  @DisplayName("성공: 키워드 검색 결과의 도서 수를 조회한다")
+  void countBooks_WithKeyword_Success() {
+    long count = bookRepository.countBooks(new BookSearchRequest(
+      "Java",
+      "title",
+      "ASC",
+      null,
+      null,
+      10
+    ));
+
+    assertThat(count).isEqualTo(1);
+  }
+
+  @Test
   @DisplayName("성공: 도서 상세 조회 시 리뷰 수와 평균 평점을 함께 조회한다")
   void findBookDetail_Success() {
     BookSearchQueryDto result = bookRepository.findBookDetail(cleanCode.getId());
@@ -279,6 +499,14 @@ class BookRepositoryCustomImplTest {
     assertThat(result.title()).isEqualTo("Clean Code");
     assertThat(result.reviewCount()).isEqualTo(2);
     assertThat(result.rating()).isEqualTo(4.0);
+  }
+
+  @Test
+  @DisplayName("성공: 존재하지 않는 도서 상세 조회 시 null을 반환한다")
+  void findBookDetail_NotFound_ReturnsNull() {
+    BookSearchQueryDto result = bookRepository.findBookDetail(UUID.randomUUID());
+
+    assertThat(result).isNull();
   }
 
   @Test
@@ -309,8 +537,19 @@ class BookRepositoryCustomImplTest {
   }
 
   @Test
-  @DisplayName("성공: 인기 도서 목록을 순위 기준으로 조회한다")
-  void findPopularBooksWithPaging_Success() {
+  @DisplayName("성공: 기간 밖의 리뷰는 통계 집계에서 제외된다")
+  void findBookStatisticsForRanking_OutOfRange_Excluded() {
+    List<BookRankQueryDto> result = bookRepository.findBookStatisticsForRanking(
+      BASE_TIME.plusDays(1).toLocalDate(),
+      BASE_TIME.plusDays(2).toLocalDate()
+    );
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  @DisplayName("성공: 인기 도서 목록을 순위 기준 오름차순으로 조회한다")
+  void findPopularBooksWithPaging_Asc_Success() {
     List<PopularBook> result = bookRepository.findPopularBooksWithPaging(
       Period.DAILY,
       "ASC",
@@ -326,8 +565,34 @@ class BookRepositoryCustomImplTest {
   }
 
   @Test
-  @DisplayName("성공: 인기 도서 커서 페이징이 정상 작동한다")
-  void findPopularBooksWithPaging_Cursor_Success() {
+  @DisplayName("성공: 인기 도서 목록을 DESC 방향으로 조회한다")
+  void findPopularBooksWithPaging_Desc_Success() {
+    List<PopularBook> result = bookRepository.findPopularBooksWithPaging(
+      Period.DAILY,
+      "DESC",
+      null,
+      null,
+      10
+    );
+
+    assertThat(result).hasSize(3);
+
+    assertThat(result)
+      .extracting(PopularBook::getPeriodType)
+      .containsOnly(Period.DAILY);
+
+    assertThat(result)
+      .extracting(PopularBook::getCalculatedDate)
+      .containsOnly(RANK_DATE);
+
+    assertThat(result)
+      .extracting(PopularBook::getRankOrder)
+      .containsExactlyInAnyOrder(1, 2, 3);
+  }
+
+  @Test
+  @DisplayName("성공: 인기 도서 커서 페이징이 오름차순으로 정상 작동한다")
+  void findPopularBooksWithPaging_AscCursor_Success() {
     List<PopularBook> result = bookRepository.findPopularBooksWithPaging(
       Period.DAILY,
       "ASC",
@@ -339,6 +604,65 @@ class BookRepositoryCustomImplTest {
     assertThat(result).hasSize(2);
     assertThat(result.get(0).getRankOrder()).isEqualTo(2);
     assertThat(result.get(1).getRankOrder()).isEqualTo(3);
+  }
+
+  @Test
+  @DisplayName("성공: 인기 도서 조회 시 최신 집계일 데이터만 조회한다")
+  void findPopularBooksWithPaging_LatestCalculatedDateOnly_Success() {
+    persistPopularBook(
+      cleanCode,
+      Period.DAILY,
+      100.0,
+      99,
+      10L,
+      5.0,
+      RANK_DATE.minusDays(1)
+    );
+
+    em.flush();
+    em.clear();
+
+    List<PopularBook> result = bookRepository.findPopularBooksWithPaging(
+      Period.DAILY,
+      "ASC",
+      null,
+      null,
+      10
+    );
+
+    assertThat(result).hasSize(3);
+    assertThat(result)
+      .extracting(PopularBook::getCalculatedDate)
+      .containsOnly(RANK_DATE);
+  }
+
+  @Test
+  @DisplayName("성공: 인기 도서 조회 시 기간 타입이 일치하는 데이터만 조회한다")
+  void findPopularBooksWithPaging_FilterByPeriod_Success() {
+    persistPopularBook(
+      cleanCode,
+      Period.WEEKLY,
+      100.0,
+      1,
+      10L,
+      5.0,
+      RANK_DATE
+    );
+
+    em.flush();
+    em.clear();
+
+    List<PopularBook> result = bookRepository.findPopularBooksWithPaging(
+      Period.WEEKLY,
+      "ASC",
+      null,
+      null,
+      10
+    );
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).getPeriodType()).isEqualTo(Period.WEEKLY);
+    assertThat(result.get(0).getRankOrder()).isEqualTo(1);
   }
 
   private User persistUser(String prefix) {

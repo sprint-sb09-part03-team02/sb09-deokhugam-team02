@@ -85,10 +85,12 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
             comment.id.countDistinct()
         ))
         .from(review)
-        .leftJoin(reviewLike).on(reviewLike.review.eq(review))
-        .leftJoin(comment).on(comment.review.eq(review))
-        .where(review.createdAt.between(start.atStartOfDay(), end.atTime(LocalTime.MAX)))
+        .leftJoin(reviewLike).on(reviewLike.review.eq(review)
+          .and(reviewLike.createdAt.between(start.atStartOfDay(), end.atTime(LocalTime.MAX))))
+        .leftJoin(comment).on(comment.review.eq(review)
+          .and(comment.createdAt.between(start.atStartOfDay(), end.atTime(LocalTime.MAX))))
         .groupBy(review.id)
+        .having(reviewLike.id.countDistinct().gt(0).or(comment.id.countDistinct().gt(0)))
         .fetch();
   }
 
