@@ -69,7 +69,7 @@ cd deokhugam
 
 ### S3 날짜별 로그 적재
 
-애플리케이션 파일 로그는 `/app/logs`에 생성되고, 스케줄러가 매일 `00:10 Asia/Seoul`에 전날 로그를 S3에 업로드합니다.
+애플리케이션 파일 로그는 `/app/logs`에 생성되고, 스케줄러가 매일 `01:00 Asia/Seoul`에 전날 로그를 S3에 업로드합니다.
 
 - 로컬 로그 파일: `/app/logs/deokhugam.yyyy-MM-dd.log`
 - S3 적재 경로: `app/yyyy/MM/dd/deokhugam.yyyy-MM-dd.log`
