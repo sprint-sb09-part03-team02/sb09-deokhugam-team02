@@ -147,20 +147,23 @@ public class BookRepositoryCustomImpl implements BookRepositoryCustom {
     return queryFactory
       .select(Projections.constructor(
         BookRankQueryDto.class,
-        review.book.id,
+        book.id,
         review.id.countDistinct(),
         review.rating.avg().coalesce(0.0)
       ))
-      .from(review)
-      .where(
+      .from(book)
+      .leftJoin(review).on(
+        review.book.eq(book),
         review.isDeleted.isFalse(),
-        review.book.isDeleted.isFalse(),
-        review.createdAt.between(
-          startDate.atStartOfDay(),
-          endDate.atTime(LocalTime.MAX)
-        )
+        review.createdAt.between(startDate.atStartOfDay(), endDate.atTime(LocalTime.MAX))
       )
-      .groupBy(review.book.id)
+      .where(book.isDeleted.isFalse())
+      .groupBy(book.id)
+      .having(review.id.countDistinct().gt(0))
+      .orderBy(
+        review.id.countDistinct().desc(),
+        review.rating.avg().desc()
+      )
       .fetch();
   }
 
@@ -188,8 +191,8 @@ public class BookRepositoryCustomImpl implements BookRepositoryCustom {
         buildPopularBookCursorCondition(direction, cursor, after)
       )
       .orderBy(
-        buildPopularBookRankOrderSpecifier(direction),
-        buildPopularBookIdOrderSpecifier(direction)
+        popularBook.rankOrder.asc(),
+        popularBook.id.asc()
       )
       .limit(limit + 1L)
       .fetch();
