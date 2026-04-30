@@ -44,13 +44,11 @@ class PowerUserRepositoryImplTest {
   private final LocalDate targetDate = LocalDate.of(2026, 4, 30);
 
   @Test
-  @DisplayName("파워 유저를 동적으로 조회하고 커서 기반 페이징이 적용된다")
+  @DisplayName("파워 유저 조회: DESC 정렬 시 커서보다 큰 순위 숫자들이 내림차순으로 반환된다")
   void findPowerUsersDynamic_Pagination_Success() {
     // given
-    for (int i = 1; i <= 5; i++) {
-      User user = createUser("user" + i + "@test.com", "활동왕" + i);
-      createPowerUser(user, i);
-    }
+    int totalCount = 5;
+    setupPowerUsers(totalCount);
 
     em.flush();
     em.clear();
@@ -70,22 +68,39 @@ class PowerUserRepositoryImplTest {
     assertThat(result.get(0).getUser().getNickname()).isEqualTo("활동왕5");
   }
 
+  @Test
+  @DisplayName("파워 유저 조회: 커서가 null이면 첫 번째 페이지부터 반환된다")
+  void findPowerUsersDynamic_FirstPage_Success() {
+    // given
+    setupPowerUsers(3);
+    em.flush();
+    em.clear();
 
-  private User createUser(String email, String nickname) {
-    return userRepository.save(User.builder()
-      .email(email)
-      .nickname(nickname)
-      .password("password123")
-      .build());
+    // when
+    List<PowerUser> result = powerUserRepository.findPowerUsersDynamic(
+      Period.WEEKLY, null, null, "DESC", 2, targetDate
+    );
+
+    // then
+    assertThat(result).extracting(PowerUser::getRankOrder)
+      .contains(3, 2);
   }
 
-  private void createPowerUser(User user, int rank) {
-    powerUserRepository.save(PowerUser.builder()
-      .user(user)
-      .periodType(Period.WEEKLY)
-      .rankOrder(rank)
-      .score(100.0)
-      .calculatedDate(targetDate)
-      .build());
+  private void setupPowerUsers(int count) {
+    for (int i = 1; i <= count; i++) {
+      User user = userRepository.save(User.builder()
+        .email("user" + i + "@test.com")
+        .nickname("활동왕" + i)
+        .password("password123")
+        .build());
+
+      powerUserRepository.save(PowerUser.builder()
+        .user(user)
+        .periodType(Period.WEEKLY)
+        .rankOrder(i)
+        .score(100.0)
+        .calculatedDate(targetDate)
+        .build());
+    }
   }
 }
