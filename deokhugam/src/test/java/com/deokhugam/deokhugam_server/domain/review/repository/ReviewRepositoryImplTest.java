@@ -109,4 +109,42 @@ public class ReviewRepositoryImplTest {
         s.likeCount() == 1L &&
         s.commentCount() == 1L);
   }
+
+  @Test
+  @DisplayName("성공: 같은 도서와 유저의 삭제된 리뷰 이력은 여러 개 저장할 수 있다")
+  void saveDeletedReviewHistories_Success() {
+    LocalDateTime now = LocalDateTime.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
+    Review deletedReview1 = Review.builder()
+        .user(user)
+        .book(book1)
+        .content("삭제된 리뷰 1")
+        .rating(3)
+        .build();
+    deletedReview1.delete();
+    ReflectionTestUtils.setField(deletedReview1, "createdAt", now);
+    ReflectionTestUtils.setField(deletedReview1, "updatedAt", now);
+
+    Review deletedReview2 = Review.builder()
+        .user(user)
+        .book(book1)
+        .content("삭제된 리뷰 2")
+        .rating(4)
+        .build();
+    deletedReview2.delete();
+    ReflectionTestUtils.setField(deletedReview2, "createdAt", now);
+    ReflectionTestUtils.setField(deletedReview2, "updatedAt", now);
+
+    em.persist(deletedReview1);
+    em.persist(deletedReview2);
+    em.flush();
+    em.clear();
+
+    List<Review> reviews = reviewRepository.findAll();
+
+    assertThat(reviews)
+        .filteredOn(review -> review.getBook().getId().equals(book1.getId()))
+        .filteredOn(review -> review.getUser().getId().equals(user.getId()))
+        .filteredOn(Review::isDeleted)
+        .hasSize(2);
+  }
 }
