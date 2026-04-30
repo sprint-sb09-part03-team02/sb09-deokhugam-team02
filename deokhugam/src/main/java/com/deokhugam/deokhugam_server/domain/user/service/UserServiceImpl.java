@@ -20,10 +20,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -125,7 +127,8 @@ public class UserServiceImpl implements UserService {
       .orElseThrow(() -> new DeokhugamException(USER_NOT_FOUND));
 
     user.delete();
-
+    log.info("User soft delete completed. requestUserId={}, targetUserId={}, deletedAt={}",
+        requestUserId, targetUserId, user.getDeletedAt());
   }
 
   @Override
@@ -138,6 +141,8 @@ public class UserServiceImpl implements UserService {
     }
 
     userRepository.deleteById(targetUserId);
+    log.info("User hard delete completed. requestUserId={}, targetUserId={}",
+        requestUserId, targetUserId);
   }
   private void validateOwner(UUID requestUserId, UUID targetUserId) {
     if (!requestUserId.equals(targetUserId)) {
