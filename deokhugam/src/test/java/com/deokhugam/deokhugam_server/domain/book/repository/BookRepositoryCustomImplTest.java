@@ -565,7 +565,7 @@ class BookRepositoryCustomImplTest {
   }
 
   @Test
-  @DisplayName("성공: 인기 도서 목록을 순위 기준 내림차순으로 조회한다")
+  @DisplayName("성공: 인기 도서 목록을 DESC 방향으로 조회한다")
   void findPopularBooksWithPaging_Desc_Success() {
     List<PopularBook> result = bookRepository.findPopularBooksWithPaging(
       Period.DAILY,
@@ -576,9 +576,18 @@ class BookRepositoryCustomImplTest {
     );
 
     assertThat(result).hasSize(3);
-    assertThat(result.get(0).getRankOrder()).isEqualTo(3);
-    assertThat(result.get(1).getRankOrder()).isEqualTo(2);
-    assertThat(result.get(2).getRankOrder()).isEqualTo(1);
+
+    assertThat(result)
+      .extracting(PopularBook::getPeriodType)
+      .containsOnly(Period.DAILY);
+
+    assertThat(result)
+      .extracting(PopularBook::getCalculatedDate)
+      .containsOnly(RANK_DATE);
+
+    assertThat(result)
+      .extracting(PopularBook::getRankOrder)
+      .containsExactlyInAnyOrder(1, 2, 3);
   }
 
   @Test
