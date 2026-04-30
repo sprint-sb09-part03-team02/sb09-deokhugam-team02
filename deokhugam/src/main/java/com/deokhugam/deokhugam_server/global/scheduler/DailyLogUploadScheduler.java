@@ -5,11 +5,13 @@ import java.nio.file.Path;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 public class DailyLogUploadScheduler {
 
@@ -31,9 +33,10 @@ public class DailyLogUploadScheduler {
     this.clock = clock;
   }
 
-  @Scheduled(cron = "${deokhugam.log.s3.upload-cron:0 10 0 * * *}", zone = "Asia/Seoul")
+  @Scheduled(cron = "${deokhugam.log.s3.upload-cron:0 0 1 * * *}", zone = "Asia/Seoul")
   public void uploadYesterdayLog() {
     LocalDate targetDate = LocalDate.now(clock).minusDays(1);
+    log.info("Daily log S3 upload started. targetDate={}", targetDate);
     Path targetFile = Path.of(localPath, "deokhugam.%s.log".formatted(targetDate));
 
     dailyLogS3Uploader.upload(targetDate, targetFile);

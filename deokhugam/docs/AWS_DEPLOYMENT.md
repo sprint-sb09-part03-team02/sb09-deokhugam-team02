@@ -129,7 +129,7 @@ RUN mkdir -p /app/logs && chown -R appuser:appgroup /app
 
 ### S3 업로드 스케줄
 
-`DailyLogUploadScheduler`가 매일 `00:10 Asia/Seoul`에 전날 로그 파일을 S3로 업로드합니다.
+`DailyLogUploadScheduler`가 매일 `01:00 Asia/Seoul`에 전날 로그 파일을 S3로 업로드합니다. 배치 시작 로그를 먼저 남겨 Logback 날짜 롤링을 유도한 뒤, 전날 로그 파일을 업로드합니다.
 
 업로드 경로:
 
