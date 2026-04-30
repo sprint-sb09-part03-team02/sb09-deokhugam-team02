@@ -56,6 +56,26 @@
           "value": "0 0 1 * * *"
         },
         {
+          "name": "RANKING_DAILY_CRON",
+          "value": "0 0 3 * * *"
+        },
+        {
+          "name": "RANKING_WEEKLY_CRON",
+          "value": "0 0 4 * * MON"
+        },
+        {
+          "name": "RANKING_MONTHLY_CRON",
+          "value": "0 0 5 1 * *"
+        },
+        {
+          "name": "NOTIFICATION_CLEANUP_CRON",
+          "value": "0 30 3 * * *"
+        },
+        {
+          "name": "USER_HARD_DELETE_CRON",
+          "value": "0 30 4 * * *"
+        },
+        {
           "name": "SPRING_PROFILES_ACTIVE",
           "value": "dev"
         }
