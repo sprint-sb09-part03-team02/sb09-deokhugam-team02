@@ -27,12 +27,21 @@ logging:
     file: "%d{yyyy-MM-dd HH:mm:ss} [%X{requestId}] [%X{clientIp}] %-5level %logger{36} - %msg%n"
 
 deokhugam:
+  batch:
+    ranking:
+      daily-cron: ${RANKING_DAILY_CRON:0 0 3 * * *}
+      weekly-cron: ${RANKING_WEEKLY_CRON:0 0 4 * * MON}
+      monthly-cron: ${RANKING_MONTHLY_CRON:0 0 5 1 * *}
+    notification-cleanup:
+      cron: ${NOTIFICATION_CLEANUP_CRON:0 30 3 * * *}
+    user-hard-delete:
+      cron: ${USER_HARD_DELETE_CRON:0 30 4 * * *}
   log:
     s3:
       bucket: ${S3_LOG_BUCKET:}
       prefix: ${S3_LOG_PREFIX:app}
       local-path: ${LOG_FILE_PATH:./logs}
-      upload-cron: ${S3_LOG_UPLOAD_CRON:0 10 0 * * *}
+      upload-cron: ${S3_LOG_UPLOAD_CRON:0 0 1 * * *}
       delete-after-upload: ${S3_LOG_DELETE_AFTER_UPLOAD:false}
 
 management:

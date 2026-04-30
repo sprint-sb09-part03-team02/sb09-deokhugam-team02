@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class PopularReviewRepositoryImpl implements PopularReviewRepositoryCustom {
+
   private final JPAQueryFactory queryFactory;
 
   @Override
@@ -27,9 +28,7 @@ public class PopularReviewRepositoryImpl implements PopularReviewRepositoryCusto
         popularReview.calculatedDate.eq(latestDate),
         cursorCondition(popularReview, cursor, direction)
       )
-      .orderBy(direction.equalsIgnoreCase("ASC") ?
-          popularReview.rankOrder.asc() : popularReview.rankOrder.desc()
-      )
+      .orderBy(popularReview.rankOrder.asc())
       .limit(limit + 1)
       .fetch();
   }
@@ -37,11 +36,6 @@ public class PopularReviewRepositoryImpl implements PopularReviewRepositoryCusto
   private BooleanExpression cursorCondition(QPopularReview pr, Integer cursor, String direction) {
     if (cursor == null)
       return null;
-
-    if (direction.equalsIgnoreCase("ASC")) {
-      return pr.rankOrder.gt(cursor);
-    } else {
-      return pr.rankOrder.lt(cursor);
-    }
+    return pr.rankOrder.gt(cursor);
   }
 }
