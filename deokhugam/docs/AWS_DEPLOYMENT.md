@@ -127,6 +127,8 @@ Spring Boot stdout
 | CloudWatch log group | `/ecs/deokhugam-task` |
 | CloudWatch stream prefix | `ecs` |
 | S3 export prefix | `cloudwatch/` |
+| Lambda function | `deokhugam-cloudwatch-log-export` |
+| EventBridge schedule | `deokhugam-daily-cloudwatch-log-export` |
 | MDC 필드 | `requestId`, `clientIp` |
 
 ### CloudWatch Logs Export 수동 검증
@@ -143,13 +145,62 @@ Export 결과 경로 예시:
 s3://<log-bucket>/cloudwatch/yyyy/MM/dd/
 ```
 
-완전 자동화가 필요하면 EventBridge Scheduler + Lambda로 `CreateExportTask`를 매일 호출하거나, 실시간성이 필요하면 CloudWatch Logs subscription filter + Kinesis Data Firehose + S3 구성을 사용합니다.
+### EventBridge Scheduler + Lambda 자동 적재
+
+CloudWatch Logs에서 S3로 내보내는 작업은 Lambda가 `CreateExportTask`를 호출해 생성합니다. EventBridge Scheduler는 매일 정해진 시간에 Lambda를 실행합니다.
+
+자동화 흐름:
+
+```text
+EventBridge Scheduler
+-> Lambda deokhugam-cloudwatch-log-export
+-> CloudWatch Logs CreateExportTask
+-> S3 deokhugam-logs-297904/cloudwatch/yyyy/MM/dd/
+```
+
+Lambda 환경변수:
+
+| Key | 값 |
+| --- | --- |
+| `LOG_GROUP_NAME` | `/ecs/deokhugam-task` |
+| `DESTINATION_BUCKET` | `deokhugam-logs-297904` |
+| `DESTINATION_PREFIX` | `cloudwatch` |
+
+EventBridge Scheduler 설정:
+
+| 항목 | 값 |
+| --- | --- |
+| Schedule name | `deokhugam-daily-cloudwatch-log-export` |
+| Schedule pattern | Recurring schedule |
+| Cron expression | `cron(10 1 * * ? *)` |
+| Timezone | `Asia/Seoul` |
+| Flexible time window | Off |
+| Target | Lambda `deokhugam-cloudwatch-log-export` |
+| Payload | `{}` |
+| Retry policy | 1시간 이내, 2회 재시도 |
+| DLQ | None |
+
+실행 기준:
+
+```text
+매일 01:10 KST 실행
+-> 전날 00:00:00~23:59:59 KST 로그 Export
+-> s3://deokhugam-logs-297904/cloudwatch/yyyy/MM/dd/
+```
+
+Lambda는 CloudWatch Logs Export Task를 생성하는 역할만 수행합니다. 실제 export 진행 상태는 아래 CLI로 확인합니다.
+
+```bash
+aws logs describe-export-tasks --region ap-northeast-2
+```
+
+상태가 `COMPLETED`이면 S3 경로에 export 객체가 생성된 것입니다. 실시간성이 필요하면 CloudWatch Logs subscription filter + Kinesis Data Firehose + S3 구성으로 확장합니다.
 
 ### S3 Lifecycle 권장값
 
 | Prefix | Transition | Expiration |
 | --- | --- | --- |
-| `app/` | 30일 후 Standard-IA 또는 Glacier 계층 | 90일 또는 프로젝트 제출 이후 삭제 |
+| `cloudwatch/` | 없음 | 30일 또는 프로젝트 제출 이후 삭제 |
 
 ## 운영 배치 스케줄
 
@@ -157,7 +208,7 @@ s3://<log-bucket>/cloudwatch/yyyy/MM/dd/
 
 | 작업 | 기본 실행 시각 |
 | --- | --- |
-| CloudWatch Logs S3 Export | 매일 01:00 권장 |
+| CloudWatch Logs S3 Export | 매일 01:10 |
 | 일간/전체 랭킹 갱신 | 매일 03:00 |
 | 알림 정리 | 매일 03:30 |
 | 주간 랭킹 갱신 | 매주 월요일 04:00 |
