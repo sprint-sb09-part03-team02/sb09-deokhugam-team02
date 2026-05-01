@@ -237,6 +237,108 @@ pm.test("book page shape is valid", function () {
 });
 ```
 
+### 3.2.1 List Books - Title Sort ASC
+
+`GET {{baseUrl}}/api/books?orderBy=title&direction=ASC&limit=20`
+
+한글, 영문, 숫자가 섞인 제목 정렬은 서버의 `title_sort_key` 기준으로 처리합니다. 운영 DB에서 `V6__rebuild_book_title_sort_key.sql`이 적용된 뒤에는 한글 제목도 가나다순으로 내려와야 합니다.
+
+```javascript
+expectStatus([200]);
+
+const data = bodyData();
+const books = data.content || data.items || [];
+
+pm.test("book page shape is valid", function () {
+  pm.expect(books).to.be.an("array");
+});
+
+pm.test("title ASC order is stable", function () {
+  const toTitleSortKey = (title) => {
+    const normalized = title
+      .trim()
+      .normalize("NFKC")
+      .toLowerCase()
+      .replace(/[\p{Punctuation}]+/gu, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .replace(/\d+/g, (value) => {
+        const normalizedNumber = value.replace(/^0+(?!$)/, "");
+        return normalizedNumber.length >= 20
+          ? normalizedNumber
+          : normalizedNumber.padStart(20, "0");
+      });
+
+    return Array.from(normalized).map((char) => {
+      const code = char.codePointAt(0);
+      if (code >= 0xAC00 && code <= 0xD7A3) {
+        const syllableIndex = code - 0xAC00;
+        const choseong = Math.floor(syllableIndex / (21 * 28));
+        const jungseong = Math.floor((syllableIndex % (21 * 28)) / 28);
+        const jongseong = syllableIndex % 28;
+        return `k${String(choseong).padStart(2, "0")}${String(jungseong).padStart(2, "0")}${String(jongseong).padStart(2, "0")}`;
+      }
+      return char;
+    }).join("");
+  };
+
+  const titles = books.map((book) => book.title);
+  const sorted = [...titles].sort((a, b) => toTitleSortKey(a).localeCompare(toTitleSortKey(b)));
+
+  pm.expect(titles).to.eql(sorted);
+});
+```
+
+### 3.2.2 List Books - Title Sort DESC
+
+`GET {{baseUrl}}/api/books?orderBy=title&direction=DESC&limit=20`
+
+```javascript
+expectStatus([200]);
+
+const data = bodyData();
+const books = data.content || data.items || [];
+
+pm.test("book page shape is valid", function () {
+  pm.expect(books).to.be.an("array");
+});
+
+pm.test("title DESC order is stable", function () {
+  const toTitleSortKey = (title) => {
+    const normalized = title
+      .trim()
+      .normalize("NFKC")
+      .toLowerCase()
+      .replace(/[\p{Punctuation}]+/gu, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .replace(/\d+/g, (value) => {
+        const normalizedNumber = value.replace(/^0+(?!$)/, "");
+        return normalizedNumber.length >= 20
+          ? normalizedNumber
+          : normalizedNumber.padStart(20, "0");
+      });
+
+    return Array.from(normalized).map((char) => {
+      const code = char.codePointAt(0);
+      if (code >= 0xAC00 && code <= 0xD7A3) {
+        const syllableIndex = code - 0xAC00;
+        const choseong = Math.floor(syllableIndex / (21 * 28));
+        const jungseong = Math.floor((syllableIndex % (21 * 28)) / 28);
+        const jongseong = syllableIndex % 28;
+        return `k${String(choseong).padStart(2, "0")}${String(jungseong).padStart(2, "0")}${String(jongseong).padStart(2, "0")}`;
+      }
+      return char;
+    }).join("");
+  };
+
+  const titles = books.map((book) => book.title);
+  const sorted = [...titles].sort((a, b) => toTitleSortKey(b).localeCompare(toTitleSortKey(a)));
+
+  pm.expect(titles).to.eql(sorted);
+});
+```
+
 ### 3.3 Get Book
 
 `GET {{baseUrl}}/api/books/{{bookId}}`
@@ -634,4 +736,3 @@ expectStatus([204]);
 ```javascript
 expectStatus([204]);
 ```
-
