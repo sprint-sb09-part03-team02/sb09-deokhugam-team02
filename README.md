@@ -69,10 +69,10 @@ cd deokhugam
 
 ### S3 날짜별 로그 적재
 
-애플리케이션 파일 로그는 `/app/logs`에 생성되고, 스케줄러가 매일 `01:00 Asia/Seoul`에 전날 로그를 S3에 업로드합니다.
+ECS 컨테이너 로그는 `awslogs` 드라이버를 통해 CloudWatch Logs에 적재하고, CloudWatch Logs Export 또는 Firehose를 통해 S3에 날짜별로 보관합니다. 컨테이너 로컬 파일 기반 업로드는 ECS 재시작 시 파일이 유실될 수 있어 운영 기본값에서는 비활성화합니다.
 
-- 로컬 로그 파일: `/app/logs/deokhugam.yyyy-MM-dd.log`
-- S3 적재 경로: `app/yyyy/MM/dd/deokhugam.yyyy-MM-dd.log`
+- 원본 로그 그룹: `/ecs/deokhugam-task`
+- S3 적재 경로: `cloudwatch/yyyy/MM/dd/`
 - 상세 설정: [AWS 배포 및 운영 가이드](deokhugam/docs/AWS_DEPLOYMENT.md)
 
 ### Spring Batch 및 Actuator 메트릭
@@ -110,9 +110,9 @@ PR -> CI 통과 -> dev -> main merge -> CD -> ECR push -> ECS service update
 | ECS EC2 | Spring Boot 애플리케이션 실행 |
 | RDS PostgreSQL | 운영 데이터베이스 및 Spring Batch 메타테이블 저장 |
 | S3 이미지 버킷 | 이미지/썸네일 저장 |
-| S3 로그 버킷 | 날짜별 애플리케이션 로그 적재 |
+| S3 로그 버킷 | CloudWatch Logs Export 결과 보관 |
 | Secrets Manager | DB, Naver API, OCR Space API 민감값 관리 |
-| CloudWatch Logs | ECS 컨테이너 표준 출력 로그 확인 |
+| CloudWatch Logs | ECS 컨테이너 표준 출력 로그 수집 및 S3 Export 원본 |
 
 자세한 구축/검증 절차는 [AWS 배포 및 운영 가이드](deokhugam/docs/AWS_DEPLOYMENT.md)를 확인합니다.
 

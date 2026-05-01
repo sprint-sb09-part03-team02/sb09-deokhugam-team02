@@ -10,8 +10,8 @@ flowchart LR
   ECR --> ECS["ECS EC2 Service"]
   ECS --> RDS["RDS PostgreSQL"]
   ECS --> S3IMG["S3 image bucket"]
-  ECS --> S3LOG["S3 log bucket"]
   ECS --> CW["CloudWatch Logs"]
+  CW --> S3LOG["S3 log bucket"]
   SM["Secrets Manager"] --> ECS
 ```
 
@@ -92,10 +92,6 @@ RDS 연결 장애가 발생하면 먼저 RDS SG의 `5432` inbound source가 ECS 
 | `SPRING_PROFILES_ACTIVE` | `dev` |
 | `AWS_REGION` | `<aws-region>` |
 | `AWS_S3_BUCKET` | `<image-bucket>` |
-| `LOG_FILE_PATH` | `/app/logs` |
-| `S3_LOG_BUCKET` | `<log-bucket>` |
-| `S3_LOG_PREFIX` | `app` |
-| `S3_LOG_DELETE_AFTER_UPLOAD` | `false` |
 
 ## Docker 이미지
 
@@ -106,36 +102,48 @@ cd deokhugam
 docker build --platform linux/amd64 -t <ecr-repository>:latest .
 ```
 
-Dockerfile은 non-root `appuser`로 애플리케이션을 실행합니다. 파일 로그를 쓰기 위해 `/app/logs`를 생성하고 `/app` 소유권을 `appuser:appgroup`으로 변경합니다.
+Dockerfile은 non-root `appuser`로 애플리케이션을 실행합니다. 운영 로그는 컨테이너 파일이 아니라 표준 출력으로 남기고, ECS `awslogs` 드라이버가 CloudWatch Logs로 수집합니다.
 
-```dockerfile
-RUN mkdir -p /app/logs && chown -R appuser:appgroup /app
-```
-
-이 설정이 없으면 Logback 파일 appender가 `/app/logs`에 파일을 만들지 못해 컨테이너가 시작 중 종료될 수 있습니다.
+컨테이너 로컬 파일은 ECS task 재시작 시 유실될 수 있으므로 S3 적재의 원본으로 사용하지 않습니다.
 
 ## S3 로그 적재
 
-### 애플리케이션 로그 생성
+### 권장 흐름
 
-`logback-spring.xml`에서 콘솔 로그와 파일 로그를 동시에 남깁니다.
+운영 기본 로그 적재 흐름은 아래와 같습니다.
+
+```text
+Spring Boot stdout
+-> ECS awslogs driver
+-> CloudWatch Logs /ecs/deokhugam-task
+-> CloudWatch Logs Export 또는 Firehose
+-> S3 log bucket
+```
+
+애플리케이션 내부 `DailyLogUploadScheduler`는 기본값에서 비활성화합니다. 이 방식은 `/app/logs` 같은 컨테이너 로컬 파일에 의존하지 않아 ECS 재시작, task 교체, Logback rollover 타이밍 문제를 피할 수 있습니다.
 
 | 항목 | 값 |
 | --- | --- |
-| 현재 로그 | `/app/logs/deokhugam.log` |
-| 날짜별 로그 | `/app/logs/deokhugam.yyyy-MM-dd.log` |
-| 보관 기간 | `7일` |
+| CloudWatch log group | `/ecs/deokhugam-task` |
+| CloudWatch stream prefix | `ecs` |
+| S3 export prefix | `cloudwatch/` |
 | MDC 필드 | `requestId`, `clientIp` |
 
-### S3 업로드 스케줄
+### CloudWatch Logs Export 수동 검증
 
-`DailyLogUploadScheduler`가 매일 `01:00 Asia/Seoul`에 전날 로그 파일을 S3로 업로드합니다. 배치 시작 로그를 먼저 남겨 Logback 날짜 롤링을 유도한 뒤, 전날 로그 파일을 업로드합니다.
+1. AWS Console에서 `CloudWatch` → `Logs` → `Log groups`로 이동합니다.
+2. `/ecs/deokhugam-task`를 선택합니다.
+3. `Actions` → `Export data to Amazon S3`를 선택합니다.
+4. Export 범위를 전날 `00:00:00`부터 `23:59:59`까지로 지정합니다.
+5. 대상 버킷은 `<log-bucket>`, prefix는 `cloudwatch/yyyy/MM/dd/` 형태로 지정합니다.
 
-업로드 경로:
+Export 결과 경로 예시:
 
 ```text
-s3://<log-bucket>/app/yyyy/MM/dd/deokhugam.yyyy-MM-dd.log
+s3://<log-bucket>/cloudwatch/yyyy/MM/dd/
 ```
+
+완전 자동화가 필요하면 EventBridge Scheduler + Lambda로 `CreateExportTask`를 매일 호출하거나, 실시간성이 필요하면 CloudWatch Logs subscription filter + Kinesis Data Firehose + S3 구성을 사용합니다.
 
 ### S3 Lifecycle 권장값
 
@@ -149,7 +157,7 @@ s3://<log-bucket>/app/yyyy/MM/dd/deokhugam.yyyy-MM-dd.log
 
 | 작업 | 기본 실행 시각 |
 | --- | --- |
-| S3 전날 로그 업로드 | 매일 01:00 |
+| CloudWatch Logs S3 Export | 매일 01:00 권장 |
 | 일간/전체 랭킹 갱신 | 매일 03:00 |
 | 알림 정리 | 매일 03:30 |
 | 주간 랭킹 갱신 | 매주 월요일 04:00 |
@@ -182,19 +190,32 @@ s3://<log-bucket>/app/yyyy/MM/dd/deokhugam.yyyy-MM-dd.log
 애플리케이션 런타임에서 필요한 권한:
 
 - `<image-bucket>` 이미지 업로드/조회/삭제
-- `<log-bucket>/app/*` 로그 업로드
 
-로그 업로드 최소 권한 예시:
+CloudWatch Logs Export는 애플리케이션 task role이 아니라 Export를 실행하는 IAM principal 또는 Lambda role에 S3 쓰기 권한을 부여합니다.
+
+CloudWatch Logs Export용 최소 권한 예시:
 
 ```json
 {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "S3DailyLogUpload",
+      "Sid": "CloudWatchLogsExport",
       "Effect": "Allow",
-      "Action": "s3:PutObject",
-      "Resource": "arn:aws:s3:::<log-bucket>/app/*"
+      "Action": "logs:CreateExportTask",
+      "Resource": "arn:aws:logs:<aws-region>:<aws-account-id>:log-group:<cloudwatch-log-group>"
+    },
+    {
+      "Sid": "S3LogExportWrite",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetBucketAcl",
+        "s3:PutObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::<log-bucket>",
+        "arn:aws:s3:::<log-bucket>/cloudwatch/*"
+      ]
     }
   ]
 }
@@ -254,18 +275,18 @@ Batch가 한 번 이상 실행된 뒤 메트릭 값이 표시됩니다.
 
 ### S3 로그 적재
 
-스케줄 기준 다음날 `00:10 KST` 이후 아래 경로를 확인합니다.
+CloudWatch Logs Export 실행 후 아래 경로를 확인합니다.
 
 ```text
-s3://<log-bucket>/app/yyyy/MM/dd/
+s3://<log-bucket>/cloudwatch/yyyy/MM/dd/
 ```
 
 객체가 없다면 아래 순서로 확인합니다.
 
-1. ECS task definition의 `LOG_FILE_PATH`, `S3_LOG_BUCKET`, `S3_LOG_PREFIX`
-2. 컨테이너가 하루 전 로그 파일을 실제로 생성했는지
-3. `<ecs-task-role>`에 `s3:PutObject` 권한이 있는지
-4. CloudWatch Logs에서 `S3_LOG_UPLOAD_FAILED` 또는 skip 로그가 있는지
+1. `/ecs/deokhugam-task` 로그 그룹에 대상 시간대 로그 이벤트가 있는지
+2. Export task 상태가 `COMPLETED`인지
+3. Export 대상 S3 bucket region이 CloudWatch Logs와 같은 region인지
+4. Export 실행 주체에 `logs:CreateExportTask`, `s3:GetBucketAcl`, `s3:PutObject` 권한이 있는지
 
 ## 트러블슈팅
 
@@ -304,9 +325,7 @@ docker buildx build --platform linux/amd64 -t <ecr-repository>:<tag> --load .
 1. CloudWatch Logs 확인
 2. DB 연결 정보/보안그룹 확인
 3. Flyway schema validation 확인
-4. `/app/logs` 권한 확인
-
-S3 파일 로그 도입 후에는 `/app/logs` 쓰기 권한이 없으면 시작 중 실패할 수 있습니다.
+4. task definition의 image URI와 Secrets Manager 참조 확인
 
 ### RDS 접속 실패
 
