@@ -273,6 +273,62 @@ class BookRepositoryCustomImplTest {
   }
 
   @Test
+  @DisplayName("성공: 한글 제목을 가나다순 정렬키 기준으로 조회한다")
+  void searchBooks_OrderByTitleSortKeyKoreanTitles_Success() {
+    persistBook(
+      "정렬확인-총 균 쇠",
+      "테스터",
+      "9790000000011",
+      LocalDate.of(2024, 1, 1),
+      BASE_TIME.plusDays(1)
+    );
+    persistBook(
+      "정렬확인-노 피플 존",
+      "테스터",
+      "9790000000012",
+      LocalDate.of(2024, 1, 2),
+      BASE_TIME.plusDays(2)
+    );
+    persistBook(
+      "정렬확인-내 강아지",
+      "테스터",
+      "9790000000013",
+      LocalDate.of(2024, 1, 3),
+      BASE_TIME.plusDays(3)
+    );
+    persistBook(
+      "정렬확인-두고 온 여름",
+      "테스터",
+      "9790000000014",
+      LocalDate.of(2024, 1, 4),
+      BASE_TIME.plusDays(4)
+    );
+
+    em.flush();
+    em.clear();
+
+    BookSearchRequest request = new BookSearchRequest(
+      "정렬확인",
+      "title",
+      "ASC",
+      null,
+      null,
+      10
+    );
+
+    List<BookSearchQueryDto> result = bookRepository.searchBooks(request);
+
+    assertThat(result)
+      .extracting(BookSearchQueryDto::title)
+      .containsExactly(
+        "정렬확인-내 강아지",
+        "정렬확인-노 피플 존",
+        "정렬확인-두고 온 여름",
+        "정렬확인-총 균 쇠"
+      );
+  }
+
+  @Test
   @DisplayName("성공: 출간일 기준 오름차순으로 도서 목록을 조회한다")
   void searchBooks_OrderByPublishedDateAsc_Success() {
     BookSearchRequest request = new BookSearchRequest(
