@@ -180,16 +180,12 @@ GitHub 저장소 → Settings → Secrets and variables → Actions 에서 등�
       "Effect": "Allow",
       "Action": "s3:ListBucket",
       "Resource": "arn:aws:s3:::<image-bucket>"
-    },
-    {
-      "Sid": "S3DailyLogUpload",
-      "Effect": "Allow",
-      "Action": "s3:PutObject",
-      "Resource": "arn:aws:s3:::<log-bucket>/app/*"
     }
   ]
 }
 ```
+
+애플리케이션 로그는 task role이 S3에 직접 업로드하지 않습니다. ECS `awslogs` 드라이버가 CloudWatch Logs에 수집하고, CloudWatch Logs Export 또는 Firehose가 S3 로그 버킷에 적재합니다.
 
 ---
 
