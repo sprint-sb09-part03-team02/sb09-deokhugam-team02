@@ -11,7 +11,9 @@ flowchart LR
   ECS --> RDS["RDS PostgreSQL"]
   ECS --> S3IMG["S3 image bucket"]
   ECS --> CW["CloudWatch Logs"]
-  CW --> S3LOG["S3 log bucket"]
+  CW --> LAMBDA["Lambda export task"]
+  EVENT["EventBridge Scheduler"] --> LAMBDA
+  LAMBDA --> S3LOG["S3 log bucket"]
   SM["Secrets Manager"] --> ECS
 ```
 
@@ -31,6 +33,8 @@ flowchart LR
 | Image bucket | `<image-bucket>` |
 | Log bucket | `<log-bucket>` |
 | CloudWatch log group | `<cloudwatch-log-group>` |
+| Log export Lambda | `deokhugam-cloudwatch-log-export` |
+| Log export schedule | `deokhugam-daily-cloudwatch-log-export` |
 
 ## 네트워크 구성 체크
 
@@ -92,6 +96,7 @@ RDS 연결 장애가 발생하면 먼저 RDS SG의 `5432` inbound source가 ECS 
 | `SPRING_PROFILES_ACTIVE` | `dev` |
 | `AWS_REGION` | `<aws-region>` |
 | `AWS_S3_BUCKET` | `<image-bucket>` |
+| `S3_LOG_UPLOAD_ENABLED` | `false`, 앱 내부 파일 로그 업로드 fallback 비활성화 |
 
 ## Docker 이미지
 
@@ -99,66 +104,38 @@ ECS EC2 인스턴스가 `linux/amd64` 환경이므로 이미지는 반드시 amd
 
 ```bash
 cd deokhugam
-docker build --platform linux/amd64 -t <ecr-repository>:latest .
+docker buildx build --platform linux/amd64 -t <ecr-repository>:latest --load .
 ```
 
 Dockerfile은 non-root `appuser`로 애플리케이션을 실행합니다. 운영 로그는 컨테이너 파일이 아니라 표준 출력으로 남기고, ECS `awslogs` 드라이버가 CloudWatch Logs로 수집합니다.
 
-컨테이너 로컬 파일은 ECS task 재시작 시 유실될 수 있으므로 S3 적재의 원본으로 사용하지 않습니다.
-
 ## S3 로그 적재
 
-### 권장 흐름
+### 운영 로그 흐름
 
-운영 기본 로그 적재 흐름은 아래와 같습니다.
+운영 로그는 컨테이너 로컬 파일에 의존하지 않습니다. ECS task 교체나 재시작 시 `/app/logs` 파일은 사라질 수 있으므로, CloudWatch Logs를 원본으로 보고 S3는 보관용 export 대상으로 사용합니다.
 
 ```text
-Spring Boot stdout
--> ECS awslogs driver
+ECS stdout
 -> CloudWatch Logs /ecs/deokhugam-task
--> CloudWatch Logs Export 또는 Firehose
--> S3 log bucket
+-> Lambda deokhugam-cloudwatch-log-export
+-> CloudWatch Logs Export Task
+-> S3 deokhugam-logs-297904/cloudwatch/yyyy/MM/dd/
 ```
-
-애플리케이션 내부 `DailyLogUploadScheduler`는 기본값에서 비활성화합니다. 이 방식은 `/app/logs` 같은 컨테이너 로컬 파일에 의존하지 않아 ECS 재시작, task 교체, Logback rollover 타이밍 문제를 피할 수 있습니다.
 
 | 항목 | 값 |
 | --- | --- |
 | CloudWatch log group | `/ecs/deokhugam-task` |
-| CloudWatch stream prefix | `ecs` |
-| S3 export prefix | `cloudwatch/` |
-| Lambda function | `deokhugam-cloudwatch-log-export` |
-| EventBridge schedule | `deokhugam-daily-cloudwatch-log-export` |
+| S3 bucket | `deokhugam-logs-297904` |
+| S3 prefix | `cloudwatch/` |
+| 날짜별 경로 | `cloudwatch/yyyy/MM/dd/` |
 | MDC 필드 | `requestId`, `clientIp` |
 
-### CloudWatch Logs Export 수동 검증
+### Lambda Export
 
-1. AWS Console에서 `CloudWatch` → `Logs` → `Log groups`로 이동합니다.
-2. `/ecs/deokhugam-task`를 선택합니다.
-3. `Actions` → `Export data to Amazon S3`를 선택합니다.
-4. Export 범위를 전날 `00:00:00`부터 `23:59:59`까지로 지정합니다.
-5. 대상 버킷은 `<log-bucket>`, prefix는 `cloudwatch/yyyy/MM/dd/` 형태로 지정합니다.
+Lambda `deokhugam-cloudwatch-log-export`는 전날 KST 기준 하루 범위를 계산해 CloudWatch Logs Export Task를 생성합니다.
 
-Export 결과 경로 예시:
-
-```text
-s3://<log-bucket>/cloudwatch/yyyy/MM/dd/
-```
-
-### EventBridge Scheduler + Lambda 자동 적재
-
-CloudWatch Logs에서 S3로 내보내는 작업은 Lambda가 `CreateExportTask`를 호출해 생성합니다. EventBridge Scheduler는 매일 정해진 시간에 Lambda를 실행합니다.
-
-자동화 흐름:
-
-```text
-EventBridge Scheduler
--> Lambda deokhugam-cloudwatch-log-export
--> CloudWatch Logs CreateExportTask
--> S3 deokhugam-logs-297904/cloudwatch/yyyy/MM/dd/
-```
-
-Lambda 환경변수:
+환경변수:
 
 | Key | 값 |
 | --- | --- |
@@ -166,41 +143,33 @@ Lambda 환경변수:
 | `DESTINATION_BUCKET` | `deokhugam-logs-297904` |
 | `DESTINATION_PREFIX` | `cloudwatch` |
 
-EventBridge Scheduler 설정:
-
-| 항목 | 값 |
-| --- | --- |
-| Schedule name | `deokhugam-daily-cloudwatch-log-export` |
-| Schedule pattern | Recurring schedule |
-| Cron expression | `cron(10 1 * * ? *)` |
-| Timezone | `Asia/Seoul` |
-| Flexible time window | Off |
-| Target | Lambda `deokhugam-cloudwatch-log-export` |
-| Payload | `{}` |
-| Retry policy | 1시간 이내, 2회 재시도 |
-| DLQ | None |
-
-실행 기준:
-
-```text
-매일 01:10 KST 실행
--> 전날 00:00:00~23:59:59 KST 로그 Export
--> s3://deokhugam-logs-297904/cloudwatch/yyyy/MM/dd/
-```
-
-Lambda는 CloudWatch Logs Export Task를 생성하는 역할만 수행합니다. 실제 export 진행 상태는 아래 CLI로 확인합니다.
+수동 검증:
 
 ```bash
 aws logs describe-export-tasks --region ap-northeast-2
 ```
 
-상태가 `COMPLETED`이면 S3 경로에 export 객체가 생성된 것입니다. 실시간성이 필요하면 CloudWatch Logs subscription filter + Kinesis Data Firehose + S3 구성으로 확장합니다.
+성공 기준은 export task `status.code`가 `COMPLETED`이고, S3에 `cloudwatch/yyyy/MM/dd/` 하위 객체가 생성되는 것입니다.
+
+### EventBridge Scheduler
+
+| 항목 | 값 |
+| --- | --- |
+| Schedule name | `deokhugam-daily-cloudwatch-log-export` |
+| Schedule expression | `cron(10 1 * * ? *)` |
+| Timezone | `Asia/Seoul` |
+| Target | Lambda `deokhugam-cloudwatch-log-export` |
+| Payload | `{}` |
+| Retry | 최대 이벤트 수명 1시간, 재시도 2회 |
+| DLQ | 없음 |
+
+매일 `01:10 KST`에 실행되며, 전날 `00:00:00~23:59:59 KST` 범위의 CloudWatch Logs를 S3로 export합니다.
 
 ### S3 Lifecycle 권장값
 
 | Prefix | Transition | Expiration |
 | --- | --- | --- |
-| `cloudwatch/` | 없음 | 30일 또는 프로젝트 제출 이후 삭제 |
+| `cloudwatch/` | 30일 후 Standard-IA 또는 Glacier 계층 | 90일 또는 프로젝트 제출 이후 삭제 |
 
 ## 운영 배치 스케줄
 
@@ -208,7 +177,7 @@ aws logs describe-export-tasks --region ap-northeast-2
 
 | 작업 | 기본 실행 시각 |
 | --- | --- |
-| CloudWatch Logs S3 Export | 매일 01:10 |
+| CloudWatch Logs S3 export | 매일 01:10 |
 | 일간/전체 랭킹 갱신 | 매일 03:00 |
 | 알림 정리 | 매일 03:30 |
 | 주간 랭킹 갱신 | 매주 월요일 04:00 |
@@ -242,31 +211,49 @@ aws logs describe-export-tasks --region ap-northeast-2
 
 - `<image-bucket>` 이미지 업로드/조회/삭제
 
-CloudWatch Logs Export는 애플리케이션 task role이 아니라 Export를 실행하는 IAM principal 또는 Lambda role에 S3 쓰기 권한을 부여합니다.
+CloudWatch Logs를 S3로 export하는 권한은 ECS task role이 아니라 S3 bucket policy와 Lambda execution role에서 관리합니다.
 
-CloudWatch Logs Export용 최소 권한 예시:
+### CloudWatch Logs Export용 S3 Bucket Policy
+
+CloudWatch Logs가 S3 export를 수행하려면 로그 버킷에 CloudWatch Logs 서비스 principal 권한이 필요합니다.
 
 ```json
 {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "CloudWatchLogsExport",
+      "Sid": "AllowCloudWatchLogsGetBucketAcl",
       "Effect": "Allow",
-      "Action": "logs:CreateExportTask",
-      "Resource": "arn:aws:logs:<aws-region>:<aws-account-id>:log-group:<cloudwatch-log-group>"
+      "Principal": {
+        "Service": "logs.ap-northeast-2.amazonaws.com"
+      },
+      "Action": "s3:GetBucketAcl",
+      "Resource": "arn:aws:s3:::deokhugam-logs-297904",
+      "Condition": {
+        "StringEquals": {
+          "aws:SourceAccount": "297904677990"
+        },
+        "ArnLike": {
+          "aws:SourceArn": "arn:aws:logs:ap-northeast-2:297904677990:log-group:*"
+        }
+      }
     },
     {
-      "Sid": "S3LogExportWrite",
+      "Sid": "AllowCloudWatchLogsPutObject",
       "Effect": "Allow",
-      "Action": [
-        "s3:GetBucketAcl",
-        "s3:PutObject"
-      ],
-      "Resource": [
-        "arn:aws:s3:::<log-bucket>",
-        "arn:aws:s3:::<log-bucket>/cloudwatch/*"
-      ]
+      "Principal": {
+        "Service": "logs.ap-northeast-2.amazonaws.com"
+      },
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::deokhugam-logs-297904/cloudwatch/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:SourceAccount": "297904677990"
+        },
+        "ArnLike": {
+          "aws:SourceArn": "arn:aws:logs:ap-northeast-2:297904677990:log-group:*"
+        }
+      }
     }
   ]
 }
@@ -324,9 +311,26 @@ curl http://{public-ip}:8080/actuator/metrics/deokhugam.batch.job.last.success
 
 Batch가 한 번 이상 실행된 뒤 메트릭 값이 표시됩니다.
 
+### Flyway 마이그레이션 확인
+
+도서 제목 정렬 보정은 Flyway 마이그레이션으로 운영 DB에 반영됩니다.
+
+| Version | 역할 |
+| --- | --- |
+| `V4__add_book_title_sort_key.sql` | `books.title_sort_key` 컬럼 최초 추가 |
+| `V5__replace_review_unique_constraint_with_partial_index.sql` | 리뷰 soft delete 유니크 제약 정리 |
+| `V6__rebuild_book_title_sort_key.sql` | 기존 도서 제목 정렬키를 한글 가나다순 호환 키로 재계산 |
+
+배포 후 제목순 정렬이 계속 어긋나면 아래 항목을 확인합니다.
+
+1. 애플리케이션 시작 로그에서 Flyway migration 실패가 없는지 확인합니다.
+2. RDS의 `flyway_schema_history`에 `V6`이 `success=true`로 기록됐는지 확인합니다.
+3. `books.title_sort_key`가 비어 있지 않고 최신 규칙으로 재계산됐는지 확인합니다.
+4. API `GET /api/books?orderBy=title&direction=ASC&limit=20` 응답이 제목 오름차순인지 확인합니다.
+
 ### S3 로그 적재
 
-CloudWatch Logs Export 실행 후 아래 경로를 확인합니다.
+스케줄 기준 다음날 `01:10 KST` 이후 아래 경로를 확인합니다.
 
 ```text
 s3://<log-bucket>/cloudwatch/yyyy/MM/dd/
@@ -334,10 +338,11 @@ s3://<log-bucket>/cloudwatch/yyyy/MM/dd/
 
 객체가 없다면 아래 순서로 확인합니다.
 
-1. `/ecs/deokhugam-task` 로그 그룹에 대상 시간대 로그 이벤트가 있는지
-2. Export task 상태가 `COMPLETED`인지
-3. Export 대상 S3 bucket region이 CloudWatch Logs와 같은 region인지
-4. Export 실행 주체에 `logs:CreateExportTask`, `s3:GetBucketAcl`, `s3:PutObject` 권한이 있는지
+1. EventBridge Scheduler `deokhugam-daily-cloudwatch-log-export`가 `Enabled`인지
+2. Lambda `deokhugam-cloudwatch-log-export` 실행 로그에 오류가 없는지
+3. `aws logs describe-export-tasks --region ap-northeast-2`에서 task 상태가 `COMPLETED`인지
+4. S3 bucket policy에 `logs.ap-northeast-2.amazonaws.com`의 `s3:GetBucketAcl`, `s3:PutObject` 권한이 있는지
+5. CloudWatch log group `/ecs/deokhugam-task`에 전날 로그가 실제로 존재하는지
 
 ## 트러블슈팅
 
@@ -376,7 +381,10 @@ docker buildx build --platform linux/amd64 -t <ecr-repository>:<tag> --load .
 1. CloudWatch Logs 확인
 2. DB 연결 정보/보안그룹 확인
 3. Flyway schema validation 확인
-4. task definition의 image URI와 Secrets Manager 참조 확인
+4. Secrets Manager key 누락 여부 확인
+5. task definition의 이미지 태그와 CPU/Memory 설정 확인
+
+현재 운영 로그는 컨테이너 파일이 아니라 표준 출력 기반 CloudWatch Logs로 수집합니다. 따라서 `/app/logs` 파일 존재 여부는 운영 로그 적재 성공 조건이 아닙니다.
 
 ### RDS 접속 실패
 

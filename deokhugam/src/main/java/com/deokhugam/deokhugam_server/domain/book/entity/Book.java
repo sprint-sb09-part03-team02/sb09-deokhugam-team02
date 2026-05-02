@@ -24,6 +24,10 @@ import org.hibernate.annotations.UuidGenerator;
 public class Book extends BaseEntity {
 
   private static final Pattern DIGIT_PATTERN = Pattern.compile("\\d+");
+  private static final int HANGUL_BASE = 0xAC00;
+  private static final int HANGUL_END = 0xD7A3;
+  private static final int HANGUL_JUNG_COUNT = 21;
+  private static final int HANGUL_JONG_COUNT = 28;
 
   @Id
   @GeneratedValue
@@ -135,7 +139,33 @@ public class Book extends BaseEntity {
     }
     matcher.appendTail(sortKey);
 
-    return sortKey.toString();
+    return normalizeHangulSyllables(sortKey.toString());
+  }
+
+  private static String normalizeHangulSyllables(String value) {
+    StringBuilder result = new StringBuilder();
+
+    for (int i = 0; i < value.length(); i++) {
+      char current = value.charAt(i);
+      if (current >= HANGUL_BASE && current <= HANGUL_END) {
+        int syllableIndex = current - HANGUL_BASE;
+        int choseong = syllableIndex / (HANGUL_JUNG_COUNT * HANGUL_JONG_COUNT);
+        int jungseong = (syllableIndex % (HANGUL_JUNG_COUNT * HANGUL_JONG_COUNT)) / HANGUL_JONG_COUNT;
+        int jongseong = syllableIndex % HANGUL_JONG_COUNT;
+        result.append('k')
+          .append(twoDigit(choseong))
+          .append(twoDigit(jungseong))
+          .append(twoDigit(jongseong));
+      } else {
+        result.append(current);
+      }
+    }
+
+    return result.toString();
+  }
+
+  private static String twoDigit(int value) {
+    return value < 10 ? "0" + value : String.valueOf(value);
   }
 
   private static String padNumber(String value) {
