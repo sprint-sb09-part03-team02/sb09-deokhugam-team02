@@ -20,11 +20,8 @@ spring:
     active: ${SPRING_PROFILES_ACTIVE:local-h2}   # 기본값은 즉시 실행 가능한 H2 로컬 프로필
 
 logging:
-  file:
-    path: ${LOG_FILE_PATH:./logs}
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%X{requestId}] [%X{clientIp}] %-5level %logger{36} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%X{requestId}] [%X{clientIp}] %-5level %logger{36} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss,Asia/Seoul} [%X{requestId}] [%X{clientIp}] %-5level %logger{36} - %msg%n"
 
 deokhugam:
   batch:
@@ -38,6 +35,7 @@ deokhugam:
       cron: ${USER_HARD_DELETE_CRON:0 30 4 * * *}
   log:
     s3:
+      enabled: ${S3_LOG_UPLOAD_ENABLED:false}
       bucket: ${S3_LOG_BUCKET:}
       prefix: ${S3_LOG_PREFIX:app}
       local-path: ${LOG_FILE_PATH:./logs}

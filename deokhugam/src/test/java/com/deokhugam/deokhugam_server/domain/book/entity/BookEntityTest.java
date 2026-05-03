@@ -22,7 +22,7 @@ class BookEntityTest {
     );
 
     assertThat(book.getTitle()).isEqualTo("클린 코드");
-    assertThat(book.getTitleSortKey()).isEqualTo("클린 코드");
+    assertThat(book.getTitleSortKey()).isEqualTo("k151808k052004 k150800k031800");
     assertThat(book.getAuthor()).isEqualTo("로버트 마틴");
     assertThat(book.getIsbn()).isEqualTo("9788966260959");
     assertThat(book.getPublisher()).isEqualTo("인사이트");
@@ -48,7 +48,7 @@ class BookEntityTest {
     );
 
     assertThat(book.getTitle()).isEqualTo("수정된 제목");
-    assertThat(book.getTitleSortKey()).isEqualTo("수정된 제목");
+    assertThat(book.getTitleSortKey()).isEqualTo("k091300k120421k031104 k120500k060801");
     assertThat(book.getAuthor()).isEqualTo("수정된 저자");
     assertThat(book.getPublisher()).isEqualTo("수정된 출판사");
     assertThat(book.getDescription()).isEqualTo("수정된 설명");
@@ -64,7 +64,7 @@ class BookEntityTest {
     book.update(null, null, null, null, null, null);
 
     assertThat(book.getTitle()).isEqualTo("클린 코드");
-    assertThat(book.getTitleSortKey()).isEqualTo("클린 코드");
+    assertThat(book.getTitleSortKey()).isEqualTo("k151808k052004 k150800k031800");
     assertThat(book.getAuthor()).isEqualTo("로버트 마틴");
     assertThat(book.getPublisher()).isEqualTo("인사이트");
     assertThat(book.getDescription()).isEqualTo("좋은 코드 작성법");
@@ -88,7 +88,8 @@ class BookEntityTest {
   void toTitleSortKey_mixedTitle_success() {
     assertThat(Book.toTitleSortKey(" Book-10 ")).isEqualTo("book 00000000000000000010");
     assertThat(Book.toTitleSortKey("book 2")).isEqualTo("book 00000000000000000002");
-    assertThat(Book.toTitleSortKey("정렬-Banana")).isEqualTo("정렬 banana");
+    assertThat(Book.toTitleSortKey("정렬-Banana")).isEqualTo("k120421k050608 banana");
+    assertThat(Book.toTitleSortKey("내 강아지")).isEqualTo("k020100 k000021k110000k122000");
   }
 
   private Book createBook() {

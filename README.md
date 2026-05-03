@@ -69,10 +69,12 @@ cd deokhugam
 
 ### S3 날짜별 로그 적재
 
-애플리케이션 파일 로그는 `/app/logs`에 생성되고, 스케줄러가 매일 `01:00 Asia/Seoul`에 전날 로그를 S3에 업로드합니다.
+운영 환경의 애플리케이션 로그는 ECS `awslogs` 드라이버를 통해 CloudWatch Logs에 먼저 수집됩니다. 이후 EventBridge Scheduler가 매일 Lambda를 실행하고, Lambda가 CloudWatch Logs Export Task를 생성해 전날 로그를 S3에 날짜별로 적재합니다.
 
-- 로컬 로그 파일: `/app/logs/deokhugam.yyyy-MM-dd.log`
-- S3 적재 경로: `app/yyyy/MM/dd/deokhugam.yyyy-MM-dd.log`
+- 로그 원본: CloudWatch Logs `/ecs/deokhugam-task`
+- 자동 적재: EventBridge Scheduler → Lambda → CloudWatch Logs Export Task
+- S3 적재 경로: `cloudwatch/yyyy/MM/dd/`
+- 실행 기준: 매일 `01:10 Asia/Seoul`, 전날 `00:00:00~23:59:59 KST` 로그 export
 - 상세 설정: [AWS 배포 및 운영 가이드](deokhugam/docs/AWS_DEPLOYMENT.md)
 
 ### Spring Batch 및 Actuator 메트릭
@@ -85,6 +87,10 @@ cd deokhugam
 - `deokhugam.batch.job.duration`
 - `deokhugam.batch.job.last.duration.seconds`
 - `deokhugam.batch.job.last.success`
+
+### 도서 제목 정렬
+
+도서 목록의 `orderBy=title` 정렬은 `books.title_sort_key` 기준으로 처리합니다. 한글, 영문, 숫자, 대소문자가 섞인 제목도 안정적으로 정렬되도록 제목 저장/수정 시 정렬키를 생성하고, 운영 기존 데이터는 Flyway `V6__rebuild_book_title_sort_key.sql`로 재계산합니다.
 
 ## CI/CD
 
@@ -110,9 +116,10 @@ PR -> CI 통과 -> dev -> main merge -> CD -> ECR push -> ECS service update
 | ECS EC2 | Spring Boot 애플리케이션 실행 |
 | RDS PostgreSQL | 운영 데이터베이스 및 Spring Batch 메타테이블 저장 |
 | S3 이미지 버킷 | 이미지/썸네일 저장 |
-| S3 로그 버킷 | 날짜별 애플리케이션 로그 적재 |
+| S3 로그 버킷 | CloudWatch Logs export 결과 날짜별 적재 |
 | Secrets Manager | DB, Naver API, OCR Space API 민감값 관리 |
-| CloudWatch Logs | ECS 컨테이너 표준 출력 로그 확인 |
+| CloudWatch Logs | ECS 컨테이너 표준 출력 로그 수집 및 S3 export 원본 |
+| Lambda / EventBridge Scheduler | 전날 CloudWatch Logs를 S3로 자동 export |
 
 자세한 구축/검증 절차는 [AWS 배포 및 운영 가이드](deokhugam/docs/AWS_DEPLOYMENT.md)를 확인합니다.
 
