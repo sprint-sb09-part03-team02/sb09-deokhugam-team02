@@ -120,7 +120,7 @@ class BookServiceImplTest {
       now
     );
 
-    when(bookRepository.existsByIsbn("9788912345678")).thenReturn(false);
+    when(bookRepository.existsByIsbnAndIsDeletedFalse("9788912345678")).thenReturn(false);
     when(bookRepository.save(any(Book.class))).thenReturn(savedBook);
     when(savedBook.getId()).thenReturn(bookId);
     when(bookRepository.findBookDetail(bookId)).thenReturn(queryDto);
@@ -186,7 +186,7 @@ class BookServiceImplTest {
       now
     );
 
-    when(bookRepository.existsByIsbn("9788912345678")).thenReturn(false);
+    when(bookRepository.existsByIsbnAndIsDeletedFalse("9788912345678")).thenReturn(false);
     when(s3Util.upload(thumbnailImage, "books")).thenReturn(thumbnailUrl);
     when(bookRepository.save(any(Book.class))).thenReturn(savedBook);
     when(savedBook.getId()).thenReturn(bookId);
@@ -212,7 +212,7 @@ class BookServiceImplTest {
       LocalDate.of(2024, 1, 1)
     );
 
-    when(bookRepository.existsByIsbn("9788912345678")).thenReturn(true);
+    when(bookRepository.existsByIsbnAndIsDeletedFalse("9788912345678")).thenReturn(true);
 
     DeokhugamException exception = assertThrows(DeokhugamException.class, () ->
       bookService.createBook(request, null)

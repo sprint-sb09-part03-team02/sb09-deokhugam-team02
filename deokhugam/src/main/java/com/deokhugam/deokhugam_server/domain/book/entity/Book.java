@@ -44,7 +44,7 @@ public class Book extends BaseEntity {
   @Column(name = "author", nullable = false, length = 255)
   private String author;
 
-  @Column(name = "isbn", nullable = false, unique = true, length = 20)
+  @Column(name = "isbn", nullable = false, length = 20)
   private String isbn;
 
   @Column(name = "publisher", length = 255)
