@@ -273,6 +273,97 @@ class BookRepositoryCustomImplTest {
   }
 
   @Test
+  @DisplayName("성공: 숫자, 영문, 한글이 섞인 제목을 문자 그룹과 알파벳순으로 조회한다")
+  void searchBooks_OrderByTitleSortKeyMixedCharacterGroups_Success() {
+    persistBook(
+      "The Pragmatic Programmer",
+      "alphabet-tester",
+      "9790000000101",
+      LocalDate.of(2024, 1, 1),
+      BASE_TIME.plusDays(1)
+    );
+    persistBook(
+      "Moneyball",
+      "alphabet-tester",
+      "9790000000102",
+      LocalDate.of(2024, 1, 2),
+      BASE_TIME.plusDays(2)
+    );
+    persistBook(
+      "Apple Design",
+      "alphabet-tester",
+      "9790000000103",
+      LocalDate.of(2024, 1, 3),
+      BASE_TIME.plusDays(3)
+    );
+    persistBook(
+      "가나다 책",
+      "alphabet-tester",
+      "9790000000104",
+      LocalDate.of(2024, 1, 4),
+      BASE_TIME.plusDays(4)
+    );
+    persistBook(
+      "10 Rules",
+      "alphabet-tester",
+      "9790000000105",
+      LocalDate.of(2024, 1, 5),
+      BASE_TIME.plusDays(5)
+    );
+    persistBook(
+      "초보 개발",
+      "alphabet-tester",
+      "9790000000106",
+      LocalDate.of(2024, 1, 6),
+      BASE_TIME.plusDays(6)
+    );
+
+    em.flush();
+    em.clear();
+
+    BookSearchRequest ascRequest = new BookSearchRequest(
+      "alphabet-tester",
+      "title",
+      "ASC",
+      null,
+      null,
+      10
+    );
+    BookSearchRequest descRequest = new BookSearchRequest(
+      "alphabet-tester",
+      "title",
+      "DESC",
+      null,
+      null,
+      10
+    );
+
+    List<BookSearchQueryDto> ascResult = bookRepository.searchBooks(ascRequest);
+    List<BookSearchQueryDto> descResult = bookRepository.searchBooks(descRequest);
+
+    assertThat(ascResult)
+      .extracting(BookSearchQueryDto::title)
+      .containsExactly(
+        "10 Rules",
+        "Apple Design",
+        "Moneyball",
+        "The Pragmatic Programmer",
+        "가나다 책",
+        "초보 개발"
+      );
+    assertThat(descResult)
+      .extracting(BookSearchQueryDto::title)
+      .containsExactly(
+        "초보 개발",
+        "가나다 책",
+        "The Pragmatic Programmer",
+        "Moneyball",
+        "Apple Design",
+        "10 Rules"
+      );
+  }
+
+  @Test
   @DisplayName("성공: 한글 제목을 가나다순 정렬키 기준으로 조회한다")
   void searchBooks_OrderByTitleSortKeyKoreanTitles_Success() {
     persistBook(
