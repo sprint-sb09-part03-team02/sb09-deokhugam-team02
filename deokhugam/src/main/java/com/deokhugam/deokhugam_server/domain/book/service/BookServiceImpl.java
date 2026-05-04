@@ -217,7 +217,7 @@ public class BookServiceImpl implements BookService {
   }
 
   private void validateDuplicateIsbn(String isbn) {
-    if (bookRepository.existsByIsbn(isbn)) {
+    if (bookRepository.existsByIsbnAndIsDeletedFalse(isbn)) {
       throw new DeokhugamException(ErrorCode.DUPLICATE_ISBN);
     }
   }
