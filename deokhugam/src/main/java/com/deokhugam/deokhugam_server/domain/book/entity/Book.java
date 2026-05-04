@@ -38,7 +38,7 @@ public class Book extends BaseEntity {
   @Column(name = "title", nullable = false, length = 255)
   private String title;
 
-  @Column(name = "title_sort_key", nullable = false, length = 500)
+  @Column(name = "title_sort_key", nullable = false, length = 2048)
   private String titleSortKey;
 
   @Column(name = "author", nullable = false, length = 255)
@@ -139,29 +139,39 @@ public class Book extends BaseEntity {
     }
     matcher.appendTail(sortKey);
 
-    return normalizeHangulSyllables(sortKey.toString());
+    return normalizeSortCharacters(sortKey.toString());
   }
 
-  private static String normalizeHangulSyllables(String value) {
+  private static String normalizeSortCharacters(String value) {
     StringBuilder result = new StringBuilder();
 
     for (int i = 0; i < value.length(); i++) {
       char current = value.charAt(i);
-      if (current >= HANGUL_BASE && current <= HANGUL_END) {
+      if (Character.isDigit(current)) {
+        result.append('0').append(current);
+      } else if (isEnglishLetter(current)) {
+        result.append('1').append(current);
+      } else if (current >= HANGUL_BASE && current <= HANGUL_END) {
         int syllableIndex = current - HANGUL_BASE;
         int choseong = syllableIndex / (HANGUL_JUNG_COUNT * HANGUL_JONG_COUNT);
         int jungseong = (syllableIndex % (HANGUL_JUNG_COUNT * HANGUL_JONG_COUNT)) / HANGUL_JONG_COUNT;
         int jongseong = syllableIndex % HANGUL_JONG_COUNT;
-        result.append('k')
+        result.append('2')
           .append(twoDigit(choseong))
           .append(twoDigit(jungseong))
           .append(twoDigit(jongseong));
+      } else if (Character.isWhitespace(current)) {
+        result.append('3').append(' ');
       } else {
-        result.append(current);
+        result.append('9').append(current);
       }
     }
 
     return result.toString();
+  }
+
+  private static boolean isEnglishLetter(char value) {
+    return value >= 'a' && value <= 'z';
   }
 
   private static String twoDigit(int value) {
