@@ -11,5 +11,5 @@ public interface BookRepository extends JpaRepository<Book, UUID>, BookRepositor
 
   Optional<Book> findByIsbnAndIsDeletedFalse(String isbn);
 
-  boolean existsByIsbn(String isbn);
+  boolean existsByIsbnAndIsDeletedFalse(String isbn);
 }
