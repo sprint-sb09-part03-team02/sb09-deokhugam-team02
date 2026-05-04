@@ -57,9 +57,10 @@ public class UserServiceImpl implements UserService {
   @Override
   public UserDto login(UserLoginRequest request) {
     return userRepository.findByEmail(request.email())
-        .filter(u -> passwordEncoder.matches(request.password(), u.getPassword()))
-        .map(userMapper::toDto)
-        .orElseThrow(() -> new DeokhugamException(LOGIN_FAILED));
+      .filter(u -> !u.isDeleted())
+      .filter(u -> passwordEncoder.matches(request.password(), u.getPassword()))
+      .map(userMapper::toDto)
+      .orElseThrow(() -> new DeokhugamException(LOGIN_FAILED));
   }
 
   @Override
