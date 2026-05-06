@@ -6,6 +6,10 @@
 덕후감은 도서, 리뷰, 댓글, 알림, 인기 랭킹을 관리하는 Spring Boot 기반 백엔드 서버입니다.
 로컬 개발은 H2로 바로 실행할 수 있고, 운영 배포는 GitHub Actions를 통해 ECR 이미지를 빌드한 뒤 AWS ECS EC2 서비스로 배포합니다.
 
+## 구현 홈페이지
+
+- 서비스 URL: http://deokhugam-alb-444789430.ap-northeast-2.elb.amazonaws.com/
+
 ## 기술 스택
 
 | 구분 | 기술 |

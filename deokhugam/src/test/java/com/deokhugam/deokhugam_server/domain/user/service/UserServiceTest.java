@@ -124,7 +124,7 @@ class UserServiceTest {
     // given
     UserLoginRequest request = new UserLoginRequest(TEST_EMAIL, RAW_PASSWORD);
 
-    given(userRepository.findByEmail(TEST_EMAIL)).willReturn(Optional.of(user));
+    given(userRepository.findByEmailAndIsDeletedFalse(TEST_EMAIL)).willReturn(Optional.of(user));
     given(passwordEncoder.matches(RAW_PASSWORD, user.getPassword())).willReturn(true);
     given(userMapper.toDto(user)).willReturn(
         new UserDto(userId, TEST_EMAIL, TEST_NICKNAME, LocalDateTime.now())
@@ -137,7 +137,7 @@ class UserServiceTest {
     assertThat(result.id()).isEqualTo(userId);
     assertThat(result.email()).isEqualTo(TEST_EMAIL);
 
-    verify(userRepository).findByEmail(TEST_EMAIL);
+    verify(userRepository).findByEmailAndIsDeletedFalse(TEST_EMAIL);
     verify(passwordEncoder).matches(RAW_PASSWORD, user.getPassword());
   }
 
@@ -148,7 +148,7 @@ class UserServiceTest {
     String wrongPassword = "wrong_password";
     UserLoginRequest request = new UserLoginRequest(TEST_EMAIL, wrongPassword);
 
-    given(userRepository.findByEmail(TEST_EMAIL)).willReturn(Optional.of(user));
+    given(userRepository.findByEmailAndIsDeletedFalse(TEST_EMAIL)).willReturn(Optional.of(user));
     given(passwordEncoder.matches(wrongPassword, user.getPassword())).willReturn(false);
 
     // when & then
@@ -156,6 +156,22 @@ class UserServiceTest {
         .isInstanceOf(DeokhugamException.class)
         .hasMessage(ErrorCode.LOGIN_FAILED.getMessage());
 
+    verify(userMapper, never()).toDto(any());
+  }
+
+  @Test
+  @DisplayName("로그인 실패 - 탈퇴 사용자는 조회 대상에서 제외")
+  void login_Fail_DeletedUser() {
+    // given
+    UserLoginRequest request = new UserLoginRequest(TEST_EMAIL, RAW_PASSWORD);
+    given(userRepository.findByEmailAndIsDeletedFalse(TEST_EMAIL)).willReturn(Optional.empty());
+
+    // when & then
+    assertThatThrownBy(() -> userService.login(request))
+        .isInstanceOf(DeokhugamException.class)
+        .hasMessage(ErrorCode.LOGIN_FAILED.getMessage());
+
+    verify(passwordEncoder, never()).matches(anyString(), anyString());
     verify(userMapper, never()).toDto(any());
   }
 
