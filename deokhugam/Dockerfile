@@ -1,18 +1,19 @@
 # Stage 1: Build
-FROM gradle:8-jdk17-jammy AS builder
+FROM eclipse-temurin:17-jdk-jammy AS builder
 
 WORKDIR /app
 
-# 의존성 캐시를 위해 gradle 설정 파일 먼저 복사
+# CI/CD와 동일한 Gradle Wrapper 기준으로 빌드한다.
 COPY build.gradle settings.gradle ./
-COPY gradle ./gradle
+COPY gradlew ./
+COPY gradle ./gradle/
 
 # 의존성 미리 다운로드 (캐시 레이어)
-RUN gradle dependencies --no-daemon || true
+RUN chmod +x gradlew && ./gradlew dependencies --no-daemon || true
 
 # 소스 코드 복사 후 빌드 (테스트 제외)
 COPY src ./src
-RUN gradle bootJar --no-daemon -x test
+RUN ./gradlew bootJar --no-daemon -x test
 
 # Stage 2: Run
 FROM eclipse-temurin:17-jre-jammy AS runner
