@@ -50,6 +50,7 @@ public interface ReviewMapper {
   @Mapping(target = "reviewContent", source = "popularReview.review.content")
   @Mapping(target = "reviewRating", source = "popularReview.review.rating")
   @Mapping(target = "period", source = "popularReview.periodType") // period -> periodType
+  @Mapping(target = "createdAt", source = "popularReview.review.createdAt")
   @Mapping(target = "rank", source = "popularReview.rankOrder")    // rank -> rankOrder
   PopularReviewDto toPopularDto(PopularReview popularReview);
 }

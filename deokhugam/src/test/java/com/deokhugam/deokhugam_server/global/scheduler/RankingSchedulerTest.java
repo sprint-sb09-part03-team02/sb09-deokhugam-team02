@@ -30,18 +30,23 @@ class RankingSchedulerTest {
   private Job rankingJob;
 
   @Test
-  @DisplayName("성공: 일간과 전체 랭킹 배치를 함께 실행한다")
+  @DisplayName("성공: 모든 기간 랭킹 배치를 함께 실행한다")
   void runDailyAndAllTimeRanking_LaunchesDailyAndAllTimeJobs() throws Exception {
     RankingScheduler scheduler = new RankingScheduler(jobLauncher, rankingJob);
 
     scheduler.runDailyAndAllTimeRanking();
 
     ArgumentCaptor<JobParameters> captor = ArgumentCaptor.forClass(JobParameters.class);
-    verify(jobLauncher, times(2)).run(any(Job.class), captor.capture());
+    verify(jobLauncher, times(4)).run(any(Job.class), captor.capture());
     List<String> periods = captor.getAllValues().stream()
         .map(params -> params.getString("period"))
         .toList();
-    assertThat(periods).containsExactly(Period.DAILY.name(), Period.ALL_TIME.name());
+    assertThat(periods).containsExactly(
+        Period.DAILY.name(),
+        Period.WEEKLY.name(),
+        Period.MONTHLY.name(),
+        Period.ALL_TIME.name()
+    );
   }
 
   @Test
