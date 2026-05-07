@@ -184,7 +184,7 @@ public class ReviewServiceImpl implements ReviewService {
       review.increaseLikeCount();
 
       eventPublisher.publishEvent(new ReviewLikedEvent(
-          reviewId, requestUserId, review.getUser().getId(), review.getContent()
+          reviewId, requestUserId, user.getNickname(), review.getUser().getId(), review.getContent()
       ));
 
       return new ReviewLikeDto(reviewId, requestUserId, true);

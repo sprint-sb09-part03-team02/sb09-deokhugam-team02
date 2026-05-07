@@ -84,6 +84,10 @@
         {
           "name": "OCR_SPACE_API_KEY",
           "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:${AWS_ACCOUNT_ID}:secret:deokhugam/prod:OCR_SPACE_API_KEY::"
+        },
+        {
+          "name": "MANUAL_BATCH_KEY",
+          "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:${AWS_ACCOUNT_ID}:secret:deokhugam/prod:MANUAL_BATCH_KEY::"
         }
       ],
       "logConfiguration": {
