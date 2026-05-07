@@ -33,6 +33,8 @@ deokhugam:
       cron: ${NOTIFICATION_CLEANUP_CRON:0 30 3 * * *}
     user-hard-delete:
       cron: ${USER_HARD_DELETE_CRON:0 30 4 * * *}
+    manual:
+      key: ${MANUAL_BATCH_KEY:}
   log:
     s3:
       enabled: ${S3_LOG_UPLOAD_ENABLED:false}

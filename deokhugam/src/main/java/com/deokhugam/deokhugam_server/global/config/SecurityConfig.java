@@ -54,6 +54,7 @@ public class SecurityConfig {
             .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/books/popular").permitAll()
             .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/reviews/popular").permitAll()
             .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/users/power").permitAll()
+            .requestMatchers(org.springframework.http.HttpMethod.POST, "/internal/batches/ranking").permitAll()
 
             // 2. 스웨거(Swagger) 관련 경로들 - 문자열로 간단하게!
             .requestMatchers(
