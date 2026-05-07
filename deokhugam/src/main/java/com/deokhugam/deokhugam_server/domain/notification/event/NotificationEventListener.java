@@ -41,7 +41,7 @@ public class NotificationEventListener {
             event.reviewId(),
             reviewOwnerId,
             NotificationType.REVIEW_COMMENTED,
-            "회원님의 리뷰에 댓글이 달렸습니다."
+            String.format("%s님이 회원님의 리뷰에 댓글을 남겼습니다.", event.commentAuthorNickname())
         );
     }
 
@@ -56,7 +56,7 @@ public class NotificationEventListener {
             event.reviewId(),
             event.targetUserId(),
             NotificationType.REVIEW_LIKED,
-            "회원님의 리뷰에 좋아요가 달렸습니다."
+            String.format("%s님이 회원님의 리뷰에 좋아요를 눌렀습니다.", event.likerNickname())
         );
     }
 

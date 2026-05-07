@@ -5,5 +5,6 @@ import java.util.UUID;
 public record CommentCreatedEvent(
     UUID reviewId,
     UUID commentId,
-    UUID commentAuthorId
+    UUID commentAuthorId,
+    String commentAuthorNickname
 ) {}

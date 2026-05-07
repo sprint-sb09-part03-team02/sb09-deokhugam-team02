@@ -56,7 +56,8 @@ public class CommentServiceImpl implements CommentService {
     eventPublisher.publishEvent(new CommentCreatedEvent(
         savedComment.getReview().getId(),
         savedComment.getId(),
-        savedComment.getUserId()
+        savedComment.getUserId(),
+        user.getNickname()
     ));
 
     return commentMapper.toDto(savedComment, user.getNickname());

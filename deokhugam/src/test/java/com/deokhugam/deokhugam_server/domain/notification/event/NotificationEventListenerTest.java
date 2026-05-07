@@ -49,13 +49,13 @@ class NotificationEventListenerTest {
 
     given(reviewRepository.findByIdAndIsDeletedFalse(reviewId)).willReturn(Optional.of(review));
 
-    listener.handleCommentCreated(new CommentCreatedEvent(reviewId, UUID.randomUUID(), commentAuthorId));
+    listener.handleCommentCreated(new CommentCreatedEvent(reviewId, UUID.randomUUID(), commentAuthorId, "댓글작성자"));
 
     verify(notificationService).createNotification(
       eq(reviewId),
       eq(reviewOwnerId),
       eq(NotificationType.REVIEW_COMMENTED),
-      eq("회원님의 리뷰에 댓글이 달렸습니다.")
+      eq("댓글작성자님이 회원님의 리뷰에 댓글을 남겼습니다.")
     );
   }
 
@@ -67,13 +67,13 @@ class NotificationEventListenerTest {
     Review review = mockReview(ownerId);
     given(reviewRepository.findByIdAndIsDeletedFalse(reviewId)).willReturn(Optional.of(review));
 
-    listener.handleCommentCreated(new CommentCreatedEvent(reviewId, UUID.randomUUID(), ownerId));
+    listener.handleCommentCreated(new CommentCreatedEvent(reviewId, UUID.randomUUID(), ownerId, "리뷰작성자"));
 
     verify(notificationService, never()).createNotification(
       eq(reviewId),
       eq(ownerId),
       eq(NotificationType.REVIEW_COMMENTED),
-      eq("회원님의 리뷰에 댓글이 달렸습니다.")
+      eq("리뷰작성자님이 회원님의 리뷰에 댓글을 남겼습니다.")
     );
   }
 
@@ -84,7 +84,8 @@ class NotificationEventListenerTest {
     given(reviewRepository.findByIdAndIsDeletedFalse(reviewId)).willReturn(Optional.empty());
 
     assertThatThrownBy(() ->
-      listener.handleCommentCreated(new CommentCreatedEvent(reviewId, UUID.randomUUID(), UUID.randomUUID())))
+      listener.handleCommentCreated(new CommentCreatedEvent(
+          reviewId, UUID.randomUUID(), UUID.randomUUID(), "댓글작성자")))
       .isInstanceOf(DeokhugamException.class)
       .hasMessageContaining(ErrorCode.REVIEW_NOT_FOUND.getMessage());
   }
@@ -96,13 +97,13 @@ class NotificationEventListenerTest {
     UUID likerId = UUID.randomUUID();
     UUID targetUserId = UUID.randomUUID();
 
-    listener.handleReviewLiked(new ReviewLikedEvent(reviewId, likerId, targetUserId, "리뷰 내용"));
+    listener.handleReviewLiked(new ReviewLikedEvent(reviewId, likerId, "좋아요작성자", targetUserId, "리뷰 내용"));
 
     verify(notificationService).createNotification(
       eq(reviewId),
       eq(targetUserId),
       eq(NotificationType.REVIEW_LIKED),
-      eq("회원님의 리뷰에 좋아요가 달렸습니다.")
+      eq("좋아요작성자님이 회원님의 리뷰에 좋아요를 눌렀습니다.")
     );
   }
 
@@ -111,7 +112,7 @@ class NotificationEventListenerTest {
   void handleReviewLiked_SkipSelfLike() {
     UUID userId = UUID.randomUUID();
 
-    listener.handleReviewLiked(new ReviewLikedEvent(UUID.randomUUID(), userId, userId, "리뷰 내용"));
+    listener.handleReviewLiked(new ReviewLikedEvent(UUID.randomUUID(), userId, "리뷰작성자", userId, "리뷰 내용"));
 
     verify(notificationService, never()).createNotification(
       org.mockito.ArgumentMatchers.any(),
